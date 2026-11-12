@@ -32,6 +32,8 @@ export default defineConfig({
     },
   },
   build: {
+    outDir: 'E:/.rauhaah-cache/dist',
+    emptyOutDir: true,
     rollupOptions: {
       input: {
         main: 'index.html',
