@@ -10,4 +10,41 @@
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
+
+  /* Custom Rauhaah scrollbars (WebView2 / Chromium) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #d4d4d4 transparent;
+  }
+
+  .dark * {
+    scrollbar-color: #3a3a3a transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(163, 163, 163, 0.45);
+    border-radius: 9999px;
+    transition: background-color 0.2s ease;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: #3a3a3a;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(239, 184, 16, 0.75);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
 }
