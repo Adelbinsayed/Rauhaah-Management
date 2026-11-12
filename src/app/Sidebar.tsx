@@ -53,18 +53,12 @@ export function Sidebar() {
   return (
     <aside className="w-60 shrink-0 border-r border-neutral-200 bg-[#F9F9F9] dark:border-brand-border dark:bg-brand-black flex flex-col h-screen select-none">
       {/* Brand Header */}
-      <div className="px-5 py-4 border-b border-neutral-200 dark:border-brand-border flex items-center gap-3">
-        <div className="w-8 h-8 rounded-md bg-brand-gold/15 border border-brand-gold/40 flex items-center justify-center text-brand-gold font-bold italic text-lg">
-          R
-        </div>
-        <div>
-          <div className="text-base font-bold italic text-brand-gold leading-tight tracking-tight">
-            Rauhaah
-          </div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400">
-            {en.app.tagline}
-          </div>
-        </div>
+      <div className="px-5 py-4 border-b border-neutral-200 dark:border-brand-border flex items-center justify-center bg-brand-black">
+        <img
+          src="/assets/rauhaah-logo-white.png"
+          alt="Rauhaah — Live Peaceful"
+          className="h-10 w-auto object-contain"
+        />
       </div>
 
       {/* Navigation */}
