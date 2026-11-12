@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/.dev-portable/
+
+# Portable data (never commit live DBs)
+data/
+backups/
+Import/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.local
+.vscode/*
+!.vscode/extensions.json

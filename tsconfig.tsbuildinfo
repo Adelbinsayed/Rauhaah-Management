@@ -1,0 +1,1 @@
+{"root":["./src/main.tsx","./src/app/app.tsx","./src/app/sidebar.tsx","./src/app/store.ts","./src/data/db.ts","./src/data/repositories/systemrepo.ts","./src/lib/dates.ts","./src/lib/helpers.test.ts","./src/lib/ids.ts","./src/lib/money.ts","./src/lib/quantity.ts","./src/lib/utils.ts","./src/lib/i18n/en.ts"],"version":"5.9.3"}

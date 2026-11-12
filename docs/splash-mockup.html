@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Rauhaah Splash</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:#111;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  font-family:'Inter',sans-serif;
+}
+.hint{color:#555;font-size:11px;letter-spacing:.1em;text-transform:uppercase;}
+
+/* ── SPLASH WINDOW ── */
+.splash{
+  width:620px;height:380px;
+  background:#202020;
+  border-radius:5px;
+  box-shadow:0 40px 100px rgba(0,0,0,.8),0 0 0 1px #2e2e2e;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  position:relative;
+}
+
+/* gold top accent */
+.gold-bar{height:3px;background:linear-gradient(90deg,#c89a0a,#EFB810 40%,#f5d060 60%,#EFB810 80%,#c89a0a);flex-shrink:0;}
+
+/* main area */
+.main{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:28px 48px 12px;
+  position:relative;overflow:hidden;
+}
+/* subtle radial glow */
+.main::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 45%,rgba(239,184,16,.07) 0%,transparent 100%);
+  pointer-events:none;
+}
+
+/* ── LOTUS SVG ICON ── */
+.lotus-wrap{margin-bottom:16px;}
+svg.lotus{width:60px;height:52px;overflow:visible;}
+
+/* ── BRAND TEXT ── */
+.brand{font-size:52px;font-weight:700;font-style:italic;
+  color:#EFB810;letter-spacing:-1px;line-height:1;
+  text-shadow:0 0 40px rgba(239,184,16,.3);}
+.tagline{font-size:10px;letter-spacing:.28em;color:#666;
+  text-transform:uppercase;margin-top:7px;margin-bottom:22px;}
+
+/* divider */
+.div{width:36px;height:1px;background:#333;margin-bottom:22px;}
+
+/* module badges */
+.badges{display:flex;gap:8px;}
+.badge{padding:3px 11px;border:1px solid #333;border-radius:20px;
+  font-size:9.5px;color:#555;letter-spacing:.05em;user-select:none;}
+
+/* ── STATUS BAR ── */
+.bar-wrap{padding:9px 18px 13px;flex-shrink:0;}
+.bar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.status{font-size:10px;color:#555;letter-spacing:.03em;min-height:14px;
+  transition:opacity .25s;}
+.ver{font-size:10px;color:#404040;}
+.track{height:2px;background:#2a2a2a;border-radius:2px;overflow:hidden;}
+.fill{height:100%;background:linear-gradient(90deg,#c89a0a,#EFB810,#f5d060);
+  border-radius:2px;width:0%;transition:width .6s ease;}
+.copy{font-size:9px;color:#383838;text-align:center;margin-top:6px;}
+
+/* replay */
+.btn{
+  background:#1e1e1e;border:1px solid #333;color:#666;
+  font-family:'Inter',sans-serif;font-size:11px;
+  padding:7px 18px;border-radius:4px;cursor:pointer;
+  letter-spacing:.04em;transition:all .2s;
+}
+.btn:hover{background:#2a2a2a;color:#EFB810;border-color:#EFB810;}
+</style>
+</head>
+<body>
+<div class="hint">Splash Screen · Rauhaah Management · Mockup</div>
+
+<div class="splash" id="splash">
+  <div class="gold-bar"></div>
+
+  <div class="main">
+    <!-- Lotus icon (SVG) -->
+    <div class="lotus-wrap">
+      <svg class="lotus" viewBox="0 0 60 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- outer left petal -->
+        <ellipse cx="14" cy="30" rx="8" ry="16" fill="#c89a0a" opacity=".7"
+          transform="rotate(-38 14 30)"/>
+        <!-- outer right petal -->
+        <ellipse cx="46" cy="30" rx="8" ry="16" fill="#c89a0a" opacity=".7"
+          transform="rotate(38 46 30)"/>
+        <!-- inner left petal -->
+        <ellipse cx="22" cy="26" rx="8" ry="20" fill="#EFB810" opacity=".9"
+          transform="rotate(-18 22 26)"/>
+        <!-- inner right petal -->
+        <ellipse cx="38" cy="26" rx="8" ry="20" fill="#EFB810" opacity=".9"
+          transform="rotate(18 38 26)"/>
+        <!-- centre petal -->
+        <ellipse cx="30" cy="22" rx="9" ry="22" fill="#f5d060"/>
+        <!-- sparkles -->
+        <circle cx="10" cy="12" r="1.5" fill="#EFB810" opacity=".5"/>
+        <circle cx="50" cy="10" r="1"   fill="#EFB810" opacity=".4"/>
+        <circle cx="30" cy="2"  r="2"   fill="#EFB810" opacity=".6"/>
+        <circle cx="20" cy="6"  r="1.2" fill="#f5d060" opacity=".5"/>
+        <circle cx="42" cy="5"  r="1.5" fill="#f5d060" opacity=".45"/>
+        <!-- stem base -->
+        <path d="M22 46 Q30 50 38 46" stroke="#c89a0a" stroke-width="1.5"
+          stroke-linecap="round" fill="none" opacity=".4"/>
+      </svg>
+    </div>
+
+    <div class="brand">Rauhaah</div>
+    <div class="tagline">Live Peaceful</div>
+    <div class="div"></div>
+
+    <div class="badges">
+      <div class="badge">Inventory</div>
+      <div class="badge">POS</div>
+      <div class="badge">Reports</div>
+      <div class="badge">Blends</div>
+    </div>
+  </div>
+
+  <div class="bar-wrap">
+    <div class="bar-top">
+      <div class="status" id="msg">Starting Rauhaah Management…</div>
+      <div class="ver">v 1.0.0</div>
+    </div>
+    <div class="track"><div class="fill" id="fill"></div></div>
+    <div class="copy">© 2026 Sooktec &nbsp;·&nbsp; Rauhaah Management &nbsp;·&nbsp; All rights reserved</div>
+  </div>
+</div>
+
+<button class="btn" onclick="restart()">↺ &nbsp;Replay animation</button>
+
+<script>
+const steps=[
+  {pct:0,  delay:0,    text:'Starting Rauhaah Management…'},
+  {pct:20, delay:500,  text:'Initialising database…'},
+  {pct:40, delay:1050, text:'Verifying license…'},
+  {pct:58, delay:1600, text:'Loading products catalog…'},
+  {pct:75, delay:2150, text:'Setting up workspace…'},
+  {pct:90, delay:2700, text:'Almost ready…'},
+  {pct:100,delay:3100, text:'Welcome back.'},
+];
+let timers=[];
+const fill=document.getElementById('fill');
+const msg=document.getElementById('msg');
+
+function run(){
+  steps.forEach(s=>{
+    timers.push(setTimeout(()=>{
+      fill.style.width=s.pct+'%';
+      msg.style.opacity=0;
+      setTimeout(()=>{msg.textContent=s.text;msg.style.opacity=1;},150);
+    },s.delay));
+  });
+}
+
+function restart(){
+  timers.forEach(clearTimeout);timers=[];
+  fill.style.transition='none';fill.style.width='0%';
+  setTimeout(()=>{fill.style.transition='width .6s ease';run();},80);
+}
+
+run();
+</script>
+</body>
+</html>
