@@ -2,11 +2,11 @@ import React, { useEffect, useState, useMemo } from 'react';
 import {
   Package,
   Plus,
+  PlusCircle,
   Search,
   History,
   Sparkles,
   AlertTriangle,
-  Layers,
   Droplet,
   Tag,
   Scan,
@@ -15,16 +15,13 @@ import { catalogRepo } from '../../data/repositories/catalogRepo';
 import type {
   Brand,
   Category,
-  CreateAttarIntakeInput,
   CreateProductInput,
-  CreateStockItemInput,
   BulkPriceUpdateItem,
   Sellable,
-  StockItem,
   Unit,
 } from '../../domain/catalog/types';
 import { ProductModal } from './ProductModal';
-import { StockItemModal } from './StockItemModal';
+import { RestockModal } from './RestockModal';
 import { BulkPriceEditor } from './BulkPriceEditor';
 import { PriceHistoryModal } from './PriceHistoryModal';
 import { useAppStore } from '../../app/store';
@@ -38,12 +35,9 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
   const canViewCost = Boolean(currentUser && currentUser.roleName !== 'staff');
   const canEdit = Boolean(currentUser && currentUser.roleName !== 'staff');
 
-  const [activeTab, setActiveTab] = useState<'sellables' | 'stock' | 'bulk_prices' | 'taxonomy'>(
-    'sellables'
-  );
+  const [activeTab, setActiveTab] = useState<'sellables' | 'bulk_prices' | 'taxonomy'>('sellables');
 
   const [sellables, setSellables] = useState<Sellable[]>([]);
-  const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
@@ -57,7 +51,7 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
 
   // Modals
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-  const [isStockModalOpen, setIsStockModalOpen] = useState(false);
+  const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
   const [priceHistorySellable, setPriceHistorySellable] = useState<{
     id?: string;
     name?: string;
@@ -66,18 +60,16 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
   const loadData = async () => {
     try {
       setLoading(true);
-      const [u, c, b, s, st] = await Promise.all([
+      const [u, c, b, s] = await Promise.all([
         catalogRepo.getUnits(),
         catalogRepo.getCategories(),
         catalogRepo.getBrands(),
         catalogRepo.getSellables(undefined, canViewCost),
-        catalogRepo.getStockItems(undefined, canViewCost),
       ]);
       setUnits(u);
       setCategories(c);
       setBrands(b);
       setSellables(s);
-      setStockItems(st);
     } catch (err) {
       console.error('Failed to load catalog:', err);
     } finally {
@@ -95,15 +87,21 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
     await loadData();
   };
 
-  const handleSaveAttarIntake = async (data: CreateAttarIntakeInput) => {
+  const handleRestock = async (
+    sellableId: string,
+    addedQuantity: number,
+    totalCostPaid: number,
+    updateRetailPrice?: number
+  ) => {
     if (!currentUser) return;
-    await catalogRepo.createAttarIntake(data, currentUser.id, deviceId);
-    await loadData();
-  };
-
-  const handleCreateStockItem = async (data: CreateStockItemInput) => {
-    if (!currentUser) return;
-    await catalogRepo.createStockItem(data, currentUser.id, deviceId);
+    await catalogRepo.restockProduct(
+      sellableId,
+      addedQuantity,
+      totalCostPaid,
+      currentUser.id,
+      deviceId,
+      updateRetailPrice
+    );
     await loadData();
   };
 
@@ -130,24 +128,9 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
     });
   }, [sellables, search, selectedCategory, selectedBrand, selectedType]);
 
-  const filteredStockItems = useMemo(() => {
-    return stockItems.filter((st) => {
-      const matchSearch =
-        !search.trim() ||
-        st.name.toLowerCase().includes(search.toLowerCase()) ||
-        st.sku.toLowerCase().includes(search.toLowerCase());
-
-      const matchCat = selectedCategory === 'all' || st.categoryId === selectedCategory;
-      const matchBrand = selectedBrand === 'all' || st.brandId === selectedBrand;
-      const matchType = selectedType === 'all' || st.itemType === selectedType;
-
-      return matchSearch && matchCat && matchBrand && matchType;
-    });
-  }, [stockItems, search, selectedCategory, selectedBrand, selectedType]);
-
   // KPI calculations
-  const rawOilsCount = stockItems.filter((s) => s.itemType === 'raw_oil').length;
-  const lowStockCount = stockItems.filter((s) => s.currentQuantity <= s.minAlertQuantity).length;
+  const rawOilsCount = sellables.filter((s) => s.sellableType === 'loose_decant' || s.name.toLowerCase().includes('oud') || s.name.toLowerCase().includes('oil')).length;
+  const lowStockCount = sellables.filter((s) => (s.primaryStockQuantity ?? 0) <= 5).length;
 
   return (
     <div className="space-y-6">
@@ -155,21 +138,21 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            <span>Product Catalog & Pricing</span>
+            <span>Product Catalog &amp; Pricing</span>
           </h1>
           <p className="text-xs text-neutral-400 mt-1">
-            Manage perfume oils, decants, sealed products, packaging, and wholesale/retail price lists.
+            Manage your perfumes, attars, inventory stock, and flexible retail pricing.
           </p>
         </div>
 
         {canEdit && (
           <div className="flex items-center gap-2.5">
             <button
-              onClick={() => setIsStockModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold border border-neutral-700 transition-colors"
+              onClick={() => setIsRestockModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/20 transition-colors"
             >
-              <Package className="w-4 h-4 text-emerald-400" />
-              <span>+ Stock Item</span>
+              <PlusCircle className="w-4 h-4" />
+              <span>+ Restock / Add Purchase</span>
             </button>
             <button
               onClick={() => setIsProductModalOpen(true)}
@@ -186,29 +169,29 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-4 rounded-xl bg-brand-surface border border-brand-border">
           <div className="flex items-center justify-between text-neutral-400 mb-1">
-            <span className="text-xs font-medium">Sellable Products</span>
+            <span className="text-xs font-medium">Total Products</span>
             <Tag className="w-4 h-4 text-brand-gold" />
           </div>
           <div className="text-2xl font-bold text-white font-mono">{sellables.length}</div>
-          <div className="text-[10px] text-neutral-500 mt-0.5">Active retail & wholesale SKUs</div>
+          <div className="text-[10px] text-neutral-500 mt-0.5">Active catalog items</div>
         </div>
 
         <div className="p-4 rounded-xl bg-brand-surface border border-brand-border">
           <div className="flex items-center justify-between text-neutral-400 mb-1">
-            <span className="text-xs font-medium">Bulk Attar / Oils</span>
+            <span className="text-xs font-medium">Attar &amp; Oils</span>
             <Droplet className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-2xl font-bold text-white font-mono">{rawOilsCount}</div>
-          <div className="text-[10px] text-neutral-500 mt-0.5">Concentrated perfume oils</div>
+          <div className="text-[10px] text-neutral-500 mt-0.5">Measured &amp; sold in ml</div>
         </div>
 
         <div className="p-4 rounded-xl bg-brand-surface border border-brand-border">
           <div className="flex items-center justify-between text-neutral-400 mb-1">
-            <span className="text-xs font-medium">Total Stock Items</span>
-            <Layers className="w-4 h-4 text-sky-400" />
+            <span className="text-xs font-medium">Packaged Perfumes</span>
+            <Package className="w-4 h-4 text-sky-400" />
           </div>
-          <div className="text-2xl font-bold text-white font-mono">{stockItems.length}</div>
-          <div className="text-[10px] text-neutral-500 mt-0.5">Raw oils, bottles & boxes</div>
+          <div className="text-2xl font-bold text-white font-mono">{sellables.length - rawOilsCount}</div>
+          <div className="text-[10px] text-neutral-500 mt-0.5">Bottles, boxes &amp; accessories</div>
         </div>
 
         <div className="p-4 rounded-xl bg-brand-surface border border-brand-border">
@@ -217,15 +200,14 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
             <AlertTriangle className="w-4 h-4 text-red-400" />
           </div>
           <div className="text-2xl font-bold text-white font-mono">{lowStockCount}</div>
-          <div className="text-[10px] text-red-400 mt-0.5">Items needing reorder</div>
+          <div className="text-[10px] text-red-400 mt-0.5">Items needing reorder (&le;5)</div>
         </div>
       </div>
 
       {/* Navigation Tabs */}
       <div className="flex items-center gap-2 border-b border-brand-border pb-1">
         {[
-          { id: 'sellables', label: 'Products (Sellables)', count: sellables.length },
-          { id: 'stock', label: 'Raw Stock & Packaging', count: stockItems.length },
+          { id: 'sellables', label: 'All Products & Stock', count: sellables.length },
           { id: 'bulk_prices', label: 'Price List & Bulk Editor' },
           { id: 'taxonomy', label: 'Brands & Categories' },
         ].map((tab) => (
@@ -299,9 +281,8 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
                 className="px-2.5 py-1.5 bg-brand-black border border-brand-border rounded-lg text-xs text-white"
               >
                 <option value="all">All Product Types</option>
-                <option value="sealed_product">Sealed Perfumes</option>
-                <option value="loose_decant">Loose Decants</option>
-                <option value="custom_blend">Custom Blends</option>
+                <option value="loose_decant">Attar / Oils (ml)</option>
+                <option value="sealed_product">Sealed Perfumes &amp; Boxes</option>
                 <option value="accessory">Accessories</option>
               </select>
             </div>
@@ -336,9 +317,10 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="border-b border-brand-border bg-brand-black/70 text-neutral-400 uppercase tracking-wider font-semibold">
-                    <th className="py-3 px-4">Product</th>
+                    <th className="py-3 px-4">Product Name &amp; SKU</th>
                     <th className="py-3 px-3">Type</th>
-                    <th className="py-3 px-3">Category & Brand</th>
+                    <th className="py-3 px-3">Category</th>
+                    <th className="py-3 px-3 text-right">Stock in Hand</th>
                     <th className="py-3 px-3 text-right">Retail (৳)</th>
                     <th className="py-3 px-3 text-right">Wholesale (৳)</th>
                     {canViewCost && <th className="py-3 px-3 text-right">Unit Cost (৳)</th>}
@@ -354,6 +336,8 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
                         ((s.retailPriceBdt - s.calculatedCostBdt) / s.retailPriceBdt) * 100;
                       marginPct = `${margin.toFixed(1)}%`;
                     }
+
+                    const isLow = (s.primaryStockQuantity ?? 0) <= 5;
 
                     return (
                       <tr key={s.id} className="hover:bg-neutral-800/40 transition-colors">
@@ -374,18 +358,24 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
                             className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
                               s.sellableType === 'loose_decant'
                                 ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                                : s.sellableType === 'custom_blend'
-                                ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30'
                                 : 'bg-neutral-800 text-neutral-300'
                             }`}
                           >
-                            {s.sellableType.replace('_', ' ')}
+                            {s.sellableType === 'loose_decant' ? 'Attar / Oil' : 'Packaged'}
                           </span>
                         </td>
                         <td className="py-3 px-3">
                           <div className="text-neutral-200">{s.categoryName || '—'}</div>
                           <div className="text-[10px] text-neutral-400">{s.brandName || '—'}</div>
                         </td>
+
+                        {/* Stock Quantity */}
+                        <td className="py-3 px-3 text-right font-mono font-bold">
+                          <span className={isLow ? 'text-red-400' : 'text-emerald-400'}>
+                            {s.primaryStockQuantity ?? 0} {s.primaryUnitCode}
+                          </span>
+                        </td>
+
                         <td className="py-3 px-3 text-right font-mono font-bold text-brand-gold">
                           ৳{s.retailPriceBdt.toFixed(2)}
                         </td>
@@ -415,118 +405,26 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
                           </td>
                         )}
                         <td className="py-3 px-3 text-center">
-                          <button
-                            onClick={() =>
-                              setPriceHistorySellable({ id: s.id, name: s.name })
-                            }
-                            title="View Price Revision History"
-                            className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-gold hover:bg-brand-black transition-colors"
-                          >
-                            <History className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'stock' && (
-        <div className="space-y-4">
-          {/* Stock Search Toolbar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-brand-surface border border-brand-border rounded-xl">
-            <div className="flex items-center gap-2 flex-1 min-w-[240px]">
-              <div className="relative w-full max-w-sm">
-                <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search raw oils, bottles, boxes..."
-                  className="w-full pl-9 pr-3 py-1.5 bg-brand-black border border-brand-border rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="px-2.5 py-1.5 bg-brand-black border border-brand-border rounded-lg text-xs text-white"
-              >
-                <option value="all">All Item Types</option>
-                <option value="raw_oil">Raw Perfume Oil</option>
-                <option value="empty_bottle">Empty Bottles</option>
-                <option value="packaging">Packaging / Boxes</option>
-                <option value="raw_material">Raw Materials</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Stock Table */}
-          {loading ? (
-            <div className="py-12 text-center text-neutral-400 text-xs">Loading stock items...</div>
-          ) : filteredStockItems.length === 0 ? (
-            <div className="py-16 text-center rounded-xl border border-brand-border bg-brand-surface space-y-3">
-              <Package className="w-8 h-8 text-neutral-500 mx-auto" />
-              <h3 className="text-sm font-semibold text-white">No stock items</h3>
-              <p className="text-xs text-neutral-400">
-                Bulk oils, empty bottles, and packaging materials appear here.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto rounded-xl border border-brand-border bg-brand-surface">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-brand-border bg-brand-black/70 text-neutral-400 uppercase tracking-wider font-semibold">
-                    <th className="py-3 px-4">Item Name & SKU</th>
-                    <th className="py-3 px-3">Type</th>
-                    <th className="py-3 px-3 text-right">Current Stock</th>
-                    <th className="py-3 px-3 text-right">Density</th>
-                    {canViewCost && <th className="py-3 px-3 text-right">Cost Price (৳)</th>}
-                    <th className="py-3 px-3 text-center">Alert Level</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-brand-border/50 text-neutral-300">
-                  {filteredStockItems.map((st) => {
-                    const isLow = st.currentQuantity <= st.minAlertQuantity;
-                    return (
-                      <tr key={st.id} className="hover:bg-neutral-800/40 transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="font-semibold text-white">{st.name}</div>
-                          <div className="text-[10px] text-neutral-500 font-mono">
-                            SKU: {st.sku}
+                          <div className="flex items-center justify-center gap-1">
+                            {canEdit && (
+                              <button
+                                onClick={() => setIsRestockModalOpen(true)}
+                                title="Add Received Shipment / Restock"
+                                className="p-1 rounded hover:bg-neutral-800 text-emerald-400 hover:text-emerald-300 transition-colors"
+                              >
+                                <PlusCircle className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() =>
+                                setPriceHistorySellable({ id: s.id, name: s.name })
+                              }
+                              title="View Price Revision History"
+                              className="p-1 rounded text-neutral-400 hover:text-brand-gold hover:bg-neutral-800 transition-colors"
+                            >
+                              <History className="w-4 h-4" />
+                            </button>
                           </div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <span className="capitalize text-[11px] text-neutral-300">
-                            {st.itemType.replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-white">
-                          {st.currentQuantity} {st.unitCode}
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono text-neutral-400">
-                          {st.densityGPerMl ? `${st.densityGPerMl} g/ml` : '—'}
-                        </td>
-                        {canViewCost && (
-                          <td className="py-3 px-3 text-right font-mono text-emerald-400">
-                            ৳{st.costPriceBdt.toFixed(2)} / {st.unitCode}
-                          </td>
-                        )}
-                        <td className="py-3 px-3 text-center">
-                          {isLow ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] bg-red-500/20 text-red-400 font-semibold border border-red-500/30">
-                              <AlertTriangle className="w-3 h-3" />
-                              Low Stock (&le;{st.minAlertQuantity})
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-emerald-400">Normal</span>
-                          )}
                         </td>
                       </tr>
                     );
@@ -574,7 +472,7 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
             <div className="flex items-center justify-between pb-2 border-b border-brand-border">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-brand-gold" />
-                <span>Fragrance Brands & Houses ({brands.length})</span>
+                <span>Fragrance Brands &amp; Houses ({brands.length})</span>
               </h3>
             </div>
             <div className="space-y-2">
@@ -604,21 +502,17 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
         onSaveProduct={handleCreateProduct}
-        onSaveAttarIntake={handleSaveAttarIntake}
         categories={categories}
         brands={brands}
         units={units}
-        stockItems={stockItems}
         canViewCost={canViewCost}
       />
 
-      <StockItemModal
-        isOpen={isStockModalOpen}
-        onClose={() => setIsStockModalOpen(false)}
-        onSave={handleCreateStockItem}
-        categories={categories}
-        brands={brands}
-        units={units}
+      <RestockModal
+        isOpen={isRestockModalOpen}
+        onClose={() => setIsRestockModalOpen(false)}
+        sellables={sellables}
+        onRestock={handleRestock}
         canViewCost={canViewCost}
       />
 

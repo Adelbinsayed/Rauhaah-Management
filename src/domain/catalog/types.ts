@@ -71,6 +71,7 @@ export interface SellableComponent {
   stockItemName?: string;
   stockItemSku?: string;
   stockItemCostBdt?: number;
+  stockItemCurrentQty?: number;
   quantity: number;
   unitId: string;
   unitCode?: string;
@@ -96,6 +97,8 @@ export interface Sellable {
   isActive: boolean;
   components?: SellableComponent[];
   calculatedCostBdt?: number; // Protected: only for owner/manager
+  primaryStockQuantity?: number;
+  primaryUnitCode?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -276,6 +276,7 @@ export const catalogRepo = {
     const components = await dbQuery<Record<string, unknown>>(`
       SELECT sc.id, sc.sellable_id, sc.stock_item_id, sc.quantity, sc.unit_id, sc.is_primary,
              si.name as stock_item_name, si.sku as stock_item_sku, si.cost_price_bdt as stock_item_cost,
+             si.current_quantity as stock_item_qty,
              u.code as unit_code
       FROM sellable_components sc
       JOIN stock_items si ON sc.stock_item_id = si.id
@@ -293,6 +294,7 @@ export const catalogRepo = {
         stockItemName: String(c.stock_item_name),
         stockItemSku: String(c.stock_item_sku),
         stockItemCostBdt: canViewCost ? Number(c.stock_item_cost) : undefined,
+        stockItemCurrentQty: Number(c.stock_item_qty || 0),
         quantity: Number(c.quantity),
         unitId: String(c.unit_id),
         unitCode: String(c.unit_code),
@@ -304,6 +306,7 @@ export const catalogRepo = {
     return rows.map((r: Record<string, unknown>) => {
       const sId = String(r.id);
       const comps = compMap.get(sId) || [];
+      const primaryComp = comps.find((c) => c.isPrimary) || comps[0];
 
       let calculatedCostBdt: number | undefined;
       if (canViewCost && comps.length > 0) {
@@ -331,6 +334,9 @@ export const catalogRepo = {
         isActive: Boolean(r.is_active),
         components: comps,
         calculatedCostBdt,
+        primaryStockQuantity: primaryComp?.stockItemCurrentQty ?? 0,
+        primaryUnitCode:
+          primaryComp?.unitCode || (r.sellable_type === 'loose_decant' ? 'ml' : 'pcs'),
         createdAt: String(r.created_at),
         updatedAt: String(r.updated_at),
       };
@@ -719,5 +725,98 @@ export const catalogRepo = {
       changedByUsername: r.changed_by_username ? String(r.changed_by_username) : null,
       createdAt: String(r.created_at),
     }));
+  },
+
+  async restockProduct(
+    sellableId: string,
+    addedQuantity: number,
+    totalCostPaid: number,
+    userId: string,
+    deviceId: string,
+    updateRetailPrice?: number
+  ): Promise<void> {
+    const now = nowUtcIso();
+
+    // 1. Find linked stock_items
+    const comps = await dbQuery<{ stock_item_id: string }>(
+      `SELECT stock_item_id FROM sellable_components WHERE sellable_id = ? AND is_primary = 1 LIMIT 1`,
+      [sellableId]
+    );
+
+    let stockItemId = comps[0]?.stock_item_id;
+
+    if (!stockItemId) {
+      const anyComp = await dbQuery<{ stock_item_id: string }>(
+        `SELECT stock_item_id FROM sellable_components WHERE sellable_id = ? LIMIT 1`,
+        [sellableId]
+      );
+      stockItemId = anyComp[0]?.stock_item_id;
+    }
+
+    const txStatements: BatchStatement[] = [];
+    const effectiveUnitCost = addedQuantity > 0 ? (totalCostPaid / addedQuantity) * 1.15 : 0;
+
+    if (stockItemId) {
+      txStatements.push({
+        sql: `UPDATE stock_items 
+              SET current_quantity = current_quantity + ?,
+                  cost_price_bdt = CASE WHEN ? > 0 THEN ? ELSE cost_price_bdt END,
+                  updated_at = ?
+              WHERE id = ?`,
+        params: [addedQuantity, effectiveUnitCost, effectiveUnitCost, now, stockItemId],
+      });
+
+      txStatements.push({
+        sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
+              VALUES (?, 'stock_items', ?, 'update', ?, 0)`,
+        params: [uuidv7(), stockItemId, now],
+      });
+    }
+
+    if (updateRetailPrice && updateRetailPrice > 0) {
+      const current = await dbQuery<{ retail_price_bdt: number }>(
+        `SELECT retail_price_bdt FROM sellables WHERE id = ?`,
+        [sellableId]
+      );
+      const oldPrice = current[0]?.retail_price_bdt || 0;
+
+      txStatements.push({
+        sql: `UPDATE sellables SET retail_price_bdt = ?, updated_at = ? WHERE id = ?`,
+        params: [updateRetailPrice, now, sellableId],
+      });
+
+      txStatements.push({
+        sql: `INSERT INTO price_history (id, sellable_id, price_type, old_price, new_price, change_reason, changed_by_user_id, created_at, device_id)
+              VALUES (?, ?, 'retail', ?, ?, 'Updated on shipment restock', ?, ?, ?)`,
+        params: [uuidv7(), sellableId, oldPrice, updateRetailPrice, userId, now, deviceId],
+      });
+
+      txStatements.push({
+        sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
+              VALUES (?, 'sellables', ?, 'update', ?, 0)`,
+        params: [uuidv7(), sellableId, now],
+      });
+    }
+
+    txStatements.push({
+      sql: `INSERT INTO audit_log (id, user_id, action, details, created_at, device_id)
+            VALUES (?, ?, 'catalog.restock_product', ?, ?, ?)`,
+      params: [
+        uuidv7(),
+        userId,
+        JSON.stringify({
+          sellableId,
+          stockItemId,
+          addedQuantity,
+          totalCostPaid,
+          effectiveUnitCost,
+          updatedRetailPrice: updateRetailPrice,
+        }),
+        now,
+        deviceId,
+      ],
+    });
+
+    await dbBatchTx(txStatements);
   },
 };
