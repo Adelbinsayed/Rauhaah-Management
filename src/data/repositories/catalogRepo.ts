@@ -4,6 +4,7 @@ import { uuidv7 } from '@/lib/ids';
 import type {
   Brand,
   Category,
+  CreateAttarIntakeInput,
   CreateProductInput,
   CreateStockItemInput,
   BulkPriceUpdateItem,
@@ -480,6 +481,124 @@ export const catalogRepo = {
       createdAt: now,
       updatedAt: now,
     };
+  },
+
+  async createAttarIntake(
+    input: CreateAttarIntakeInput,
+    userId: string,
+    deviceId: string
+  ): Promise<void> {
+    const now = nowUtcIso();
+    const stockItemId = uuidv7();
+    const baseSku = input.sku?.trim() || `ATT-${Math.floor(100000 + Math.random() * 900000)}`;
+    const overheadPct = input.overheadPercent ?? 15;
+
+    const baseCostPerMl =
+      input.boughtVolumeMl > 0 ? input.totalPurchaseCostBdt / input.boughtVolumeMl : 0;
+    const effectiveCostPerMl = baseCostPerMl * (1 + overheadPct / 100);
+
+    const txStatements: BatchStatement[] = [];
+
+    // 1. Master Bulk Oil Stock Item
+    txStatements.push({
+      sql: `INSERT INTO stock_items (
+              id, sku, name, brand_id, category_id, item_type, unit_id,
+              density_g_per_ml, current_quantity, min_alert_quantity,
+              cost_price_bdt, notes, is_active, created_at, updated_at, device_id
+            ) VALUES (?, ?, ?, ?, ?, 'raw_oil', 'unit-vol-ml', 0.98, ?, 20, ?, ?, 1, ?, ?, ?)`,
+      params: [
+        stockItemId,
+        `STK-${baseSku}`,
+        `${input.name.trim()} (Master Oil)`,
+        input.brandId || null,
+        input.categoryId || 'cat-attar',
+        input.boughtVolumeMl,
+        effectiveCostPerMl,
+        `Bought ${input.boughtVolumeMl}ml for ৳${input.totalPurchaseCostBdt}. True cost +${overheadPct}% = ৳${effectiveCostPerMl.toFixed(2)}/ml`,
+        now,
+        now,
+        deviceId,
+      ],
+    });
+
+    // 2. Enabled decant sizes
+    for (const size of input.sizes) {
+      if (!size.enabled) continue;
+
+      const sellableId = uuidv7();
+      const sellableSku = `${baseSku}-${size.sizeMl}ML`;
+      const sellableName = `${input.name.trim()} ${size.label}`;
+
+      txStatements.push({
+        sql: `INSERT INTO sellables (
+                id, sku, barcode, name, brand_id, category_id, sellable_type,
+                retail_price_bdt, wholesale_price_bdt, min_price_bdt,
+                is_taxable, tax_rate_percent, track_inventory, is_active,
+                created_at, updated_at, device_id
+              ) VALUES (?, ?, ?, ?, ?, ?, 'loose_decant', ?, ?, ?, 0, 0, 1, 1, ?, ?, ?)`,
+        params: [
+          sellableId,
+          sellableSku,
+          null,
+          sellableName,
+          input.brandId || null,
+          input.categoryId || 'cat-attar',
+          size.idealSellPriceBdt,
+          size.wholesalePriceBdt,
+          size.costPriceBdt,
+          now,
+          now,
+          deviceId,
+        ],
+      });
+
+      // Link component to master stock oil
+      txStatements.push({
+        sql: `INSERT INTO sellable_components (
+                id, sellable_id, stock_item_id, quantity, unit_id, is_primary, created_at, device_id
+              ) VALUES (?, ?, ?, ?, 'unit-vol-ml', 1, ?, ?)`,
+        params: [uuidv7(), sellableId, stockItemId, size.sizeMl, now, deviceId],
+      });
+
+      // Price history
+      txStatements.push({
+        sql: `INSERT INTO price_history (
+                id, sellable_id, price_type, old_price, new_price, change_reason, changed_by_user_id, created_at, device_id
+              ) VALUES (?, ?, 'retail', 0, ?, 'Attar intake ideal benchmark price (+25%)', ?, ?, ?)`,
+        params: [uuidv7(), sellableId, size.idealSellPriceBdt, userId, now, deviceId],
+      });
+      txStatements.push({
+        sql: `INSERT INTO price_history (
+                id, sellable_id, price_type, old_price, new_price, change_reason, changed_by_user_id, created_at, device_id
+              ) VALUES (?, ?, 'wholesale', 0, ?, 'Attar intake wholesale benchmark price', ?, ?, ?)`,
+        params: [uuidv7(), sellableId, size.wholesalePriceBdt, userId, now, deviceId],
+      });
+
+      txStatements.push({
+        sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
+              VALUES (?, 'sellables', ?, 'insert', ?, 0)`,
+        params: [uuidv7(), sellableId, now],
+      });
+    }
+
+    // Audit log
+    txStatements.push({
+      sql: `INSERT INTO audit_log (id, user_id, action, details, created_at, device_id)
+            VALUES (?, ?, 'catalog.create_attar_intake', ?, ?, ?)`,
+      params: [
+        uuidv7(),
+        userId,
+        JSON.stringify({
+          name: input.name,
+          volume: input.boughtVolumeMl,
+          cost: input.totalPurchaseCostBdt,
+        }),
+        now,
+        deviceId,
+      ],
+    });
+
+    await dbBatchTx(txStatements);
   },
 
   // --- Bulk Price Editing & Price History ---

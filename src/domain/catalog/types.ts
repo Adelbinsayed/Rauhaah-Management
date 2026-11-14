@@ -115,6 +115,27 @@ export interface PriceHistoryEntry {
   createdAt: string;
 }
 
+export interface AttarSizeOption {
+  sizeMl: number;
+  label: string;
+  enabled: boolean;
+  costPriceBdt: number;
+  idealSellPriceBdt: number;
+  wholesalePriceBdt: number;
+}
+
+export interface CreateAttarIntakeInput {
+  name: string;
+  sku?: string;
+  categoryId?: string;
+  brandId?: string;
+  boughtVolumeMl: number;
+  totalPurchaseCostBdt: number;
+  overheadPercent?: number; // default 15%
+  marginPercent?: number; // default 25%
+  sizes: AttarSizeOption[];
+}
+
 export interface CreateProductInput {
   name: string;
   sku?: string;

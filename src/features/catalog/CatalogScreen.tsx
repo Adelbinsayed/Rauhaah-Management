@@ -15,6 +15,7 @@ import { catalogRepo } from '../../data/repositories/catalogRepo';
 import type {
   Brand,
   Category,
+  CreateAttarIntakeInput,
   CreateProductInput,
   CreateStockItemInput,
   BulkPriceUpdateItem,
@@ -91,6 +92,12 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
   const handleCreateProduct = async (data: CreateProductInput) => {
     if (!currentUser) return;
     await catalogRepo.createProduct(data, currentUser.id, deviceId);
+    await loadData();
+  };
+
+  const handleSaveAttarIntake = async (data: CreateAttarIntakeInput) => {
+    if (!currentUser) return;
+    await catalogRepo.createAttarIntake(data, currentUser.id, deviceId);
     await loadData();
   };
 
@@ -596,7 +603,8 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
       <ProductModal
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
-        onSave={handleCreateProduct}
+        onSaveProduct={handleCreateProduct}
+        onSaveAttarIntake={handleSaveAttarIntake}
         categories={categories}
         brands={brands}
         units={units}
