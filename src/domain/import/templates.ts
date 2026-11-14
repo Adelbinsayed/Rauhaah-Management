@@ -47,17 +47,17 @@ RAU-JANAMAZ-TURK,,30,,Physical audit
 };
 
 /**
- * Initiates browser file download for a CSV string
+ * Initiates browser file download for a CSV string using data URI (WebView2 compatible)
  */
 export function downloadCsvFile(filename: string, content: string): void {
-  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
+  const uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(content);
   const link = document.createElement('a');
-  link.setAttribute('href', url);
+  link.setAttribute('href', uri);
   link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
+  link.style.display = 'none';
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  setTimeout(() => {
+    document.body.removeChild(link);
+  }, 100);
 }

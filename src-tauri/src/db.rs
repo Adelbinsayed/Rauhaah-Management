@@ -62,6 +62,10 @@ const MIGRATIONS: &[Migration] = &[
         version: 4,
         sql: include_str!("../migrations/0004_csv_imports.sql"),
     },
+    Migration {
+        version: 5,
+        sql: include_str!("../migrations/0005_sales_and_pos.sql"),
+    },
 ];
 
 fn resolve_portable_root() -> Result<PathBuf, String> {
