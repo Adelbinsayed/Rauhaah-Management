@@ -380,14 +380,12 @@ export const catalogRepo = {
     });
 
     // 2. Components handling
-    if (
-      (input.sellableType === 'sealed_product' || input.sellableType === 'accessory') &&
-      !input.components?.length
-    ) {
+    // If no components were explicitly provided, auto-create a matching stock item for ALL sellable types (sealed, loose decant, accessory, etc.)
+    if (!input.components?.length) {
       // Auto-create matching stock item
       const stockItemId = uuidv7();
       const stockSku = `STK-${sku}`;
-      const defaultUnitId = input.unitId || 'unit-cnt-pcs';
+      const defaultUnitId = input.unitId || (input.sellableType === 'loose_decant' ? 'unit-vol-ml' : 'unit-cnt-pcs');
 
       txStatements.push({
         sql: `INSERT INTO stock_items (
@@ -404,7 +402,7 @@ export const catalogRepo = {
           input.sellableType,
           defaultUnitId,
           input.initialQuantity || 0,
-          input.minAlertQuantity || 5,
+          input.minAlertQuantity || (input.sellableType === 'loose_decant' ? 20 : 5),
           input.costPriceBdt || 0,
           now,
           now,
@@ -756,7 +754,57 @@ export const catalogRepo = {
     const txStatements: BatchStatement[] = [];
     const effectiveUnitCost = addedQuantity > 0 ? (totalCostPaid / addedQuantity) * 1.15 : 0;
 
-    if (stockItemId) {
+    if (!stockItemId) {
+      // Fallback: If product had no stock item linked yet, auto-create one now!
+      const sellables = await dbQuery<{
+        sku: string;
+        name: string;
+        brand_id: string | null;
+        category_id: string | null;
+        sellable_type: string;
+      }>(`SELECT sku, name, brand_id, category_id, sellable_type FROM sellables WHERE id = ?`, [sellableId]);
+
+      if (sellables.length > 0) {
+        const s = sellables[0];
+        stockItemId = uuidv7();
+        const stockSku = `STK-${s.sku}`;
+        const defaultUnitId = s.sellable_type === 'loose_decant' ? 'unit-vol-ml' : 'unit-cnt-pcs';
+
+        txStatements.push({
+          sql: `INSERT INTO stock_items (
+                  id, sku, name, brand_id, category_id, item_type, unit_id,
+                  current_quantity, min_alert_quantity, cost_price_bdt,
+                  is_active, created_at, updated_at, device_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 5, ?, 1, ?, ?, ?)`,
+          params: [
+            stockItemId,
+            stockSku,
+            s.name,
+            s.brand_id,
+            s.category_id,
+            s.sellable_type,
+            defaultUnitId,
+            addedQuantity,
+            effectiveUnitCost,
+            now,
+            now,
+            deviceId,
+          ],
+        });
+
+        txStatements.push({
+          sql: `INSERT INTO sellable_components (id, sellable_id, stock_item_id, quantity, unit_id, is_primary, created_at, device_id)
+                VALUES (?, ?, ?, 1.0, ?, 1, ?, ?)`,
+          params: [uuidv7(), sellableId, stockItemId, defaultUnitId, now, deviceId],
+        });
+
+        txStatements.push({
+          sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
+                VALUES (?, 'stock_items', ?, 'insert', ?, 0)`,
+          params: [uuidv7(), stockItemId, now],
+        });
+      }
+    } else {
       txStatements.push({
         sql: `UPDATE stock_items 
               SET current_quantity = current_quantity + ?,
