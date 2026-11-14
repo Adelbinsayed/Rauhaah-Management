@@ -24,11 +24,11 @@ export const RestockModal: React.FC<RestockModalProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSellableId, setSelectedSellableId] = useState<string>('');
-  const [addedQuantity, setAddedQuantity] = useState('100');
-  const [totalCostPaid, setTotalCostPaid] = useState('10000');
+  const [addedQuantity, setAddedQuantity] = useState('');
+  const [totalCostPaid, setTotalCostPaid] = useState('');
   const [overheadPercent, setOverheadPercent] = useState('15');
   const [marginPercent, setMarginPercent] = useState('25');
-  const [updatePrice, setUpdatePrice] = useState(false);
+  const [updatePrice, setUpdatePrice] = useState(true);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,12 +88,14 @@ export const RestockModal: React.FC<RestockModalProps> = ({
         selectedSellableId,
         qty,
         cost,
-        updatePrice ? recommendedSellRate : undefined
+        updatePrice && recommendedSellRate > 0 ? recommendedSellRate : undefined
       );
       onClose();
       // Reset form
       setSelectedSellableId('');
       setSearchTerm('');
+      setAddedQuantity('');
+      setTotalCostPaid('');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -113,7 +115,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
             <div>
               <h2 className="text-lg font-bold text-white">Restock / Add Purchase</h2>
               <p className="text-xs text-neutral-400">
-                Received a new shipment? Search the existing product and add the volume or units.
+                Search an existing product to record incoming shipment, new cost, and live benchmark price.
               </p>
             </div>
           </div>
@@ -144,7 +146,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Type product name (e.g. Black Oud, Baccarat) or SKU..."
+                placeholder="Search by product name (e.g. Black Oud, Baccarat, Janamaz) or SKU..."
                 className="w-full pl-9 pr-3 py-2 bg-brand-black border border-brand-border rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold"
               />
             </div>
@@ -190,6 +192,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                   <h4 className="text-xs font-bold text-white">{selectedProduct.name}</h4>
                   <p className="text-[11px] text-neutral-400">
                     Current Retail: <strong className="text-brand-gold font-mono">৳{selectedProduct.retailPriceBdt}</strong> / {unitLabel}
+                    {' '}&bull;{' '}Current Stock: <strong className="text-white font-mono">{selectedProduct.primaryStockQuantity ?? 0} {unitLabel}</strong>
                   </p>
                 </div>
               </div>
@@ -218,11 +221,11 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                     required
                     value={addedQuantity}
                     onChange={(e) => setAddedQuantity(e.target.value)}
-                    placeholder="100"
+                    placeholder={unitLabel === 'ml' ? 'e.g. 100, 250' : 'e.g. 20, 50'}
                     className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-lg text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
                   />
                   <span className="text-[10px] text-neutral-500 mt-0.5">
-                    Will be added directly to your active inventory
+                    Will be added directly to active stock
                   </span>
                 </div>
 
@@ -237,7 +240,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                     required
                     value={totalCostPaid}
                     onChange={(e) => setTotalCostPaid(e.target.value)}
-                    placeholder="10000"
+                    placeholder="e.g. 10000"
                     className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-lg text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
                   />
                   <span className="text-[10px] text-neutral-500 mt-0.5">
@@ -252,7 +255,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                   <div className="p-2.5 rounded-lg bg-neutral-900 border border-neutral-800 text-center">
                     <div className="text-[10px] text-neutral-400">Base Purchase Rate</div>
                     <div className="text-xs font-mono font-bold text-neutral-200 mt-0.5">
-                      ৳{baseRate.toFixed(2)} / {unitLabel}
+                      {baseRate > 0 ? `৳${baseRate.toFixed(2)} / ${unitLabel}` : '—'}
                     </div>
                   </div>
 
@@ -268,7 +271,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                       <span>% True Cost</span>
                     </div>
                     <div className="text-xs font-mono font-bold text-amber-400 mt-0.5">
-                      ৳{trueCostRate.toFixed(2)} / {unitLabel}
+                      {trueCostRate > 0 ? `৳${trueCostRate.toFixed(2)} / ${unitLabel}` : '—'}
                     </div>
                   </div>
 
@@ -284,24 +287,37 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                       <span>% Ideal Sell</span>
                     </div>
                     <div className="text-xs font-mono font-bold text-emerald-400 mt-0.5">
-                      ৳{recommendedSellRate} / {unitLabel}
+                      {recommendedSellRate > 0 ? `৳${recommendedSellRate} / ${unitLabel}` : '—'}
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Optional price update checkbox */}
-              <label className="flex items-center gap-2 pt-1 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={updatePrice}
-                  onChange={(e) => setUpdatePrice(e.target.checked)}
-                  className="rounded border-brand-border text-brand-gold focus:ring-brand-gold bg-brand-surface"
-                />
-                <span className="text-xs text-neutral-300">
-                  Update product retail price to new recommended benchmark (৳{recommendedSellRate} / {unitLabel})
-                </span>
-              </label>
+              {/* Live Price Comparison and Update Toggle */}
+              {recommendedSellRate > 0 && (
+                <div className="p-3 rounded-lg bg-brand-surface border border-brand-border space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-400">Current Benchmark Price:</span>
+                    <span className="font-mono text-neutral-300">৳{selectedProduct.retailPriceBdt} / {unitLabel}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-emerald-400 font-semibold">New Auto-Calculated Benchmark:</span>
+                    <span className="font-mono font-bold text-emerald-400 text-sm">৳{recommendedSellRate} / {unitLabel}</span>
+                  </div>
+
+                  <label className="flex items-center gap-2 pt-2 border-t border-brand-border/60 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={updatePrice}
+                      onChange={(e) => setUpdatePrice(e.target.checked)}
+                      className="rounded border-brand-border text-brand-gold focus:ring-brand-gold bg-brand-surface"
+                    />
+                    <span className="text-xs text-neutral-200">
+                      Auto-update product benchmark price to <strong>৳{recommendedSellRate} / {unitLabel}</strong>
+                    </span>
+                  </label>
+                </div>
+              )}
             </div>
           )}
 

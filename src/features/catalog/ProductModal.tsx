@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Sparkles, AlertCircle, Droplet, Box, Tag } from 'lucide-react';
+import { X, Sparkles, AlertCircle, Droplet, Box, Tag, RefreshCw } from 'lucide-react';
 import type {
   Brand,
   Category,
@@ -42,9 +42,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [overheadPercent, setOverheadPercent] = useState('15'); // +15% landing cost
   const [marginPercent, setMarginPercent] = useState('25'); // +25% markup
 
-  // Pricing (can be overridden manually)
-  const [retailPrice, setRetailPrice] = useState('');
-  const [wholesalePrice, setWholesalePrice] = useState('');
+  // Pricing: if null, automatically follows the live formula!
+  const [customRetailPrice, setCustomRetailPrice] = useState<string | null>(null);
+  const [customWholesalePrice, setCustomWholesalePrice] = useState<string | null>(null);
   const [selectedUnitId, setSelectedUnitId] = useState('unit-vol-ml');
 
   const [loading, setLoading] = useState(false);
@@ -56,7 +56,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     if (productKind === 'oil') {
       const mlUnit = units.find((u) => u.code === 'ml');
       if (mlUnit) setSelectedUnitId(mlUnit.id);
-      // Auto-set category if available
       const attarCat = categories.find((c) => c.slug.includes('attar') || c.name.toLowerCase().includes('attar'));
       if (attarCat && !categoryId) setCategoryId(attarCat.id);
     } else {
@@ -76,15 +75,32 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const autoIdealSellRate = Math.round(trueCostRate * (1 + margin / 100));
   const autoWholesaleRate = Math.round(autoIdealSellRate * 0.85);
 
-  // Auto-populate retail and wholesale if user hasn't explicitly entered them
-  useEffect(() => {
-    if (autoIdealSellRate > 0 && !retailPrice) {
-      setRetailPrice(String(autoIdealSellRate));
-    }
-    if (autoWholesaleRate > 0 && !wholesalePrice) {
-      setWholesalePrice(String(autoWholesaleRate));
-    }
-  }, [autoIdealSellRate, autoWholesaleRate, retailPrice, wholesalePrice]);
+  const displayRetail = customRetailPrice !== null ? customRetailPrice : (autoIdealSellRate > 0 ? String(autoIdealSellRate) : '');
+  const displayWholesale = customWholesalePrice !== null ? customWholesalePrice : (autoWholesaleRate > 0 ? String(autoWholesaleRate) : '');
+
+  const handleQuantityChange = (val: string) => {
+    setQuantityBought(val);
+    setCustomRetailPrice(null); // auto-sync to new calculation
+    setCustomWholesalePrice(null);
+  };
+
+  const handleCostChange = (val: string) => {
+    setPurchaseCostTotal(val);
+    setCustomRetailPrice(null); // auto-sync to new calculation
+    setCustomWholesalePrice(null);
+  };
+
+  const handleOverheadChange = (val: string) => {
+    setOverheadPercent(val);
+    setCustomRetailPrice(null);
+    setCustomWholesalePrice(null);
+  };
+
+  const handleMarginChange = (val: string) => {
+    setMarginPercent(val);
+    setCustomRetailPrice(null);
+    setCustomWholesalePrice(null);
+  };
 
   if (!isOpen) return null;
 
@@ -99,8 +115,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       return;
     }
 
-    const rPrice = parseFloat(retailPrice) || autoIdealSellRate;
-    const wPrice = parseFloat(wholesalePrice) || autoWholesaleRate;
+    const rPrice = parseFloat(displayRetail) || autoIdealSellRate;
+    const wPrice = parseFloat(displayWholesale) || autoWholesaleRate;
 
     if (rPrice <= 0) {
       setError('Please specify a valid Retail Selling Price.');
@@ -150,7 +166,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <div>
               <h2 className="text-lg font-bold text-white">Add New Product</h2>
               <p className="text-xs text-neutral-400">
-                Single entry product creation with automatic +15% cost &amp; +25% pricing rules.
+                Automatic +15% true cost &amp; +25% live benchmark pricing.
               </p>
             </div>
           </div>
@@ -168,7 +184,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             type="button"
             onClick={() => {
               setProductKind('oil');
-              setQuantityBought('100');
+              handleQuantityChange('100');
             }}
             className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-md text-xs font-semibold transition-all ${
               productKind === 'oil'
@@ -184,7 +200,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             type="button"
             onClick={() => {
               setProductKind('packaged');
-              setQuantityBought('20');
+              handleQuantityChange('20');
             }}
             className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-md text-xs font-semibold transition-all ${
               productKind === 'packaged'
@@ -289,7 +305,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-brand-gold uppercase tracking-wider flex items-center gap-1.5">
                 <Tag className="w-3.5 h-3.5" />
-                <span>Initial Purchase &amp; Automatic Pricing Engine</span>
+                <span>Purchase Volume &amp; Cost</span>
               </h3>
               <span className="text-[11px] text-neutral-400">Unit: <strong>{unitCode}</strong></span>
             </div>
@@ -305,11 +321,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   min="1"
                   required
                   value={quantityBought}
-                  onChange={(e) => setQuantityBought(e.target.value)}
+                  onChange={(e) => handleQuantityChange(e.target.value)}
                   placeholder="100"
                   className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-lg text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
                 />
-                <span className="text-[10px] text-neutral-500 mt-0.5">Initial stock added to inventory</span>
+                <span className="text-[10px] text-neutral-500 mt-0.5">Quantity added to inventory</span>
               </div>
 
               <div>
@@ -322,11 +338,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   min="0"
                   required
                   value={purchaseCostTotal}
-                  onChange={(e) => setPurchaseCostTotal(e.target.value)}
+                  onChange={(e) => handleCostChange(e.target.value)}
                   placeholder="10000"
                   className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-lg text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
                 />
-                <span className="text-[10px] text-neutral-500 mt-0.5">Total supplier invoice paid for this batch</span>
+                <span className="text-[10px] text-neutral-500 mt-0.5">Total amount paid to supplier</span>
               </div>
             </div>
 
@@ -346,7 +362,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                     <input
                       type="number"
                       value={overheadPercent}
-                      onChange={(e) => setOverheadPercent(e.target.value)}
+                      onChange={(e) => handleOverheadChange(e.target.value)}
                       className="w-7 text-center bg-transparent border-b border-amber-400 font-bold text-amber-300 text-[10px] focus:outline-none"
                     />
                     <span>% True Cost</span>
@@ -362,7 +378,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                     <input
                       type="number"
                       value={marginPercent}
-                      onChange={(e) => setMarginPercent(e.target.value)}
+                      onChange={(e) => handleMarginChange(e.target.value)}
                       className="w-7 text-center bg-transparent border-b border-emerald-400 font-bold text-emerald-300 text-[10px] focus:outline-none"
                     />
                     <span>% Ideal Sell</span>
@@ -378,12 +394,27 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {/* Benchmark Selling Prices */}
           <div className="p-4 rounded-xl bg-brand-black/60 border border-brand-border space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-brand-gold uppercase tracking-wider">
-                Benchmark Selling Prices (৳ / {unitCode})
+              <h3 className="text-xs font-bold text-brand-gold uppercase tracking-wider flex items-center gap-2">
+                <span>Benchmark Selling Prices (৳ / {unitCode})</span>
+                {customRetailPrice === null && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-semibold lowercase">
+                    auto-updating live
+                  </span>
+                )}
               </h3>
-              <span className="text-[10px] text-neutral-400 italic">
-                You can freely adjust prices at counter during sale
-              </span>
+              {customRetailPrice !== null && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomRetailPrice(null);
+                    setCustomWholesalePrice(null);
+                  }}
+                  className="inline-flex items-center gap-1 text-[10px] text-brand-gold hover:underline"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  Reset to Auto-Formula
+                </button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -396,8 +427,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   step="any"
                   min="0"
                   required
-                  value={retailPrice || (autoIdealSellRate > 0 ? String(autoIdealSellRate) : '')}
-                  onChange={(e) => setRetailPrice(e.target.value)}
+                  value={displayRetail}
+                  onChange={(e) => setCustomRetailPrice(e.target.value)}
                   placeholder={String(autoIdealSellRate)}
                   className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-lg text-sm text-brand-gold font-mono font-bold focus:outline-none focus:border-brand-gold"
                 />
@@ -411,13 +442,16 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   type="number"
                   step="any"
                   min="0"
-                  value={wholesalePrice || (autoWholesaleRate > 0 ? String(autoWholesaleRate) : '')}
-                  onChange={(e) => setWholesalePrice(e.target.value)}
+                  value={displayWholesale}
+                  onChange={(e) => setCustomWholesalePrice(e.target.value)}
                   placeholder={String(autoWholesaleRate)}
                   className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-lg text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
                 />
               </div>
             </div>
+            <p className="text-[10px] text-neutral-400 italic">
+              Benchmark reference price. At the sales counter/POS, you can increase or discount freely during sales negotiation.
+            </p>
           </div>
 
           {/* Action buttons */}
