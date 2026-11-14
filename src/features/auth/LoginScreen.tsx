@@ -10,8 +10,17 @@ interface LoginScreenProps {
 }
 
 export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
-  const [mode, setMode] = useState<'password' | 'pin'>('password');
-  const [username, setUsername] = useState('');
+  const [savedUser] = useState<string>(() => {
+    try {
+      return localStorage.getItem('rauhaah_remembered_username') || '';
+    } catch {
+      return '';
+    }
+  });
+
+  const [mode, setMode] = useState<'password' | 'pin'>('pin');
+  const [username, setUsername] = useState(savedUser);
+  const [rememberUsername, setRememberUsername] = useState(true);
   const [password, setPassword] = useState('');
   const [pin, setPin] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -76,6 +85,20 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
       }
 
       // Login success
+      if (rememberUsername) {
+        try {
+          localStorage.setItem('rauhaah_remembered_username', cleanUser);
+        } catch {
+          // ignore
+        }
+      } else {
+        try {
+          localStorage.removeItem('rauhaah_remembered_username');
+        } catch {
+          // ignore
+        }
+      }
+
       await authRepo.recordLoginSuccess(dbUser, deviceId);
       const permissions = await authRepo.getRolePermissions(dbUser.role_id);
 
@@ -155,20 +178,48 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
-              Username
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+                Username
+              </label>
+              {savedUser && username === savedUser && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUsername('');
+                    try {
+                      localStorage.removeItem('rauhaah_remembered_username');
+                    } catch {}
+                  }}
+                  className="text-[10px] text-neutral-400 hover:text-brand-gold transition-colors"
+                >
+                  Switch User
+                </button>
+              )}
+            </div>
             <div className="relative">
               <input
                 type="text"
                 required
-                autoFocus
+                autoFocus={!savedUser}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="e.g. cashier or owner"
                 className="w-full pl-9 pr-3.5 py-2.5 bg-brand-black border border-brand-border rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold"
               />
               <UserIcon className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
+            </div>
+            <div className="flex items-center gap-1.5 mt-1.5">
+              <input
+                type="checkbox"
+                id="rememberUsername"
+                checked={rememberUsername}
+                onChange={(e) => setRememberUsername(e.target.checked)}
+                className="rounded border-brand-border text-brand-gold focus:ring-brand-gold bg-brand-surface w-3.5 h-3.5 cursor-pointer"
+              />
+              <label htmlFor="rememberUsername" className="text-[11px] text-neutral-400 cursor-pointer select-none">
+                Remember username on this device
+              </label>
             </div>
           </div>
 
@@ -181,6 +232,7 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
+                  autoFocus={Boolean(savedUser)}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -207,6 +259,7 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
                   inputMode="numeric"
                   maxLength={6}
                   required
+                  autoFocus={Boolean(savedUser)}
                   value={pin}
                   onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                   placeholder="••••"

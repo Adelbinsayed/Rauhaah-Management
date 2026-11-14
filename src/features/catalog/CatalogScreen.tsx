@@ -10,6 +10,7 @@ import {
   Droplet,
   Tag,
   Scan,
+  CheckCircle2,
 } from 'lucide-react';
 import { catalogRepo } from '../../data/repositories/catalogRepo';
 import type {
@@ -52,10 +53,28 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
   // Modals
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
+  const [restockTargetProduct, setRestockTargetProduct] = useState<Sellable | null>(null);
   const [priceHistorySellable, setPriceHistorySellable] = useState<{
     id?: string;
     name?: string;
   } | null>(null);
+
+  // Success Feedback Dialog State
+  const [successModal, setSuccessModal] = useState<{
+    title: string;
+    badgeText: string;
+    productName: string;
+    message: string;
+    details: { label: string; value: string }[];
+  } | null>(null);
+
+  useEffect(() => {
+    if (!successModal) return;
+    const timer = setTimeout(() => {
+      setSuccessModal(null);
+    }, 4500);
+    return () => clearTimeout(timer);
+  }, [successModal]);
 
   const loadData = async () => {
     try {
@@ -85,6 +104,21 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
     if (!currentUser) return;
     await catalogRepo.createProduct(data, currentUser.id, deviceId);
     await loadData();
+
+    const isOil = data.sellableType === 'loose_decant';
+    const unit = isOil ? 'ml' : 'pcs';
+    setSuccessModal({
+      title: 'Product Added Successfully!',
+      badgeText: isOil ? 'Attar / Oil Registered' : 'Packaged Product Registered',
+      productName: data.name,
+      message: 'New product and inventory have been recorded into your catalog.',
+      details: [
+        { label: 'Product SKU', value: data.sku || 'Auto-generated' },
+        { label: 'Initial Stock Added', value: `${data.initialQuantity || 0} ${unit}` },
+        { label: 'Benchmark Retail Price', value: `৳${data.retailPriceBdt.toFixed(2)}` },
+        { label: 'Wholesale Price', value: `৳${data.wholesalePriceBdt.toFixed(2)}` },
+      ],
+    });
   };
 
   const handleRestock = async (
@@ -94,6 +128,7 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
     updateRetailPrice?: number
   ) => {
     if (!currentUser) return;
+    const target = sellables.find((s) => s.id === sellableId);
     await catalogRepo.restockProduct(
       sellableId,
       addedQuantity,
@@ -103,6 +138,35 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
       updateRetailPrice
     );
     await loadData();
+
+    const isOil =
+      target?.sellableType === 'loose_decant' ||
+      target?.name.toLowerCase().includes('oil') ||
+      target?.name.toLowerCase().includes('oud') ||
+      target?.name.toLowerCase().includes('attar');
+    const unit = isOil ? 'ml' : 'pcs';
+    const currentQty = target?.primaryStockQuantity ?? 0;
+    const newQty = currentQty + addedQuantity;
+
+    setSuccessModal({
+      title: 'Stock Updated Successfully!',
+      badgeText: 'Restock Complete',
+      productName: target?.name || 'Product Restock',
+      message: 'Incoming shipment has been recorded and active stock updated.',
+      details: [
+        { label: 'Quantity Added', value: `+${addedQuantity} ${unit}` },
+        { label: 'New Stock in Hand', value: `${newQty} ${unit}` },
+        {
+          label: 'Benchmark Retail Price',
+          value: updateRetailPrice
+            ? `৳${updateRetailPrice.toFixed(2)} / ${unit}`
+            : `৳${target?.retailPriceBdt.toFixed(2) ?? '0.00'} / ${unit}`,
+        },
+        ...(totalCostPaid > 0
+          ? [{ label: 'Total Purchase Cost', value: `৳${totalCostPaid.toFixed(2)}` }]
+          : []),
+      ],
+    });
   };
 
   const handleSaveBulkPrices = async (items: BulkPriceUpdateItem[]) => {
@@ -148,7 +212,10 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
         {canEdit && (
           <div className="flex items-center gap-2.5">
             <button
-              onClick={() => setIsRestockModalOpen(true)}
+              onClick={() => {
+                setRestockTargetProduct(null);
+                setIsRestockModalOpen(true);
+              }}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/20 transition-colors"
             >
               <PlusCircle className="w-4 h-4" />
@@ -408,8 +475,11 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
                           <div className="flex items-center justify-center gap-1">
                             {canEdit && (
                               <button
-                                onClick={() => setIsRestockModalOpen(true)}
-                                title="Add Received Shipment / Restock"
+                                onClick={() => {
+                                  setRestockTargetProduct(s);
+                                  setIsRestockModalOpen(true);
+                                }}
+                                title={`Direct Restock: ${s.name}`}
                                 className="p-1 rounded hover:bg-neutral-800 text-emerald-400 hover:text-emerald-300 transition-colors"
                               >
                                 <PlusCircle className="w-4 h-4" />
@@ -510,7 +580,11 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
 
       <RestockModal
         isOpen={isRestockModalOpen}
-        onClose={() => setIsRestockModalOpen(false)}
+        initialProduct={restockTargetProduct}
+        onClose={() => {
+          setIsRestockModalOpen(false);
+          setRestockTargetProduct(null);
+        }}
         sellables={sellables}
         onRestock={handleRestock}
         canViewCost={canViewCost}
@@ -522,6 +596,42 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
         sellableId={priceHistorySellable?.id}
         sellableName={priceHistorySellable?.name}
       />
+
+      {/* Flashing Success Modal / Dialog */}
+      {successModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-brand-surface border border-emerald-500/50 rounded-2xl shadow-2xl p-6 text-center space-y-4">
+            <div className="mx-auto w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+            <div>
+              <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 mb-1.5">
+                {successModal.badgeText}
+              </span>
+              <h3 className="text-base font-bold text-white">{successModal.title}</h3>
+              <p className="text-sm font-semibold text-brand-gold mt-0.5">{successModal.productName}</p>
+              <p className="text-xs text-neutral-400 mt-0.5">{successModal.message}</p>
+            </div>
+
+            <div className="bg-brand-black/70 border border-brand-border rounded-xl p-3 space-y-1.5 text-left text-xs">
+              {successModal.details.map((item, idx) => (
+                <div key={idx} className="flex justify-between items-center text-neutral-300">
+                  <span className="text-neutral-400">{item.label}</span>
+                  <span className="font-semibold text-white font-mono">{item.value}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setSuccessModal(null)}
+              autoFocus
+              className="w-full py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+            >
+              OK (Close)
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

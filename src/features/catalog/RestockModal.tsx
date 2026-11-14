@@ -6,6 +6,7 @@ interface RestockModalProps {
   isOpen: boolean;
   onClose: () => void;
   sellables: Sellable[];
+  initialProduct?: Sellable | null;
   onRestock: (
     sellableId: string,
     addedQuantity: number,
@@ -19,6 +20,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
   isOpen,
   onClose,
   sellables,
+  initialProduct,
   onRestock,
   canViewCost,
 }) => {
@@ -33,9 +35,25 @@ export const RestockModal: React.FC<RestockModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      if (initialProduct) {
+        setSelectedSellableId(initialProduct.id);
+        setSearchTerm(initialProduct.name);
+      } else {
+        setSelectedSellableId('');
+        setSearchTerm('');
+      }
+      setAddedQuantity('');
+      setTotalCostPaid('');
+      setError(null);
+    }
+  }, [isOpen, initialProduct]);
+
   const selectedProduct = useMemo(() => {
+    if (initialProduct) return initialProduct;
     return sellables.find((s) => s.id === selectedSellableId);
-  }, [sellables, selectedSellableId]);
+  }, [sellables, selectedSellableId, initialProduct]);
 
   const searchResults = useMemo(() => {
     if (!searchTerm.trim()) return sellables.slice(0, 8);
@@ -113,9 +131,13 @@ export const RestockModal: React.FC<RestockModalProps> = ({
               <PlusCircle className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Restock / Add Purchase</h2>
+              <h2 className="text-lg font-bold text-white">
+                {initialProduct ? `Restock: ${initialProduct.name}` : 'Restock / Add Purchase'}
+              </h2>
               <p className="text-xs text-neutral-400">
-                Search an existing product to record incoming shipment, new cost, and live benchmark price.
+                {initialProduct
+                  ? 'Record incoming shipment for this item, update stock, and recalculate benchmark price.'
+                  : 'Search an existing product to record incoming shipment, new cost, and live benchmark price.'}
               </p>
             </div>
           </div>
@@ -135,78 +157,116 @@ export const RestockModal: React.FC<RestockModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Step 1: Search & Select Existing Product */}
-          <div className="space-y-2">
-            <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider">
-              1. Search &amp; Select Existing Product *
-            </label>
-            <div className="relative">
-              <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by product name (e.g. Black Oud, Baccarat, Janamaz) or SKU..."
-                className="w-full pl-9 pr-3 py-2 bg-brand-black border border-brand-border rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold"
-              />
-            </div>
-
-            {/* Quick selector list */}
-            <div className="max-h-36 overflow-y-auto space-y-1 p-1 bg-brand-black/60 border border-brand-border rounded-lg">
-              {searchResults.length === 0 ? (
-                <p className="text-xs text-neutral-500 p-2 italic text-center">
-                  No matching product found. If this is a new product, use &ldquo;+ New Product&rdquo;.
-                </p>
-              ) : (
-                searchResults.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedSellableId(item.id);
-                      setSearchTerm(item.name);
-                    }}
-                    className={`w-full flex items-center justify-between p-2 rounded text-left text-xs transition-colors ${
-                      selectedSellableId === item.id
-                        ? 'bg-brand-gold text-brand-black font-semibold'
-                        : 'text-neutral-300 hover:bg-neutral-800'
-                    }`}
-                  >
-                    <div>
-                      <span className="font-medium">{item.name}</span>
-                      <span className="text-[10px] opacity-75 font-mono ml-2">({item.sku})</span>
-                    </div>
-                    <span className="font-mono">৳{item.retailPriceBdt}</span>
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Selected Product Summary Card */}
-          {selectedProduct && (
-            <div className="p-3.5 rounded-xl bg-brand-black/80 border border-brand-gold/30 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <Package className="w-5 h-5 text-brand-gold shrink-0" />
+          {/* If opened directly from row, show Product Details Header directly */}
+          {initialProduct ? (
+            <div className="p-4 rounded-xl bg-brand-black/90 border border-brand-gold/40 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold shrink-0">
+                  <Package className="w-5 h-5" />
+                </div>
                 <div>
-                  <h4 className="text-xs font-bold text-white">{selectedProduct.name}</h4>
-                  <p className="text-[11px] text-neutral-400">
-                    Current Retail: <strong className="text-brand-gold font-mono">৳{selectedProduct.retailPriceBdt}</strong> / {unitLabel}
-                    {' '}&bull;{' '}Current Stock: <strong className="text-white font-mono">{selectedProduct.primaryStockQuantity ?? 0} {unitLabel}</strong>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-white">{selectedProduct?.name}</h4>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-brand-surface text-neutral-400 font-mono">
+                      {selectedProduct?.sku}
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                        isOil
+                          ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                          : 'bg-neutral-800 text-neutral-300'
+                      }`}
+                    >
+                      {isOil ? 'Attar / Oil' : 'Packaged'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-neutral-400 mt-1">
+                    Current Stock in Hand: <strong className="text-emerald-400 font-mono">{selectedProduct?.primaryStockQuantity ?? 0} {unitLabel}</strong>
+                    {' '}&bull;{' '}
+                    Current Retail: <strong className="text-brand-gold font-mono">৳{selectedProduct?.retailPriceBdt}</strong> / {unitLabel}
                   </p>
                 </div>
               </div>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-brand-gold/20 text-brand-gold font-semibold uppercase">
-                Selected
+              <span className="text-[10px] px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold uppercase tracking-wide">
+                Direct Restock
               </span>
             </div>
+          ) : (
+            <>
+              {/* Step 1: Search & Select Existing Product */}
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+                  1. Search &amp; Select Existing Product *
+                </label>
+                <div className="relative">
+                  <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search by product name (e.g. Black Oud, Baccarat, Janamaz) or SKU..."
+                    className="w-full pl-9 pr-3 py-2 bg-brand-black border border-brand-border rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold"
+                  />
+                </div>
+
+                {/* Quick selector list */}
+                <div className="max-h-36 overflow-y-auto space-y-1 p-1 bg-brand-black/60 border border-brand-border rounded-lg">
+                  {searchResults.length === 0 ? (
+                    <p className="text-xs text-neutral-500 p-2 italic text-center">
+                      No matching product found. If this is a new product, use &ldquo;+ New Product&rdquo;.
+                    </p>
+                  ) : (
+                    searchResults.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedSellableId(item.id);
+                          setSearchTerm(item.name);
+                        }}
+                        className={`w-full flex items-center justify-between p-2 rounded text-left text-xs transition-colors ${
+                          selectedSellableId === item.id
+                            ? 'bg-brand-gold text-brand-black font-semibold'
+                            : 'text-neutral-300 hover:bg-neutral-800'
+                        }`}
+                      >
+                        <div>
+                          <span className="font-medium">{item.name}</span>
+                          <span className="text-[10px] opacity-75 font-mono ml-2">({item.sku})</span>
+                        </div>
+                        <span className="font-mono">৳{item.retailPriceBdt}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Selected Product Summary Card */}
+              {selectedProduct && (
+                <div className="p-3.5 rounded-xl bg-brand-black/80 border border-brand-gold/30 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <Package className="w-5 h-5 text-brand-gold shrink-0" />
+                    <div>
+                      <h4 className="text-xs font-bold text-white">{selectedProduct.name}</h4>
+                      <p className="text-[11px] text-neutral-400">
+                        Current Retail: <strong className="text-brand-gold font-mono">৳{selectedProduct.retailPriceBdt}</strong> / {unitLabel}
+                        {' '}&bull;{' '}Current Stock: <strong className="text-white font-mono">{selectedProduct.primaryStockQuantity ?? 0} {unitLabel}</strong>
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-brand-gold/20 text-brand-gold font-semibold uppercase">
+                    Selected
+                  </span>
+                </div>
+              )}
+            </>
           )}
 
           {/* Step 2: Quantity and Cost */}
           {selectedProduct && (
             <div className="p-4 rounded-xl bg-brand-black/60 border border-brand-border space-y-4">
               <h3 className="text-xs font-bold text-brand-gold uppercase tracking-wider">
-                2. Enter Received Shipment Details
+                {initialProduct ? 'Enter Received Shipment Details' : '2. Enter Received Shipment Details'}
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -219,6 +279,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                     step="any"
                     min="1"
                     required
+                    autoFocus={Boolean(initialProduct)}
                     value={addedQuantity}
                     onChange={(e) => setAddedQuantity(e.target.value)}
                     placeholder={unitLabel === 'ml' ? 'e.g. 100, 250' : 'e.g. 20, 50'}
