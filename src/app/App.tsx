@@ -8,6 +8,7 @@ import { LoginScreen } from '@/features/auth/LoginScreen';
 import { SetupScreen } from '@/features/auth/SetupScreen';
 import { SettingsScreen } from '@/features/settings/SettingsScreen';
 import { UsersScreen } from '@/features/users/UsersScreen';
+import { CatalogScreen } from '@/features/catalog/CatalogScreen';
 import { en } from '@/lib/i18n/en';
 import {
   CheckCircle2,
@@ -290,8 +291,17 @@ export function App() {
 
           {activeRoute === 'settings' && <SettingsScreen deviceId={deviceId} />}
 
+          {(activeRoute === 'products' || activeRoute === 'price-list' || activeRoute === 'stock') && (
+            <CatalogScreen deviceId={deviceId} />
+          )}
+
           {/* Placeholder for future phases */}
-          {activeRoute !== 'dashboard' && activeRoute !== 'users' && activeRoute !== 'settings' && (
+          {activeRoute !== 'dashboard' &&
+            activeRoute !== 'users' &&
+            activeRoute !== 'settings' &&
+            activeRoute !== 'products' &&
+            activeRoute !== 'price-list' &&
+            activeRoute !== 'stock' && (
             <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
               <div className="w-12 h-12 rounded-full bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold mb-4">
                 <Package className="w-5 h-5" />
