@@ -10,10 +10,11 @@ src-tauri/target/
 src-tauri/.dev-portable/
 
 # Portable data & compiled exe (never commit live DBs or binary)
-Rauhaah.exe
-data/
-backups/
-Import/
+/Rauhaah.exe
+/data/
+/backups/
+/Import/
+*.txt
 
 # OS / Editor
 .DS_Store
