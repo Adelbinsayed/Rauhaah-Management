@@ -12,8 +12,23 @@ import type {
   Sellable,
   SellableComponent,
   StockItem,
+  StockItemType,
   Unit,
 } from '@/domain/catalog/types';
+
+function mapSellableToStockItemType(sellableType: string): StockItemType {
+  switch (sellableType) {
+    case 'loose_decant':
+    case 'custom_blend':
+      return 'raw_oil';
+    case 'sealed_product':
+      return 'sealed_product';
+    case 'accessory':
+      return 'accessory';
+    default:
+      return 'sealed_product';
+  }
+}
 
 export const catalogRepo = {
   // --- Units, Categories, Brands ---
@@ -386,6 +401,7 @@ export const catalogRepo = {
       const stockItemId = uuidv7();
       const stockSku = `STK-${sku}`;
       const defaultUnitId = input.unitId || (input.sellableType === 'loose_decant' ? 'unit-vol-ml' : 'unit-cnt-pcs');
+      const itemType = mapSellableToStockItemType(input.sellableType);
 
       txStatements.push({
         sql: `INSERT INTO stock_items (
@@ -399,7 +415,7 @@ export const catalogRepo = {
           input.name.trim(),
           input.brandId || null,
           input.categoryId || null,
-          input.sellableType,
+          itemType,
           defaultUnitId,
           input.initialQuantity || 0,
           input.minAlertQuantity || (input.sellableType === 'loose_decant' ? 20 : 5),
@@ -769,6 +785,7 @@ export const catalogRepo = {
         stockItemId = uuidv7();
         const stockSku = `STK-${s.sku}`;
         const defaultUnitId = s.sellable_type === 'loose_decant' ? 'unit-vol-ml' : 'unit-cnt-pcs';
+        const itemType = mapSellableToStockItemType(s.sellable_type);
 
         txStatements.push({
           sql: `INSERT INTO stock_items (
@@ -782,7 +799,7 @@ export const catalogRepo = {
             s.name,
             s.brand_id,
             s.category_id,
-            s.sellable_type,
+            itemType,
             defaultUnitId,
             addedQuantity,
             effectiveUnitCost,
