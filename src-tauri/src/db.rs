@@ -45,10 +45,16 @@ struct Migration {
     sql: &'static str,
 }
 
-const MIGRATIONS: &[Migration] = &[Migration {
-    version: 1,
-    sql: include_str!("../migrations/0001_init.sql"),
-}];
+const MIGRATIONS: &[Migration] = &[
+    Migration {
+        version: 1,
+        sql: include_str!("../migrations/0001_init.sql"),
+    },
+    Migration {
+        version: 2,
+        sql: include_str!("../migrations/0002_users_and_roles.sql"),
+    },
+];
 
 fn resolve_portable_root() -> Result<PathBuf, String> {
     let exe_path = std::env::current_exe().map_err(|e| format!("Failed to locate exe: {e}"))?;
@@ -141,6 +147,7 @@ pub fn init_db() -> Result<DbState, String> {
 
     run_migrations(&conn)?;
     seed_default_branch(&conn, &device_id)?;
+    seed_default_roles(&conn, &device_id)?;
 
     Ok(DbState {
         conn: Mutex::new(conn),
@@ -220,6 +227,116 @@ fn seed_default_branch(conn: &Connection, device_id: &str) -> Result<(), String>
         .map_err(|e| format!("Failed to log default branch: {e}"))?;
         tx.commit()
             .map_err(|e| format!("Failed to commit default branch: {e}"))?;
+    }
+
+    Ok(())
+}
+
+fn seed_default_roles(conn: &Connection, device_id: &str) -> Result<(), String> {
+    let count: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM roles WHERE deleted_at IS NULL",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| format!("Failed to check roles: {e}"))?;
+
+    if count == 0 {
+        let now = Utc::now().to_rfc3339();
+        let tx = conn
+            .unchecked_transaction()
+            .map_err(|e| format!("Failed to begin roles seed tx: {e}"))?;
+
+        struct RoleDef {
+            name: &'static str,
+            display_name: &'static str,
+            description: &'static str,
+            permissions: &'static [&'static str],
+        }
+
+        let roles = [
+            RoleDef {
+                name: "owner",
+                display_name: "Owner",
+                description: "Full access to all features, finances, settings, and user management.",
+                permissions: &[
+                    "cost.view",
+                    "profit.view",
+                    "price.edit",
+                    "stock.adjust",
+                    "sale.void",
+                    "report.view",
+                    "user.manage",
+                    "import.run",
+                    "settings.manage",
+                    "pos.access",
+                    "price_checker.access",
+                    "sale.create",
+                    "sale.view_own",
+                ],
+            },
+            RoleDef {
+                name: "manager",
+                display_name: "Manager",
+                description: "Manages catalog, pricing, stock, purchases, sales, and reports.",
+                permissions: &[
+                    "cost.view",
+                    "profit.view",
+                    "price.edit",
+                    "stock.adjust",
+                    "sale.void",
+                    "report.view",
+                    "import.run",
+                    "pos.access",
+                    "price_checker.access",
+                    "sale.create",
+                    "sale.view_own",
+                ],
+            },
+            RoleDef {
+                name: "staff",
+                display_name: "Staff / Cashier",
+                description: "Sales and product price lookups only. Cost and profit are hidden.",
+                permissions: &[
+                    "pos.access",
+                    "price_checker.access",
+                    "sale.create",
+                    "sale.view_own",
+                ],
+            },
+        ];
+
+        for r in roles {
+            let role_id = Uuid::now_v7().to_string();
+            let log_id = Uuid::now_v7().to_string();
+
+            tx.execute(
+                "INSERT INTO roles (id, name, display_name, description, is_system, created_at, updated_at, device_id)
+                 VALUES (?1, ?2, ?3, ?4, 1, ?5, ?5, ?6)",
+                rusqlite::params![role_id, r.name, r.display_name, r.description, now, device_id],
+            )
+            .map_err(|e| format!("Failed to seed role {}: {e}", r.name))?;
+
+            tx.execute(
+                "INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
+                 VALUES (?1, 'roles', ?2, 'insert', ?3, 0)",
+                rusqlite::params![log_id, role_id, now],
+            )
+            .map_err(|e| format!("Failed to log role {}: {e}", r.name))?;
+
+            for p in r.permissions {
+                let perm_id = Uuid::now_v7().to_string();
+                tx.execute(
+                    "INSERT INTO role_permissions (id, role_id, permission_key, created_at, device_id)
+                     VALUES (?1, ?2, ?3, ?4, ?5)",
+                    rusqlite::params![perm_id, role_id, p, now, device_id],
+                )
+                .map_err(|e| format!("Failed to seed permission {} for role {}: {e}", p, r.name))?;
+            }
+        }
+
+        tx.commit()
+            .map_err(|e| format!("Failed to commit default roles: {e}"))?;
     }
 
     Ok(())

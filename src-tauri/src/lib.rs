@@ -1,3 +1,4 @@
+mod auth;
 mod db;
 
 use tauri::Manager;
@@ -24,7 +25,9 @@ pub fn run() {
             db::db_query,
             db::db_execute,
             db::db_batch_tx,
-            db::db_info
+            db::db_info,
+            auth::hash_password,
+            auth::verify_password
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

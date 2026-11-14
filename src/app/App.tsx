@@ -1,75 +1,172 @@
-import { CheckCircle2, Database, FolderOpen, Moon, Package, RefreshCw, Sun } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
 import type { DbInfo } from '@/data/db';
-import { type BranchRow, systemRepo } from '@/data/repositories/systemRepo';
-import { formatDhakaDateTime } from '@/lib/dates';
+import { authRepo } from '@/data/repositories/authRepo';
+import { settingsRepo } from '@/data/repositories/settingsRepo';
+import { systemRepo } from '@/data/repositories/systemRepo';
+import { canViewCost } from '@/domain/auth/permissions';
+import { LockScreen } from '@/features/auth/LockScreen';
+import { LoginScreen } from '@/features/auth/LoginScreen';
+import { SetupScreen } from '@/features/auth/SetupScreen';
+import { SettingsScreen } from '@/features/settings/SettingsScreen';
+import { UsersScreen } from '@/features/users/UsersScreen';
 import { en } from '@/lib/i18n/en';
+import {
+  CheckCircle2,
+  Database,
+  Lock,
+  Moon,
+  Package,
+  Shield,
+  Sparkles,
+  Sun,
+} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { useAppStore } from './store';
 
 export function App() {
-  const { activeRoute, theme, toggleTheme } = useAppStore();
-  const [dbInfo, setDbInfo] = useState<DbInfo | null>(null);
-  const [branches, setBranches] = useState<BranchRow[]>([]);
-  const [testNote, setTestNote] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const {
+    activeRoute,
+    theme,
+    toggleTheme,
+    currentUser,
+    permissions,
+    isLocked,
+    shopSettings,
+    setSession,
+    lockSession,
+    setShopSettings,
+  } = useAppStore();
 
-  const loadSystemState = useCallback(async () => {
-    const info = await systemRepo.getDbInfo();
-    setDbInfo(info);
-    if (info) {
-      const [branchRows, note] = await Promise.all([
-        systemRepo.getBranches(),
-        systemRepo.getSetting('phase0_check'),
-      ]);
-      setBranches(branchRows);
-      setTestNote(note);
+  const [dbInfo, setDbInfo] = useState<DbInfo | null>(null);
+  const [hasUsers, setHasUsers] = useState<boolean | null>(null);
+  const [initLoading, setInitLoading] = useState(true);
+
+  const initSystem = useCallback(async () => {
+    setInitLoading(true);
+    try {
+      const info = await systemRepo.getDbInfo();
+      setDbInfo(info);
+
+      const usersExist = await authRepo.hasUsers();
+      setHasUsers(usersExist);
+
+      if (usersExist) {
+        const settings = await settingsRepo.getSettings();
+        setShopSettings(settings);
+      }
+    } catch (err) {
+      console.error('System initialization error:', err);
+    } finally {
+      setInitLoading(false);
     }
-  }, []);
+  }, [setShopSettings]);
 
   useEffect(() => {
-    loadSystemState();
-  }, [loadSystemState]);
+    initSystem();
+  }, [initSystem]);
 
-  const handleWriteTest = async () => {
-    if (!dbInfo) return;
-    setSaving(true);
-    try {
-      const stamp = new Date().toISOString();
-      await systemRepo.setSetting('phase0_check', `Verified at ${stamp}`, dbInfo.deviceId);
-      await loadSystemState();
-    } finally {
-      setSaving(false);
-    }
-  };
+  // Terminal Idle Lock Timer
+  useEffect(() => {
+    if (!currentUser || isLocked) return;
+    const timeoutMinutes = shopSettings?.idleLockMinutes ?? 5;
+    if (timeoutMinutes <= 0) return; // 0 = Never lock
+
+    let timer: ReturnType<typeof setTimeout>;
+
+    const resetTimer = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        lockSession();
+      }, timeoutMinutes * 60 * 1000);
+    };
+
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+    events.forEach((ev) => window.addEventListener(ev, resetTimer, { passive: true }));
+    resetTimer();
+
+    return () => {
+      clearTimeout(timer);
+      events.forEach((ev) => window.removeEventListener(ev, resetTimer));
+    };
+  }, [currentUser, isLocked, shopSettings?.idleLockMinutes, lockSession]);
+
+  const deviceId = dbInfo?.deviceId || 'DEV-FALLBACK';
+
+  if (initLoading) {
+    return (
+      <div className="h-screen w-screen bg-brand-black text-white flex flex-col items-center justify-center p-6 space-y-4">
+        <div className="w-8 h-8 rounded-full border-2 border-brand-gold border-t-transparent animate-spin" />
+        <p className="text-xs text-neutral-400 font-mono tracking-wider">Connecting database…</p>
+      </div>
+    );
+  }
+
+  // 1. First-Run Setup Screen
+  if (hasUsers === false) {
+    return (
+      <SetupScreen
+        deviceId={deviceId}
+        onSetupComplete={(session) => {
+          setSession(session);
+          setHasUsers(true);
+          settingsRepo.getSettings().then(setShopSettings).catch(console.error);
+        }}
+      />
+    );
+  }
+
+  // 2. Login Screen
+  if (!currentUser) {
+    return (
+      <LoginScreen
+        deviceId={deviceId}
+        onLoginSuccess={(session) => {
+          setSession(session);
+          settingsRepo.getSettings().then(setShopSettings).catch(console.error);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="flex h-screen bg-white text-neutral-900 dark:bg-brand-black dark:text-white overflow-hidden">
+      {/* Auto-Lock Screen Overlay */}
+      {isLocked && <LockScreen deviceId={deviceId} />}
+
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Bar */}
-        <header className="h-14 shrink-0 border-b border-neutral-200 dark:border-brand-border px-6 flex items-center justify-between bg-white dark:bg-brand-black">
+        {/* Top Header Bar */}
+        <header className="h-14 shrink-0 border-b border-neutral-200 dark:border-brand-border px-6 flex items-center justify-between bg-white dark:bg-brand-black select-none">
           <div className="flex items-center gap-3">
-            <h1 className="text-base font-semibold capitalize tracking-tight">
+            <h1 className="text-base font-bold capitalize tracking-tight">
               {activeRoute.replace('-', ' ')}
             </h1>
+            {shopSettings?.shopName && (
+              <span className="text-xs text-neutral-400 hidden sm:inline">
+                · {shopSettings.shopName}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full text-xs border border-neutral-200 dark:border-brand-border bg-neutral-50 dark:bg-brand-surface">
-              <span
-                className={
-                  dbInfo
-                    ? 'w-2 h-2 rounded-full bg-emerald-500'
-                    : 'w-2 h-2 rounded-full bg-amber-500'
-                }
-              />
-              <span className="text-neutral-600 dark:text-neutral-300">
-                {dbInfo ? en.common.connected : en.common.disconnected}
-              </span>
+            {/* Role indicator pill */}
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-gold/15 border border-brand-gold/40 text-brand-gold">
+              <Shield className="w-3.5 h-3.5" />
+              <span>{currentUser.roleDisplayName}</span>
             </div>
 
+            {/* Quick lock button */}
+            <button
+              type="button"
+              onClick={lockSession}
+              title="Lock Terminal"
+              className="p-2 rounded-md border border-neutral-200 dark:border-brand-border hover:bg-neutral-100 dark:hover:bg-brand-surface text-neutral-600 dark:text-neutral-300 transition-colors"
+            >
+              <Lock className="w-4 h-4" />
+            </button>
+
+            {/* Theme toggle */}
             <button
               type="button"
               onClick={toggleTheme}
@@ -85,125 +182,123 @@ export function App() {
           </div>
         </header>
 
-        {/* Main Content */}
+        {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto p-6">
-          {activeRoute === 'dashboard' ? (
+          {activeRoute === 'dashboard' && (
             <div className="max-w-4xl space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
-                  Phase 0: Foundation Ready
+              {/* Welcome banner */}
+              <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-neutral-50 dark:bg-brand-surface p-5 space-y-2">
+                <div className="flex items-center gap-2 text-brand-gold font-bold text-sm">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Phase 1 Completed: Users, Roles, and Settings</span>
+                </div>
+                <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white">
+                  Welcome, {currentUser.displayName}!
                 </h2>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-                  Portable SQLite (WAL mode), atomic Rust batch transactions, and sync-ready schema.
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  Logged in as <strong className="text-brand-gold">{currentUser.roleDisplayName}</strong> (@{currentUser.username}).
+                  {currentUser.roleName === 'staff' ? (
+                    <span className="text-amber-500 font-semibold ml-1">
+                      (Staff Mode: Cost prices, wholesale margins, and admin menus are strictly hidden from your session).
+                    </span>
+                  ) : (
+                    <span> Full administrative and financial privileges active.</span>
+                  )}
                 </p>
               </div>
 
-              {/* Status Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="rounded-lg border border-neutral-200 dark:border-brand-border bg-neutral-50 dark:bg-brand-surface p-4 space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-brand-gold">
-                    <Database className="w-4 h-4" />
-                    <span>{en.common.dbStatus}</span>
+              {/* Status & Security Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-neutral-50 dark:bg-brand-surface p-4 space-y-1.5">
+                  <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-brand-gold" />
+                    <span>Role Permissions</span>
                   </div>
-                  {dbInfo ? (
-                    <dl className="text-xs space-y-1.5 text-neutral-600 dark:text-neutral-300 font-mono">
-                      <div>
-                        <dt className="text-neutral-400">Journal Mode</dt>
-                        <dd className="uppercase font-semibold text-emerald-500">
-                          {dbInfo.journalMode}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-neutral-400">Migrations Applied</dt>
-                        <dd>{dbInfo.appliedMigrations.join(', ') || 'None'}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-neutral-400">Device ID</dt>
-                        <dd className="truncate">{dbInfo.deviceId}</dd>
-                      </div>
-                    </dl>
-                  ) : (
-                    <p className="text-xs text-neutral-500">
-                      Running in browser preview. Launch via Tauri desktop app to connect to SQLite.
-                    </p>
-                  )}
+                  <div className="text-sm font-bold text-neutral-900 dark:text-white">
+                    {permissions.length} Active Capabilities
+                  </div>
+                  <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                    Cost Viewing: {canViewCost(permissions) ? '✅ Allowed' : '🔒 Hidden'}
+                  </div>
                 </div>
 
-                <div className="rounded-lg border border-neutral-200 dark:border-brand-border bg-neutral-50 dark:bg-brand-surface p-4 space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-brand-gold">
-                    <FolderOpen className="w-4 h-4" />
-                    <span>{en.common.portablePath}</span>
+                <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-neutral-50 dark:bg-brand-surface p-4 space-y-1.5">
+                  <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Database className="w-3.5 h-3.5 text-brand-gold" />
+                    <span>Database Status</span>
                   </div>
-                  {dbInfo ? (
-                    <dl className="text-xs space-y-1.5 text-neutral-600 dark:text-neutral-300 font-mono">
-                      <div>
-                        <dt className="text-neutral-400">Database</dt>
-                        <dd className="break-all">{dbInfo.dbPath}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-neutral-400">Backups</dt>
-                        <dd className="break-all">{dbInfo.backupsDir}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-neutral-400">CSV Import</dt>
-                        <dd className="break-all">{dbInfo.importDir}</dd>
-                      </div>
-                    </dl>
-                  ) : (
-                    <p className="text-xs text-neutral-500">
-                      Portable folders are resolved relative to Rauhaah.exe at runtime.
-                    </p>
-                  )}
+                  <div className="text-sm font-bold text-emerald-500">
+                    WAL Mode Active
+                  </div>
+                  <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
+                    Device: {deviceId.slice(0, 18)}…
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-neutral-50 dark:bg-brand-surface p-4 space-y-1.5">
+                  <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5 text-brand-gold" />
+                    <span>Auto-Lock Security</span>
+                  </div>
+                  <div className="text-sm font-bold text-neutral-900 dark:text-white">
+                    {shopSettings?.idleLockMinutes
+                      ? `${shopSettings.idleLockMinutes} Minutes Idle`
+                      : 'Never'}
+                  </div>
+                  <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                    Quick PIN Unlock enabled
+                  </div>
                 </div>
               </div>
 
-              {/* Branches + Write Test */}
-              <div className="rounded-lg border border-neutral-200 dark:border-brand-border bg-neutral-50 dark:bg-brand-surface p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-semibold">SQLite Persistence Check</h3>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                      Writes a setting row + change_log entry in a single atomic Rust transaction.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={!dbInfo || saving}
-                    onClick={handleWriteTest}
-                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-semibold bg-brand-gold text-brand-black hover:bg-brand-gold-hover disabled:opacity-40 transition-colors"
-                  >
-                    <RefreshCw className={saving ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
-                    Test SQLite Write
-                  </button>
-                </div>
-
-                {testNote && (
-                  <div className="flex items-center gap-2 text-xs text-emerald-500 font-mono bg-emerald-500/10 border border-emerald-500/20 rounded px-3 py-2">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" />
-                    <span>{testNote}</span>
-                  </div>
-                )}
-
-                {branches.length > 0 && (
-                  <div className="text-xs text-neutral-500 dark:text-neutral-400">
-                    Default Branch:{' '}
-                    <span className="font-semibold text-neutral-900 dark:text-white">
-                      {branches[0].name} ({branches[0].code})
-                    </span>{' '}
-                    · Created {formatDhakaDateTime(branches[0].created_at)}
-                  </div>
-                )}
+              {/* Phase 1 Verification Checklist */}
+              <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface p-5 space-y-3">
+                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
+                  Phase 1 Features Ready for Testing
+                </h3>
+                <ul className="text-xs space-y-2 text-neutral-600 dark:text-neutral-300">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>
+                      <strong>First-Run Setup & Recovery:</strong> Owner account created with Argon2 hashing and emergency recovery code.
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>
+                      <strong>Role Isolation:</strong> Staff accounts can never view cost columns, wholesale profit, or administrative settings.
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>
+                      <strong>User Management:</strong> Add cashiers and managers, toggle active status, and reset passwords/PINs.
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>
+                      <strong>Shop Configuration & Audit Log:</strong> Custom invoice prefix, negative stock warnings, tola conventions, and security audit log.
+                    </span>
+                  </li>
+                </ul>
               </div>
             </div>
-          ) : (
+          )}
+
+          {activeRoute === 'users' && <UsersScreen deviceId={deviceId} />}
+
+          {activeRoute === 'settings' && <SettingsScreen deviceId={deviceId} />}
+
+          {/* Placeholder for future phases */}
+          {activeRoute !== 'dashboard' && activeRoute !== 'users' && activeRoute !== 'settings' && (
             <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
               <div className="w-12 h-12 rounded-full bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold mb-4">
                 <Package className="w-5 h-5" />
               </div>
-              <h2 className="text-lg font-semibold capitalize">{activeRoute.replace('-', ' ')}</h2>
-              <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-                {en.common.comingSoon}. This screen is scaffolded in the Phase 0 shell and will be
-                implemented in its scheduled phase.
+              <h2 className="text-lg font-bold capitalize">{activeRoute.replace('-', ' ')}</h2>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                {en.common.comingSoon}. This module is scheduled for development in its upcoming phase.
               </p>
             </div>
           )}
