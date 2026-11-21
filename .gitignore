@@ -9,8 +9,7 @@ dist-ssr/
 src-tauri/target/
 src-tauri/.dev-portable/
 
-# Portable data & compiled exe (never commit live DBs or binary)
-/Rauhaah.exe
+# Portable data (never commit live DBs or customer records)
 /data/
 /backups/
 /Import/
