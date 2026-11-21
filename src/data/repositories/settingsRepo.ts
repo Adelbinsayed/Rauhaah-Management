@@ -5,14 +5,23 @@ import { uuidv7 } from '@/lib/ids';
 
 const DEFAULT_SETTINGS: ShopSettings = {
   shopName: 'Rauhaah Perfumes & Attar',
-  phone: '',
-  address: '',
+  phone: '01970084325',
+  address: 'Shop #G-04, Ground Floor, Dhaka, Bangladesh',
   currency: 'BDT',
-  invoicePrefix: 'MAIN-',
+  invoicePrefix: 'INV-',
   negativeStockPolicy: 'warn_allow',
   tolaConvention: 'volume_12ml',
   idleLockMinutes: 5,
   paymentMethods: ['Cash', 'bKash', 'Nagad', 'Card', 'Bank'],
+  invoiceSubtitle: 'Live Peaceful • Luxury Perfumes & Attar',
+  invoiceFooterNote: 'Items can be exchanged within 7 days with original invoice & intact seal. Poured oils are non-exchangeable.',
+  invoicePaperWidth: '80mm',
+  showLogoOnInvoice: true,
+  showCashierOnInvoice: true,
+  printerEngine: 'direct_escpos',
+  selectedPrinter: '',
+  autoCutReceipt: true,
+  kickCashDrawer: false,
 };
 
 export const settingsRepo = {
@@ -49,6 +58,19 @@ export const settingsRepo = {
         DEFAULT_SETTINGS.tolaConvention,
       idleLockMinutes: Number(map.get('idle_lock_minutes') ?? DEFAULT_SETTINGS.idleLockMinutes),
       paymentMethods,
+      invoiceSubtitle: map.get('invoice_subtitle') ?? DEFAULT_SETTINGS.invoiceSubtitle,
+      invoiceFooterNote: map.get('invoice_footer_note') ?? DEFAULT_SETTINGS.invoiceFooterNote,
+      invoicePaperWidth:
+        (map.get('invoice_paper_width') as ShopSettings['invoicePaperWidth']) ??
+        DEFAULT_SETTINGS.invoicePaperWidth,
+      showLogoOnInvoice: map.get('show_logo_on_invoice') !== 'false',
+      showCashierOnInvoice: map.get('show_cashier_on_invoice') !== 'false',
+      printerEngine:
+        (map.get('printer_engine') as ShopSettings['printerEngine']) ??
+        DEFAULT_SETTINGS.printerEngine,
+      selectedPrinter: map.get('selected_printer') ?? DEFAULT_SETTINGS.selectedPrinter,
+      autoCutReceipt: map.get('auto_cut_receipt') !== 'false',
+      kickCashDrawer: map.get('kick_cash_drawer') === 'true',
     };
   },
 
@@ -76,6 +98,24 @@ export const settingsRepo = {
       pairs.push(['idle_lock_minutes', settings.idleLockMinutes.toString()]);
     if (settings.paymentMethods !== undefined)
       pairs.push(['payment_methods', JSON.stringify(settings.paymentMethods)]);
+    if (settings.invoiceSubtitle !== undefined)
+      pairs.push(['invoice_subtitle', settings.invoiceSubtitle.trim()]);
+    if (settings.invoiceFooterNote !== undefined)
+      pairs.push(['invoice_footer_note', settings.invoiceFooterNote.trim()]);
+    if (settings.invoicePaperWidth !== undefined)
+      pairs.push(['invoice_paper_width', settings.invoicePaperWidth]);
+    if (settings.showLogoOnInvoice !== undefined)
+      pairs.push(['show_logo_on_invoice', String(settings.showLogoOnInvoice)]);
+    if (settings.showCashierOnInvoice !== undefined)
+      pairs.push(['show_cashier_on_invoice', String(settings.showCashierOnInvoice)]);
+    if (settings.printerEngine !== undefined)
+      pairs.push(['printer_engine', settings.printerEngine]);
+    if (settings.selectedPrinter !== undefined)
+      pairs.push(['selected_printer', settings.selectedPrinter.trim()]);
+    if (settings.autoCutReceipt !== undefined)
+      pairs.push(['auto_cut_receipt', String(settings.autoCutReceipt)]);
+    if (settings.kickCashDrawer !== undefined)
+      pairs.push(['kick_cash_drawer', String(settings.kickCashDrawer)]);
 
     for (const [key, value] of pairs) {
       batch.push({

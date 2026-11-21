@@ -1,10 +1,32 @@
 import { invoke } from '@tauri-apps/api/core';
+import { uuidv7 } from '@/lib/ids';
+import { nowUtcIso } from '@/lib/dates';
 
 export type SqlParam = string | number | boolean | null;
 
 export interface BatchStatement {
   sql: string;
   params: SqlParam[];
+}
+
+export type ChangeLogOperation = 'insert' | 'update' | 'delete';
+
+/**
+ * Creates a standardized audit entry statement for SQLite change_log table.
+ * Deduplicates raw SQL and guarantees parameter alignment across all repositories.
+ */
+export function createChangeLogStatement(
+  tableName: string,
+  rowId: string,
+  operation: ChangeLogOperation,
+  timestamp?: string,
+  logId?: string
+): BatchStatement {
+  return {
+    sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
+          VALUES (?, ?, ?, ?, ?, 0)`,
+    params: [logId || uuidv7(), tableName, rowId, operation, timestamp || nowUtcIso()],
+  };
 }
 
 export interface DbInfo {

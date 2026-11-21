@@ -12,17 +12,6 @@
   "app": {
     "windows": [
       {
-        "label": "splash",
-        "title": "Rauhaah",
-        "url": "splash.html",
-        "width": 620,
-        "height": 380,
-        "resizable": false,
-        "decorations": false,
-        "center": true,
-        "alwaysOnTop": true
-      },
-      {
         "label": "main",
         "title": "Rauhaah Management",
         "url": "index.html",
@@ -32,6 +21,17 @@
         "minHeight": 680,
         "visible": false,
         "center": true
+      },
+      {
+        "label": "splash",
+        "title": "Rauhaah",
+        "url": "splash.html",
+        "width": 620,
+        "height": 380,
+        "resizable": false,
+        "decorations": false,
+        "center": true,
+        "alwaysOnTop": true
       }
     ],
     "security": {

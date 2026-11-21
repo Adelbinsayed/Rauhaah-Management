@@ -16,6 +16,12 @@ src-tauri/.dev-portable/
 /Import/
 *.txt
 
+# Logs & temporary scratch
+*.log
+*.zip
+scratch/
+*.tsbuildinfo
+
 # OS / Editor
 .DS_Store
 Thumbs.db

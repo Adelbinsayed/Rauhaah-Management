@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rauhaah Management — SaaS Presentation Video</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background: #050505;
+      color: #FFFFFF;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+
+    /* Ambient luxury glow background */
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: 
+        radial-gradient(circle at 20% 20%, rgba(197, 168, 128, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.06) 0%, transparent 50%),
+        #050505;
+    }
+
+    .main-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Top bar */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: rgba(18, 18, 18, 0.7);
+      border: 1px solid rgba(197, 168, 128, 0.2);
+      border-radius: 12px;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-title h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #E8D8B8;
+      text-transform: uppercase;
+    }
+
+    .brand-badge {
+      font-size: 10px;
+      font-weight: 700;
+      background: linear-gradient(135deg, rgba(197, 168, 128, 0.3), rgba(212, 175, 55, 0.1));
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      color: #D4AF37;
+      padding: 3px 8px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      outline: none;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #D4AF37 0%, #C5A880 100%);
+      color: #0A0A0A;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+    }
+
+    .btn-gold:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(197, 168, 128, 0.3);
+      color: #E0E0E0;
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: #D4AF37;
+      color: #FFFFFF;
+    }
+
+    /* 16:9 Cinema Canvas Screen */
+    .cinema-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000000;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(197, 168, 128, 0.3);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(197, 168, 128, 0.1);
+    }
+
+    #videoCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Screen overlays */
+    .canvas-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Watermark in corner */
+    .watermark {
+      position: absolute;
+      top: 24px;
+      left: 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+      opacity: 0.85;
+    }
+
+    .watermark-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #D4AF37, #8C733E);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      color: #0A0A0A;
+      font-size: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .watermark-text {
+      font-family: 'Cinzel', serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: rgba(255, 255, 255, 0.9);
+      text-transform: uppercase;
+    }
+
+    .time-indicator {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #D4AF37;
+      background: rgba(10, 10, 10, 0.7);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+    }
+
+    /* Bottom Player Controller */
+    .controls-panel {
+      background: rgba(18, 18, 18, 0.85);
+      border: 1px solid rgba(197, 168, 128, 0.2);
+      border-radius: 12px;
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      backdrop-filter: blur(12px);
+    }
+
+    .timeline-bar {
+      position: relative;
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      cursor: pointer;
+      transition: height 0.15s ease;
+    }
+
+    .timeline-bar:hover {
+      height: 8px;
+    }
+
+    .timeline-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #C5A880, #D4AF37);
+      border-radius: 3px;
+      width: 0%;
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+    }
+
+    /* Scene markers on timeline */
+    .scene-marker {
+      position: absolute;
+      top: -3px;
+      width: 2px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .left-controls, .right-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ctrl-btn {
+      background: none;
+      border: none;
+      color: #E0E0E0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #D4AF37;
+    }
+
+    .ctrl-btn.play-btn {
+      background: #D4AF37;
+      color: #0A0A0A;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+    }
+
+    .ctrl-btn.play-btn:hover {
+      background: #E8C85A;
+      transform: scale(1.05);
+    }
+
+    .scene-pill-group {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      max-width: 600px;
+    }
+
+    .scene-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #A0A0A0;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .scene-pill:hover, .scene-pill.active {
+      background: rgba(212, 175, 55, 0.15);
+      border-color: rgba(212, 175, 55, 0.5);
+      color: #D4AF37;
+    }
+
+    /* Record progress banner */
+    .record-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(153, 27, 27, 0.3));
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: 8px;
+      font-size: 12px;
+      color: #FCA5A5;
+    }
+
+    .record-banner.active {
+      display: flex;
+    }
+
+    .record-pulse {
+      width: 10px;
+      height: 10px;
+      background: #EF4444;
+      border-radius: 50%;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.3); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-bg"></div>
+
+  <div class="main-wrapper">
+    <!-- Header -->
+    <div class="header-bar">
+      <div class="brand-title">
+        <div class="watermark-logo">R</div>
+        <h1>Rauhaah Management</h1>
+        <span class="brand-badge">SaaS Presentation Video • 45s</span>
+      </div>
+
+      <div class="header-actions">
+        <button id="audioToggleBtn" class="btn btn-outline" title="Toggle Sound Engine">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <span id="audioLabel">Sound: ON</span>
+        </button>
+
+        <button id="recordBtn" class="btn btn-gold">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="8"></circle>
+          </svg>
+          <span id="recordLabel">Record &amp; Download MP4</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Recording status notification -->
+    <div id="recordBanner" class="record-banner">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="record-pulse"></div>
+        <span><strong>Recording in progress:</strong> Rendering 60 FPS presentation from 0:00 to 0:45. Your download will start automatically upon completion!</span>
+      </div>
+      <span id="recordTimer" style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">00:00</span>
+    </div>
+
+    <!-- 16:9 Cinema Container -->
+    <div class="cinema-container" id="cinemaContainer">
+      <canvas id="videoCanvas" width="1920" height="1080"></canvas>
+      <div class="canvas-overlay"></div>
+
+      <!-- Watermark -->
+      <div class="watermark">
+        <div class="watermark-logo">R</div>
+        <div class="watermark-text">Rauhaah &bull; Luxury Fragrance ERP</div>
+      </div>
+
+      <!-- Timecode -->
+      <div class="time-indicator" id="timeIndicator">00:00.00 / 00:45.00</div>
+    </div>
+
+    <!-- Controls Panel -->
+    <div class="controls-panel">
+      <!-- Scrub bar -->
+      <div class="timeline-bar" id="timelineBar">
+        <div class="timeline-progress" id="timelineProgress"></div>
+        <!-- Markers -->
+        <div class="scene-marker" style="left: 0%;"></div>
+        <div class="scene-marker" style="left: 10%;"></div>
+        <div class="scene-marker" style="left: 26.6%;"></div>
+        <div class="scene-marker" style="left: 43.3%;"></div>
+        <div class="scene-marker" style="left: 60%;"></div>
+        <div class="scene-marker" style="left: 77.7%;"></div>
+        <div class="scene-marker" style="left: 91.1%;"></div>
+      </div>
+
+      <!-- Playback buttons & Scene Jumpers -->
+      <div class="controls-row">
+        <div class="left-controls">
+          <button id="playPauseBtn" class="ctrl-btn play-btn" title="Play/Pause">
+            <svg id="playIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <svg id="pauseIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+          </button>
+
+          <button id="restartBtn" class="ctrl-btn" title="Restart from beginning">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 4v6h6M23 20v-6h-6"></path>
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="scene-pill-group">
+          <button class="scene-pill" onclick="jumpTo(0)">01 • The Hook</button>
+          <button class="scene-pill" onclick="jumpTo(4.5)">02 • POS Checkout</button>
+          <button class="scene-pill" onclick="jumpTo(12.0)">03 • Decant &amp; Tola Engine</button>
+          <button class="scene-pill" onclick="jumpTo(19.5)">04 • Direct Thermal Print</button>
+          <button class="scene-pill" onclick="jumpTo(27.0)">05 • Cash Drawer &amp; P&amp;L</button>
+          <button class="scene-pill" onclick="jumpTo(35.0)">06 • Offline SQLite Speed</button>
+          <button class="scene-pill" onclick="jumpTo(41.0)">07 • Outro</button>
+        </div>
+
+        <div class="right-controls">
+          <button id="fullscreenBtn" class="ctrl-btn" title="Fullscreen">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =======================================================================
+       RAUHAAH PRESENTATION VIDEO ENGINE (60 FPS CANVAS & SYNTH SOUND DESIGN)
+       Inspired by Zelios Agency's SaaS Demo Architecture
+       ======================================================================= */
+
+    const DURATION = 45.0; // Total length: 45.0 seconds
+    const canvas = document.getElementById('videoCanvas');
+    const ctx = canvas.getContext('2d');
+    const timeIndicator = document.getElementById('timeIndicator');
+    const timelineProgress = document.getElementById('timelineProgress');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playIcon = document.getElementById('playIcon');
+    const pauseIcon = document.getElementById('pauseIcon');
+    const restartBtn = document.getElementById('restartBtn');
+    const timelineBar = document.getElementById('timelineBar');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const recordBtn = document.getElementById('recordBtn');
+    const recordBanner = document.getElementById('recordBanner');
+    const recordTimer = document.getElementById('recordTimer');
+    const audioToggleBtn = document.getElementById('audioToggleBtn');
+    const audioLabel = document.getElementById('audioLabel');
+
+    let currentTime = 0;
+    let isPlaying = false;
+    let lastFrameTimestamp = null;
+    let soundEnabled = true;
+
+    // Web Audio Synthesizer
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // Audio SFX Synthesizers
+    function playBeep(freq = 1400, duration = 0.08, type = 'sine', gainVal = 0.15) {
+      if (!soundEnabled || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playWhoosh() {
+      if (!soundEnabled || !audioCtx) return;
+      const bufferSize = audioCtx.sampleRate * 0.25;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(400, audioCtx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(1600, audioCtx.currentTime + 0.15);
+      filter.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.25);
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      noise.start();
+    }
+
+    function playCashChime() {
+      if (!soundEnabled || !audioCtx) return;
+      [1046.5, 1318.5, 1567.98, 2093.0].forEach((freq, idx) => {
+        setTimeout(() => {
+          playBeep(freq, 0.25, 'triangle', 0.12);
+        }, idx * 50);
+      });
+    }
+
+    function playPaperCut() {
+      if (!soundEnabled || !audioCtx) return;
+      playBeep(2400, 0.04, 'square', 0.08);
+      setTimeout(() => playBeep(1200, 0.05, 'triangle', 0.1), 40);
+    }
+
+    function playBassHit() {
+      if (!soundEnabled || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(35, audioCtx.currentTime + 0.4);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.45);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.45);
+    }
+
+    // Audio cue tracker to prevent duplicate firings in loop
+    const sfxTriggers = {
+      0.1: () => { playBassHit(); },
+      4.5: () => { playWhoosh(); },
+      5.8: () => { playBeep(1800, 0.08); },
+      7.5: () => { playBeep(1800, 0.08); },
+      9.2: () => { playCashChime(); },
+      12.0: () => { playWhoosh(); },
+      14.0: () => { playBeep(900, 0.06); },
+      16.5: () => { playBeep(1200, 0.06); },
+      19.5: () => { playWhoosh(); },
+      22.0: () => { playPaperCut(); },
+      27.0: () => { playBassHit(); playWhoosh(); },
+      30.0: () => { playBeep(1100, 0.05); },
+      35.0: () => { playWhoosh(); playBassHit(); },
+      41.0: () => { playBassHit(); playCashChime(); }
+    };
+    let triggeredSfx = new Set();
+
+    function checkSfx(t) {
+      for (const [key, fn] of Object.entries(sfxTriggers)) {
+        const timeKey = parseFloat(key);
+        if (t >= timeKey && t < timeKey + 0.15 && !triggeredSfx.has(key)) {
+          triggeredSfx.add(key);
+          fn();
+        }
+      }
+    }
+
+    // Easing helper
+    function easeOutCubic(x) {
+      return 1 - Math.pow(1 - x, 3);
+    }
+    function easeInOutQuad(x) {
+      return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+    }
+
+    // Main Render Loop
+    function render(time) {
+      ctx.clearRect(0, 0, 1920, 1080);
+
+      // Background ambient gradient
+      const bgGrad = ctx.createRadialGradient(960, 540, 100, 960, 540, 1100);
+      bgGrad.addColorStop(0, '#141414');
+      bgGrad.addColorStop(0.5, '#0A0A0A');
+      bgGrad.addColorStop(1, '#020202');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, 1920, 1080);
+
+      // Subtle golden grid lines for tech depth
+      drawPerspectiveGrid(time);
+
+      // Scene Dispatcher
+      if (time < 4.5) {
+        renderScene1_Hook(time);
+      } else if (time < 12.0) {
+        renderScene2_POS(time - 4.5);
+      } else if (time < 19.5) {
+        renderScene3_DecantUnits(time - 12.0);
+      } else if (time < 27.0) {
+        renderScene4_ThermalPrinting(time - 19.5);
+      } else if (time < 35.0) {
+        renderScene5_Dashboard(time - 27.0);
+      } else if (time < 41.0) {
+        renderScene6_OfflineSpeed(time - 35.0);
+      } else {
+        renderScene7_Outro(time - 41.0);
+      }
+
+      // Cinema Letterbox Bars (Sleek 2.39:1 anamorphic frame for maximum movie aesthetic)
+      ctx.fillStyle = '#050505';
+      ctx.fillRect(0, 0, 1920, 48);
+      ctx.fillRect(0, 1032, 1920, 48);
+
+      // Gold frame accent line
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.25)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, 48);
+      ctx.lineTo(1920, 48);
+      ctx.moveTo(0, 1032);
+      ctx.lineTo(1920, 1032);
+      ctx.stroke();
+    }
+
+    // Perspective background tech grid
+    function drawPerspectiveGrid(time) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(197, 168, 128, 0.04)';
+      ctx.lineWidth = 1;
+      const offset = (time * 20) % 60;
+      for (let x = -200; x < 2120; x += 60) {
+        ctx.beginPath();
+        ctx.moveTo(x + offset, 0);
+        ctx.lineTo(x + offset, 1080);
+        ctx.stroke();
+      }
+      for (let y = 0; y < 1080; y += 60) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(1920, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // =======================================================================
+    // SCENE 1 (0.0s - 4.5s): THE HOOK & 3D PERFUME FLACON
+    // =======================================================================
+    function renderScene1_Hook(t) {
+      const p = t / 4.5;
+      const alpha = Math.min(1, t * 2);
+      const rot = t * 0.4;
+
+      ctx.save();
+      ctx.translate(960, 500);
+
+      // Gold Caustic Bloom
+      const glow = ctx.createRadialGradient(0, 0, 20, 0, 0, 420);
+      glow.addColorStop(0, 'rgba(212, 175, 55, 0.18)');
+      glow.addColorStop(0.5, 'rgba(197, 168, 128, 0.06)');
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(0, 0, 420, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 3D Octagon Crystal Attar Bottle Illustration
+      ctx.save();
+      ctx.rotate(Math.sin(rot) * 0.08);
+      const scale = 0.9 + Math.sin(t) * 0.03;
+      ctx.scale(scale, scale);
+
+      // Bottle Shadow
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.beginPath();
+      ctx.ellipse(0, 190, 160, 30, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Crystal Bottle Body (Glassmorphic Chamfered Flacon)
+      ctx.fillStyle = 'rgba(20, 20, 20, 0.9)';
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.7)';
+      ctx.lineWidth = 2.5;
+
+      // Hexagonal Body
+      ctx.beginPath();
+      ctx.moveTo(-90, -100);
+      ctx.lineTo(90, -100);
+      ctx.lineTo(130, 0);
+      ctx.lineTo(90, 150);
+      ctx.lineTo(-90, 150);
+      ctx.lineTo(-130, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Internal Amber Oil Chamber
+      const oilGrad = ctx.createLinearGradient(0, 150, 0, -50);
+      oilGrad.addColorStop(0, '#B38728');
+      oilGrad.addColorStop(0.5, '#FBF5B7');
+      oilGrad.addColorStop(1, 'rgba(218, 165, 32, 0.4)');
+      ctx.fillStyle = oilGrad;
+      ctx.beginPath();
+      ctx.moveTo(-60, -30);
+      ctx.lineTo(60, -30);
+      ctx.lineTo(80, 40);
+      ctx.lineTo(60, 130);
+      ctx.lineTo(-60, 130);
+      ctx.lineTo(-80, 40);
+      ctx.closePath();
+      ctx.fill();
+
+      // Gold Facet Highlights
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-40, -90);
+      ctx.lineTo(-40, 140);
+      ctx.moveTo(40, -90);
+      ctx.lineTo(40, 140);
+      ctx.stroke();
+
+      // Golden Cap
+      const capGrad = ctx.createLinearGradient(-50, 0, 50, 0);
+      capGrad.addColorStop(0, '#AA771C');
+      capGrad.addColorStop(0.5, '#FEDB37');
+      capGrad.addColorStop(1, '#8A6E2F');
+      ctx.fillStyle = capGrad;
+      ctx.beginPath();
+      ctx.roundRect(-45, -170, 90, 70, [8, 8, 2, 2]);
+      ctx.fill();
+      ctx.stroke();
+
+      // Finial Jewel
+      ctx.fillStyle = '#D4AF37';
+      ctx.beginPath();
+      ctx.arc(0, -185, 14, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+
+      // Kinetic Typography Overlay (Staggered Entrance)
+      const textY = 280;
+      ctx.textAlign = 'center';
+
+      // Badge
+      ctx.font = '700 14px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#D4AF37';
+      ctx.fillText('NEXT-GENERATION FRAGRANCE ERP & POS', 0, textY);
+
+      // Main Headline
+      ctx.font = '900 52px "Cinzel"';
+      const headlineGrad = ctx.createLinearGradient(-300, 0, 300, 0);
+      headlineGrad.addColorStop(0, '#FFFFFF');
+      headlineGrad.addColorStop(0.5, '#FBF5B7');
+      headlineGrad.addColorStop(1, '#C5A880');
+      ctx.fillStyle = headlineGrad;
+      ctx.fillText('RETHINK RETAIL MANAGEMENT', 0, textY + 65);
+
+      // Subtitle
+      ctx.font = '400 19px "Plus Jakarta Sans"';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.fillText('Engineered for Haute Perfumery, Decant Precision & Instant Thermal Speed', 0, textY + 105);
+
+      ctx.restore();
+    }
+
+    // =======================================================================
+    // SCENE 2 (4.5s - 12.0s): LIGHTNING FAST POS CHECKOUT
+    // =======================================================================
+    function renderScene2_POS(t) {
+      const p = t / 7.5;
+      const ease = easeOutCubic(Math.min(1, t * 1.5));
+
+      ctx.save();
+      // 3D Isometric Camera Tilt effect
+      ctx.translate(960, 520);
+      const camRot = (1 - ease) * 0.15;
+      ctx.rotate(camRot);
+      ctx.scale(0.95 + ease * 0.05, 0.95 + ease * 0.05);
+
+      // POS Window Card (Glassmorphism with Gold Border)
+      const w = 1380;
+      const h = 740;
+      const x = -w / 2;
+      const y = -h / 2;
+
+      ctx.fillStyle = 'rgba(16, 16, 16, 0.94)';
+      ctx.strokeStyle = 'rgba(197, 168, 128, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, 20);
+      ctx.fill();
+      ctx.stroke();
+
+      // Top Window Header
+      ctx.fillStyle = 'rgba(25, 25, 25, 0.8)';
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, 64, [20, 20, 0, 0]);
+      ctx.fill();
+
+      // Header pills
+      ctx.fillStyle = '#EF4444'; ctx.beginPath(); ctx.arc(x + 30, y + 32, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#F59E0B'; ctx.beginPath(); ctx.arc(x + 50, y + 32, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#10B981'; ctx.beginPath(); ctx.arc(x + 70, y + 32, 6, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = '#D4AF37';
+      ctx.font = '700 15px "Plus Jakarta Sans"';
+      ctx.textAlign = 'left';
+      ctx.fillText('POS REGISTER #01 • MAIN OUTLET', x + 100, y + 38);
+
+      // Search Bar with Laser Scan Animation
+      const sbW = 760;
+      const sbH = 46;
+      const sbX = x + 40;
+      const sbY = y + 90;
+      ctx.fillStyle = '#0D0D0D';
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.5)';
+      ctx.beginPath();
+      ctx.roundRect(sbX, sbY, sbW, sbH, 10);
+      ctx.fill();
+      ctx.stroke();
+
+      // Laser barcode scan sweep
+      const laserX = sbX + 15 + ((t * 400) % (sbW - 30));
+      ctx.strokeStyle = '#EF4444';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#EF4444';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(laserX, sbY + 4);
+      ctx.lineTo(laserX, sbY + sbH - 4);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.font = '500 14px "JetBrains Mono"';
+      ctx.fillStyle = '#E5E5E5';
+      const searchText = t > 1.5 ? 'SCAN: RAUH-025 • ROYAL WHITE MUSK (SEALED)' : 'Scan barcode or search attar name...';
+      ctx.fillText(searchText, sbX + 45, sbY + 28);
+
+      // Left Column: Catalog Quick Cards
+      const cardW = 236;
+      const cardH = 120;
+      const catalogItems = [
+        { name: 'Royal White Musk', sku: 'RAUH-025', price: '৳700', stock: '24 in stock' },
+        { name: 'Dehn Al Oudh Cambodi', sku: 'RAUH-014', price: '৳2,400', stock: '8.5 tola' },
+        { name: 'Taif Rose Pure Oil', sku: 'RAUH-009', price: '৳1,800', stock: '12 tola' },
+        { name: 'Amber Kashmiri', sku: 'RAUH-031', price: '৳950', stock: '18 tola' },
+        { name: 'Crystal 12ml Flacon', sku: 'BTL-012', price: '৳180', stock: '140 pcs' },
+        { name: 'Silk Gift Box (Gold)', sku: 'ACC-003', price: '৳250', stock: '65 pcs' }
+      ];
+
+      for (let i = 0; i < catalogItems.length; i++) {
+        const row = Math.floor(i / 3);
+        const col = i % 3;
+        const cx = sbX + col * (cardW + 16);
+        const cy = sbY + 70 + row * (cardH + 16);
+
+        ctx.fillStyle = i === 0 && t > 1.8 ? 'rgba(212, 175, 55, 0.15)' : 'rgba(25, 25, 25, 0.6)';
+        ctx.strokeStyle = i === 0 && t > 1.8 ? '#D4AF37' : 'rgba(255, 255, 255, 0.08)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(cx, cy, cardW, cardH, 12);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = '700 13px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(catalogItems[i].name, cx + 16, cy + 32);
+
+        ctx.font = '400 11px "JetBrains Mono"';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fillText(catalogItems[i].sku, cx + 16, cy + 54);
+
+        ctx.font = '700 16px "JetBrains Mono"';
+        ctx.fillStyle = '#D4AF37';
+        ctx.fillText(catalogItems[i].price, cx + 16, cy + 96);
+
+        ctx.font = '500 11px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#10B981';
+        ctx.textAlign = 'right';
+        ctx.fillText(catalogItems[i].stock, cx + cardW - 16, cy + 96);
+        ctx.textAlign = 'left';
+      }
+
+      // Right Column: Cart Panel (Items popping in dynamically)
+      const cartX = x + 840;
+      const cartY = y + 90;
+      const cartW = 500;
+      const cartH = 600;
+
+      ctx.fillStyle = '#111111';
+      ctx.strokeStyle = 'rgba(197, 168, 128, 0.3)';
+      ctx.beginPath();
+      ctx.roundRect(cartX, cartY, cartW, cartH, 16);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.font = '700 16px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText('ACTIVE CART (3 ITEMS)', cartX + 24, cartY + 38);
+
+      // Cart Items
+      const cartLines = [
+        { name: 'Royal White Musk (Sealed Box)', detail: '1 Bottle • SKU: RAUH-025', price: '৳700.00', showAt: 0.5 },
+        { name: 'Dehn Al Oudh Cambodi (Decant)', detail: '1 Tola (12 ml) • Loose Decant', price: '৳2,400.00', showAt: 2.2 },
+        { name: 'Custom Octagon Flacon 12ml', detail: '1 Piece • Hand-polished Crystal', price: '৳350.00', showAt: 3.8 }
+      ];
+
+      let runningTotal = 0;
+      for (let i = 0; i < cartLines.length; i++) {
+        if (t >= cartLines[i].showAt) {
+          const itemY = cartY + 65 + i * 86;
+          const anim = Math.min(1, (t - cartLines[i].showAt) * 4);
+
+          ctx.save();
+          ctx.translate(cartX + 20, itemY);
+          ctx.scale(anim, anim);
+
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+          ctx.beginPath();
+          ctx.roundRect(0, 0, cartW - 40, 72, 10);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.font = '700 13px "Plus Jakarta Sans"';
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillText(cartLines[i].name, 16, 28);
+
+          ctx.font = '400 11px "Plus Jakarta Sans"';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+          ctx.fillText(cartLines[i].detail, 16, 50);
+
+          ctx.font = '700 15px "JetBrains Mono"';
+          ctx.fillStyle = '#D4AF37';
+          ctx.textAlign = 'right';
+          ctx.fillText(cartLines[i].price, cartW - 60, 42);
+          ctx.textAlign = 'left';
+
+          ctx.restore();
+          runningTotal += i === 0 ? 700 : (i === 1 ? 2400 : 350);
+        }
+      }
+
+      // Cart Footer / Total
+      const footY = cartY + cartH - 120;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.fillRect(cartX + 20, footY, cartW - 40, 1);
+
+      ctx.font = '600 13px "Plus Jakarta Sans"';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.fillText('GRAND TOTAL (BDT)', cartX + 24, footY + 36);
+
+      ctx.font = '900 28px "JetBrains Mono"';
+      ctx.fillStyle = '#D4AF37';
+      ctx.fillText(`৳${runningTotal.toLocaleString('en-US')}.00`, cartX + 24, footY + 76);
+
+      // Fast Checkout Button
+      const btnW = 180;
+      const btnH = 46;
+      ctx.fillStyle = t > 4.5 ? '#10B981' : '#D4AF37';
+      ctx.beginPath();
+      ctx.roundRect(cartX + cartW - btnW - 24, footY + 40, btnW, btnH, 10);
+      ctx.fill();
+
+      ctx.font = '800 13px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#0A0A0A';
+      ctx.textAlign = 'center';
+      ctx.fillText(t > 4.5 ? 'PAID & PRINTED ✓' : 'INSTANT PAY (৳)', cartX + cartW - btnW / 2 - 24, footY + 68);
+      ctx.textAlign = 'left';
+
+      // Kinetic Callout Overlay
+      if (t > 1.0) {
+        ctx.save();
+        ctx.translate(0, 320);
+        ctx.fillStyle = '#D4AF37';
+        ctx.font = '700 13px "Plus Jakarta Sans"';
+        ctx.textAlign = 'center';
+        ctx.fillText('TURBOCHARGE CHECKOUT VELOCITY', 0, 0);
+
+        ctx.font = '900 36px "Cinzel"';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText('SUB-SECOND BARCODE & POS TRANSACTIONS', 0, 42);
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    // =======================================================================
+    // SCENE 3 (12.0s - 19.5s): PRECISION DECANT & TOLA ENGINE
+    // =======================================================================
+    function renderScene3_DecantUnits(t) {
+      const p = t / 7.5;
+      ctx.save();
+      ctx.translate(960, 520);
+
+      // Centerpiece: Dual Measurement Gauge (Tola vs Milliliters vs Grams)
+      const gaugeRadius = 220;
+
+      // Outer gold glowing ring
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.25)';
+      ctx.lineWidth = 14;
+      ctx.beginPath();
+      ctx.arc(0, -40, gaugeRadius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Animated filling progress arc
+      const arcEnd = (t * 0.9) % (Math.PI * 2);
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 14;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(0, -40, gaugeRadius, -Math.PI / 2, -Math.PI / 2 + arcEnd);
+      ctx.stroke();
+
+      // Center Metric Dial
+      ctx.textAlign = 'center';
+      ctx.font = '900 68px "JetBrains Mono"';
+      ctx.fillStyle = '#FFFFFF';
+      const tolaVal = (1.0 + (t * 0.2) % 2.5).toFixed(2);
+      ctx.fillText(`${tolaVal} TOLA`, 0, -50);
+
+      ctx.font = '600 22px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#D4AF37';
+      const mlVal = (parseFloat(tolaVal) * 12).toFixed(1);
+      ctx.fillText(`= ${mlVal} ml (Volume Convention)`, 0, -5);
+
+      const gramVal = (parseFloat(tolaVal) * 11.664).toFixed(2);
+      ctx.font = '500 16px "JetBrains Mono"';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.fillText(`Equivalent Mass: ${gramVal} g @ Density 0.985`, 0, 28);
+
+      // Three conversion cards side by side below
+      const cards = [
+        { title: '1 TOLA RETAIL', val: '12.0 ml', desc: 'Attar subcontinent standard' },
+        { title: 'SPECIFIC GRAVITY', val: '0.985 g/ml', desc: 'Direct raw oil mass sync' },
+        { title: 'STOCK INVENTORY', val: '-12.0 ml', desc: 'Bulk mother vessel auto-debited' }
+      ];
+
+      const cW = 320;
+      const cH = 110;
+      for (let i = 0; i < cards.length; i++) {
+        const cx = (i - 1) * (cW + 30);
+        const cy = 180;
+
+        ctx.fillStyle = 'rgba(20, 20, 20, 0.85)';
+        ctx.strokeStyle = 'rgba(197, 168, 128, 0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(cx - cW / 2, cy, cW, cH, 14);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = '700 12px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#D4AF37';
+        ctx.fillText(cards[i].title, cx, cy + 32);
+
+        ctx.font = '800 24px "JetBrains Mono"';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(cards[i].val, cx, cy + 68);
+
+        ctx.font = '400 11px "Plus Jakarta Sans"';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fillText(cards[i].desc, cx, cy + 92);
+      }
+
+      // Kinetic Title
+      ctx.font = '700 13px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#D4AF37';
+      ctx.fillText('PROPRIETARY MULTI-UNIT ENGINE', 0, -320);
+
+      ctx.font = '900 44px "Cinzel"';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText('SEAMLESS TOLA, GRAM & ML CO-EXISTENCE', 0, -270);
+
+      ctx.restore();
+    }
+
+    // =======================================================================
+    // SCENE 4 (19.5s - 27.0s): DIRECT THERMAL ESC/POS PRINT & AUTO-CUT
+    // =======================================================================
+    function renderScene4_ThermalPrinting(t) {
+      const p = t / 7.5;
+      ctx.save();
+      ctx.translate(960, 520);
+
+      // Thermal Printer Hardware Mockup (Top)
+      const pW = 540;
+      const pH = 120;
+      ctx.fillStyle = '#1A1A1A';
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(-pW / 2, -340, pW, pH, 16);
+      ctx.fill();
+      ctx.stroke();
+
+      // Printer feed slot
+      ctx.fillStyle = '#050505';
+      ctx.fillRect(-200, -240, 400, 16);
+
+      // Status LED
+      ctx.fillStyle = '#10B981';
+      ctx.beginPath();
+      ctx.arc(220, -280, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.font = '700 13px "JetBrains Mono"';
+      ctx.fillStyle = '#E5E5E5';
+      ctx.textAlign = 'left';
+      ctx.fillText('ESC/POS DIRECT RAW SPOOLER (80mm)', -pW / 2 + 30, -276);
+
+      // 3D Receipt Gliding Outwards
+      const feedDistance = Math.min(520, t * 140);
+      const rW = 380;
+      const rH = feedDistance;
+
+      ctx.save();
+      // Slight perspective tilt
+      ctx.fillStyle = '#FFFFFF';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+      ctx.shadowBlur = 30;
+      ctx.beginPath();
+      ctx.roundRect(-rW / 2, -232, rW, rH, [0, 0, 8, 8]);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Monochrome Receipt Details Printed Live
+      ctx.fillStyle = '#0A0A0A';
+      ctx.textAlign = 'center';
+
+      if (rH > 80) {
+        ctx.font = '900 16px "Cinzel"';
+        ctx.fillText('RAUHAAH', 0, -180);
+        ctx.font = '500 10px "Plus Jakarta Sans"';
+        ctx.fillText('Live Peaceful • Luxury Perfumery', 0, -162);
+        ctx.fillText('Invoice: MAIN-S-00042', 0, -144);
+      }
+
+      if (rH > 220) {
+        ctx.fillStyle = '#333333';
+        ctx.fillRect(-160, -130, 320, 1);
+        ctx.font = '600 10px "JetBrains Mono"';
+        ctx.textAlign = 'left';
+        ctx.fillText('1x Royal White Musk 100ml', -150, -105);
+        ctx.textAlign = 'right';
+        ctx.fillText('৳700', 150, -105);
+
+        ctx.textAlign = 'left';
+        ctx.fillText('1x Dehn Al Oudh (1 tola)', -150, -85);
+        ctx.textAlign = 'right';
+        ctx.fillText('৳2,400', 150, -85);
+      }
+
+      if (rH > 360) {
+        ctx.fillRect(-160, -60, 320, 1);
+        ctx.font = '700 13px "JetBrains Mono"';
+        ctx.fillStyle = '#000000';
+        ctx.textAlign = 'left';
+        ctx.fillText('TOTAL PAID (CARD)', -150, -35);
+        ctx.textAlign = 'right';
+        ctx.fillText('৳3,100.00', 150, -35);
+
+        // QR Code mockup
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(-40, 0, 80, 80);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(-30, 10, 60, 60);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(-20, 20, 40, 40);
+      }
+
+      ctx.restore();
+
+      // Scissor Cut Snap Effect (GS V)
+      if (t > 4.0) {
+        ctx.strokeStyle = '#D4AF37';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([8, 8]);
+        ctx.beginPath();
+        ctx.moveTo(-rW / 2 - 20, -228);
+        ctx.lineTo(rW / 2 + 20, -228);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#D4AF37';
+        ctx.font = '700 12px "JetBrains Mono"';
+        ctx.textAlign = 'center';
+        ctx.fillText('✂ AUTO-CUT COMPLETED (GS V)', 0, -200);
+      }
+
+      // Feature Callout Right Side
+      ctx.textAlign = 'left';
+      ctx.font = '700 14px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#D4AF37';
+      ctx.fillText('ZERO PRINT-DIALOG DELAY', 240, 80);
+
+      ctx.font = '900 36px "Cinzel"';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText('1-CLICK RAW HARDWARE', 240, 125);
+      ctx.fillText('ESC/POS SILENT CUT', 240, 168);
+
+      ctx.font = '400 15px "Plus Jakarta Sans"';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.fillText('• Bypasses OS preview for instant cashier speed', 240, 210);
+      ctx.fillText('• Automatic cash drawer kick pulse (ESC p)', 240, 235);
+      ctx.fillText('• Dual 80mm standard & 58mm compact roll support', 240, 260);
+
+      ctx.restore();
+    }
+
+    // =======================================================================
+    // SCENE 5 (27.0s - 34.5s): REAL-TIME CASH DRAWER & FINANCIAL AUDIT
+    // =======================================================================
+    function renderScene5_Dashboard(t) {
+      const p = t / 7.5;
+      ctx.save();
+      ctx.translate(960, 520);
+
+      const dW = 1420;
+      const dH = 720;
+      ctx.fillStyle = 'rgba(16, 16, 16, 0.95)';
+      ctx.strokeStyle = 'rgba(197, 168, 128, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(-dW / 2, -dH / 2, dW, dH, 20);
+      ctx.fill();
+      ctx.stroke();
+
+      // Top KPI Cards Row
+      const kpis = [
+        { label: 'TODAY SALES', val: '৳48,500', sub: '+18% vs yesterday', color: '#D4AF37' },
+        { label: 'CASH DRAWER TALLY', val: '৳31,200', sub: 'Balanced to ৳0.00', color: '#10B981' },
+        { label: 'CUSTOMER DUES', val: '৳14,600', sub: 'Across 4 regular clients', color: '#F59E0B' },
+        { label: 'NET PROFIT (P&L)', val: '৳19,420', sub: 'True inventory weighted cost', color: '#3B82F6' }
+      ];
+
+      const kw = 310;
+      const kh = 120;
+      for (let i = 0; i < kpis.length; i++) {
+        const kx = -dW / 2 + 40 + i * (kw + 30);
+        const ky = -dH / 2 + 40;
+
+        ctx.fillStyle = 'rgba(28, 28, 28, 0.7)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(kx, ky, kw, kh, 14);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = '700 11px "Plus Jakarta Sans"';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.textAlign = 'left';
+        ctx.fillText(kpis[i].label, kx + 18, ky + 32);
+
+        ctx.font = '900 28px "JetBrains Mono"';
+        ctx.fillStyle = kpis[i].color;
+        ctx.fillText(kpis[i].val, kx + 18, ky + 74);
+
+        ctx.font = '500 11px "Plus Jakarta Sans"';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fillText(kpis[i].sub, kx + 18, ky + 98);
+      }
+
+      // Animated P&L Chart (Smooth Area Graph)
+      const gX = -dW / 2 + 40;
+      const gY = -dH / 2 + 200;
+      const gW = 860;
+      const gH = 460;
+
+      ctx.fillStyle = '#0F0F0F';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.beginPath();
+      ctx.roundRect(gX, gY, gW, gH, 16);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.font = '700 15px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText('LIVE REVENUE & INVENTORY RUN RATE', gX + 24, gY + 38);
+
+      // Graph curve points
+      const points = [
+        [0, 320], [120, 290], [240, 340], [360, 220], [480, 260], [600, 160], [720, 120], [800, 80]
+      ];
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(gX + 40, gY + 400);
+
+      const animLen = Math.min(points.length, 1 + t * 1.5);
+      for (let i = 0; i < points.length; i++) {
+        const px = gX + 40 + points[i][0];
+        const py = gY + 400 - points[i][1];
+        if (i === 0) ctx.lineTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.lineTo(gX + 40 + points[points.length - 1][0], gY + 400);
+      ctx.closePath();
+
+      const areaGrad = ctx.createLinearGradient(0, gY + 100, 0, gY + 400);
+      areaGrad.addColorStop(0, 'rgba(212, 175, 55, 0.35)');
+      areaGrad.addColorStop(1, 'rgba(212, 175, 55, 0.0)');
+      ctx.fillStyle = areaGrad;
+      ctx.fill();
+
+      // Chart Stroke Line
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (let i = 0; i < points.length; i++) {
+        const px = gX + 40 + points[i][0];
+        const py = gY + 400 - points[i][1];
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.restore();
+
+      // Right Column: Drawer Cash Audit
+      const rX = gX + gW + 30;
+      const rY = gY;
+      const rW = dW - gW - 110;
+      const rH = gH;
+
+      ctx.fillStyle = '#131313';
+      ctx.strokeStyle = 'rgba(197, 168, 128, 0.3)';
+      ctx.beginPath();
+      ctx.roundRect(rX, rY, rW, rH, 16);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.font = '700 15px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText('DRAWER SETTLEMENT', rX + 24, rY + 38);
+
+      const drawerRows = [
+        { label: 'Opening Float', val: '৳5,000.00' },
+        { label: 'Cash Sales', val: '+ ৳24,500.00' },
+        { label: 'Customer Dues Collected', val: '+ ৳3,200.00' },
+        { label: 'Store Expense Payouts', val: '- ৳1,500.00' },
+        { label: 'EXPECTED CASH IN DRAWER', val: '৳31,200.00', bold: true }
+      ];
+
+      for (let i = 0; i < drawerRows.length; i++) {
+        const rowY = rY + 80 + i * 65;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+        ctx.fillRect(rX + 16, rowY, rW - 32, 50);
+
+        ctx.font = drawerRows[i].bold ? '800 13px "Plus Jakarta Sans"' : '500 13px "Plus Jakarta Sans"';
+        ctx.fillStyle = drawerRows[i].bold ? '#D4AF37' : '#CCCCCC';
+        ctx.fillText(drawerRows[i].label, rX + 28, rowY + 31);
+
+        ctx.font = '700 14px "JetBrains Mono"';
+        ctx.fillStyle = drawerRows[i].bold ? '#10B981' : '#FFFFFF';
+        ctx.textAlign = 'right';
+        ctx.fillText(drawerRows[i].val, rX + rW - 28, rowY + 31);
+        ctx.textAlign = 'left';
+      }
+
+      ctx.restore();
+    }
+
+    // =======================================================================
+    // SCENE 6 (35.0s - 41.0s): OFFLINE SQLITE SPEED & ZERO CLOUD LATENCY
+    // =======================================================================
+    function renderScene6_OfflineSpeed(t) {
+      const p = t / 6.0;
+      ctx.save();
+      ctx.translate(960, 520);
+
+      // Golden Shield Vault Graphics
+      const shieldScale = 1.0 + Math.sin(t * 3) * 0.02;
+      ctx.scale(shieldScale, shieldScale);
+
+      // Energy rings
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, -60, 180 + (t * 50) % 80, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Center Shield
+      ctx.fillStyle = 'rgba(18, 18, 18, 0.95)';
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(0, -180);
+      ctx.lineTo(120, -120);
+      ctx.lineTo(120, 0);
+      ctx.bezierCurveTo(120, 80, 0, 140, 0, 140);
+      ctx.bezierCurveTo(0, 140, -120, 80, -120, 0);
+      ctx.lineTo(-120, -120);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Database Cylinder Icon inside Shield
+      ctx.fillStyle = '#D4AF37';
+      ctx.beginPath();
+      ctx.ellipse(0, -50, 45, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(-45, -50, 90, 50);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 45, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Checkmark Badge
+      ctx.fillStyle = '#10B981';
+      ctx.beginPath();
+      ctx.arc(0, 70, 24, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-8, 70);
+      ctx.lineTo(-2, 76);
+      ctx.lineTo(8, 64);
+      ctx.stroke();
+
+      // Kinetic Typography Below
+      ctx.textAlign = 'center';
+      ctx.font = '700 14px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#D4AF37';
+      ctx.fillText('100% AIR-GAPPED & DESKTOP NATIVE', 0, 190);
+
+      ctx.font = '900 48px "Cinzel"';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText('ZERO CLOUD LAG • SQLITE ARCHITECTURE', 0, 245);
+
+      ctx.font = '500 18px "JetBrains Mono"';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.fillText('Instant VACUUM INTO snapshots • Sub-millisecond indexed queries', 0, 285);
+
+      ctx.restore();
+    }
+
+    // =======================================================================
+    // SCENE 7 (41.0s - 45.0s): OUTRO & BRAND EMBLEM LOCKUP
+    // =======================================================================
+    function renderScene7_Outro(t) {
+      const p = t / 4.0;
+      ctx.save();
+      ctx.translate(960, 500);
+
+      // Dramatic expanding gold caustic rays
+      const rays = 16;
+      for (let i = 0; i < rays; i++) {
+        const ang = (i / rays) * Math.PI * 2 + t * 0.1;
+        ctx.strokeStyle = 'rgba(212, 175, 55, 0.04)';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(ang) * 900, Math.sin(ang) * 900);
+        ctx.stroke();
+      }
+
+      // Emblem Monogram Shield
+      ctx.save();
+      const emScale = Math.min(1, t * 1.5);
+      ctx.scale(emScale, emScale);
+
+      ctx.fillStyle = 'rgba(20, 20, 20, 0.95)';
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, -60, 80, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.font = '900 68px "Cinzel"';
+      ctx.fillStyle = '#D4AF37';
+      ctx.textAlign = 'center';
+      ctx.fillText('R', 0, -35);
+      ctx.restore();
+
+      // Brand Title
+      ctx.font = '900 62px "Cinzel"';
+      const textGrad = ctx.createLinearGradient(-300, 0, 300, 0);
+      textGrad.addColorStop(0, '#FFFFFF');
+      textGrad.addColorStop(0.5, '#FBF5B7');
+      textGrad.addColorStop(1, '#C5A880');
+      ctx.fillStyle = textGrad;
+      ctx.textAlign = 'center';
+      ctx.fillText('RAUHAAH MANAGEMENT', 0, 80);
+
+      ctx.font = '600 20px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#D4AF37';
+      ctx.letterSpacing = '6px';
+      ctx.fillText('LIVE PEACEFUL • PRECISION • VELOCITY', 0, 125);
+
+      // Call to action button
+      const bW = 280;
+      const bH = 50;
+      ctx.fillStyle = '#D4AF37';
+      ctx.beginPath();
+      ctx.roundRect(-bW / 2, 160, bW, bH, 12);
+      ctx.fill();
+
+      ctx.font = '800 14px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#0A0A0A';
+      ctx.fillText('EXPERIENCE THE APP', 0, 191);
+
+      ctx.restore();
+    }
+
+    // Playback Animation Loop
+    function loop(timestamp) {
+      if (!lastFrameTimestamp) lastFrameTimestamp = timestamp;
+      const delta = (timestamp - lastFrameTimestamp) / 1000;
+      lastFrameTimestamp = timestamp;
+
+      if (isPlaying) {
+        currentTime += delta;
+        if (currentTime >= DURATION) {
+          currentTime = DURATION;
+          pause();
+        }
+        checkSfx(currentTime);
+      }
+
+      render(currentTime);
+      updateUI();
+
+      requestAnimationFrame(loop);
+    }
+
+    function updateUI() {
+      const pct = (currentTime / DURATION) * 100;
+      timelineProgress.style.width = `${pct}%`;
+
+      const m = Math.floor(currentTime / 60);
+      const s = Math.floor(currentTime % 60);
+      const ms = Math.floor((currentTime % 1) * 100);
+      timeIndicator.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(ms).padStart(2, '0')} / 00:45.00`;
+    }
+
+    function play() {
+      initAudio();
+      isPlaying = true;
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'block';
+    }
+
+    function pause() {
+      isPlaying = false;
+      playIcon.style.display = 'block';
+      pauseIcon.style.display = 'none';
+    }
+
+    playPauseBtn.addEventListener('click', () => {
+      if (isPlaying) pause();
+      else {
+        if (currentTime >= DURATION) {
+          currentTime = 0;
+          triggeredSfx.clear();
+        }
+        play();
+      }
+    });
+
+    restartBtn.addEventListener('click', () => {
+      currentTime = 0;
+      triggeredSfx.clear();
+      render(0);
+      play();
+    });
+
+    timelineBar.addEventListener('click', (e) => {
+      const rect = timelineBar.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      currentTime = (clickX / rect.width) * DURATION;
+      triggeredSfx.clear();
+      render(currentTime);
+    });
+
+    function jumpTo(sec) {
+      currentTime = sec;
+      triggeredSfx.clear();
+      render(currentTime);
+      play();
+    }
+
+    // Fullscreen toggle
+    fullscreenBtn.addEventListener('click', () => {
+      const el = document.getElementById('cinemaContainer');
+      if (!document.fullscreenElement) {
+        el.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    // Sound toggle
+    audioToggleBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      audioLabel.textContent = soundEnabled ? 'Sound: ON' : 'Sound: OFF';
+    });
+
+    // =======================================================================
+    // 1-CLICK MEDIA RECORDER EXPORT TO MP4 / WEBM
+    // =======================================================================
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let isRecording = false;
+
+    recordBtn.addEventListener('click', async () => {
+      if (isRecording) return;
+      initAudio();
+
+      isRecording = true;
+      recordBtn.disabled = true;
+      recordBanner.classList.add('active');
+      recordBtn.style.opacity = '0.5';
+
+      currentTime = 0;
+      triggeredSfx.clear();
+      play();
+
+      // Capture 60fps canvas stream
+      const stream = canvas.captureStream(60);
+
+      // Connect audio destination if possible
+      if (audioCtx) {
+        const dest = audioCtx.createMediaStreamDestination();
+        // Web audio mix
+        const audioTracks = dest.stream.getAudioTracks();
+        if (audioTracks.length > 0) {
+          stream.addTrack(audioTracks[0]);
+        }
+      }
+
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
+        : 'video/webm';
+
+      mediaRecorder = new MediaRecorder(stream, {
+        mimeType: mimeType,
+        videoBitsPerSecond: 8000000 // 8 Mbps crisp 1080p
+      });
+
+      recordedChunks = [];
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) recordedChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `Rauhaah_Management_SaaS_Demo_45s.webm`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }, 100);
+
+        isRecording = false;
+        recordBtn.disabled = false;
+        recordBtn.style.opacity = '1';
+        recordBanner.classList.remove('active');
+        recordBtn.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="8"></circle>
+          </svg>
+          <span>Downloaded! Click to Re-Record</span>
+        `;
+      };
+
+      mediaRecorder.start();
+
+      const recordCheckInterval = setInterval(() => {
+        const rem = Math.max(0, DURATION - currentTime);
+        recordTimer.textContent = `Rendering: ${rem.toFixed(1)}s remaining`;
+        if (currentTime >= DURATION) {
+          clearInterval(recordCheckInterval);
+          mediaRecorder.stop();
+          pause();
+        }
+      }, 100);
+    });
+
+    // Start rendering frame
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

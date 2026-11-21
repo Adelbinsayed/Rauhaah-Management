@@ -64,4 +64,15 @@ export interface ShopSettings {
   tolaConvention: 'volume_12ml' | 'weight_11g';
   idleLockMinutes: number;
   paymentMethods: string[];
+  // Invoice & Receipt Design Customization
+  invoiceSubtitle?: string;
+  invoiceFooterNote?: string;
+  invoicePaperWidth?: '80mm' | '58mm' | 'a4';
+  showLogoOnInvoice?: boolean;
+  showCashierOnInvoice?: boolean;
+  // Direct ESC/POS Thermal Printing
+  printerEngine?: 'direct_escpos' | 'browser';
+  selectedPrinter?: string;
+  autoCutReceipt?: boolean;
+  kickCashDrawer?: boolean;
 }

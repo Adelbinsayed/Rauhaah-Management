@@ -6,11 +6,11 @@ import {
   Minus,
   Trash2,
   User,
-  UserPlus,
   PauseCircle,
   PlayCircle,
   Percent,
   ArrowRight,
+  X,
 } from 'lucide-react';
 import { useAppStore } from '../../app/store';
 import { catalogRepo } from '../../data/repositories/catalogRepo';
@@ -48,10 +48,15 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
   const [showCartDiscountInput, setShowCartDiscountInput] = useState(false);
 
   // Customer State
-  const [customerSearch, setCustomerSearch] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [customerNameError, setCustomerNameError] = useState(false);
   const [customerResults, setCustomerResults] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [isQuickCustomerOpen, setIsQuickCustomerOpen] = useState(false);
+  const customerDropdownRef = useRef<HTMLDivElement>(null);
+  const customerNameInputRef = useRef<HTMLInputElement>(null);
 
   // Held Carts
   const [heldCarts, setHeldCarts] = useState<HeldCart[]>([]);
@@ -89,25 +94,114 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
     loadCatalog();
   }, []);
 
-  // Customer Autocomplete Search
+  // Close customer dropdown on click outside
   useEffect(() => {
-    const term = customerSearch.trim();
-    if (!term || selectedCustomer) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        customerDropdownRef.current &&
+        !customerDropdownRef.current.contains(e.target as Node)
+      ) {
+        setShowCustomerDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Handle phone input changes with live suggestion and auto-population
+  const handlePhoneChange = async (val: string) => {
+    setCustomerPhone(val);
+    const clean = val.trim();
+
+    if (!clean) {
       setCustomerResults([]);
+      setShowCustomerDropdown(false);
+      setCustomerNameError(false);
+      if (selectedCustomer) {
+        setSelectedCustomer(null);
+        setCustomerName('');
+      }
       return;
     }
 
-    const timer = setTimeout(async () => {
-      try {
-        const res = await posRepo.searchCustomers(term);
-        setCustomerResults(res);
-      } catch (err) {
-        console.error('Customer search error:', err);
-      }
-    }, 200);
+    try {
+      const results = await posRepo.searchCustomers(clean);
+      setCustomerResults(results);
+      setShowCustomerDropdown(results.length > 0);
 
-    return () => clearTimeout(timer);
-  }, [customerSearch, selectedCustomer]);
+      // Check if there is an exact or normalized phone match
+      const cleanDigits = clean.replace(/\D/g, '');
+      const exactMatch = results.find(
+        (c) =>
+          c.phone.replace(/\D/g, '') === cleanDigits ||
+          c.phone === clean
+      );
+
+      if (exactMatch) {
+        setSelectedCustomer(exactMatch);
+        setCustomerName(exactMatch.name);
+        setCustomerNameError(false);
+      } else {
+        // If current input does not match existing customer, detach selectedCustomer
+        if (selectedCustomer && selectedCustomer.phone !== clean) {
+          setSelectedCustomer(null);
+        }
+      }
+    } catch (err) {
+      console.error('Customer phone search error:', err);
+    }
+  };
+
+  const handleSelectCustomer = (c: Customer) => {
+    setSelectedCustomer(c);
+    setCustomerPhone(c.phone);
+    setCustomerName(c.name);
+    setCustomerNameError(false);
+    setShowCustomerDropdown(false);
+    setCustomerResults([]);
+  };
+
+  const handleClearCustomer = () => {
+    setSelectedCustomer(null);
+    setCustomerPhone('');
+    setCustomerName('');
+    setCustomerNameError(false);
+    setCustomerResults([]);
+    setShowCustomerDropdown(false);
+  };
+
+  const handleProceedToCheckout = () => {
+    if (cartItems.length === 0) return;
+
+    // Customer Name is mandatory if a phone number has been entered
+    if (customerPhone.trim() && !customerName.trim() && !selectedCustomer) {
+      setCustomerNameError(true);
+      customerNameInputRef.current?.focus();
+      return;
+    }
+
+    setCustomerNameError(false);
+    setIsCheckoutOpen(true);
+  };
+
+  // Active customer helper (either selected or typed)
+  const activeCustomer: Customer | null = useMemo(() => {
+    if (selectedCustomer) return selectedCustomer;
+    if (customerPhone.trim() || customerName.trim()) {
+      return {
+        id: '',
+        phone: customerPhone.trim(),
+        name: customerName.trim() || 'Customer',
+        notes: null,
+        dueBalanceBdt: 0,
+        visitCount: 0,
+        totalSpendBdt: 0,
+        lastVisitAt: null,
+        createdAt: '',
+      };
+    }
+    return null;
+  }, [selectedCustomer, customerPhone, customerName]);
 
   // Cart Calculations
   const cartTotals = useMemo(() => {
@@ -255,15 +349,18 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
     const newHold: HeldCart = {
       id: `HOLD-${Date.now()}`,
       heldAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      customer: selectedCustomer,
+      customer: selectedCustomer || activeCustomer,
       items: cartItems,
-      note: selectedCustomer ? selectedCustomer.name : 'Walk-in',
+      note: customerName.trim() || customerPhone.trim() || (selectedCustomer ? selectedCustomer.name : 'Walk-in'),
     };
     setHeldCarts((prev) => [newHold, ...prev]);
     // Clear current cart
     setCartItems([]);
     setSelectedCustomer(null);
-    setCustomerSearch('');
+    setCustomerPhone('');
+    setCustomerName('');
+    setCustomerResults([]);
+    setShowCustomerDropdown(false);
     setCartDiscountPercent(0);
     setCartDiscountAmount(0);
   };
@@ -272,14 +369,57 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
   const handleResumeCart = (hold: HeldCart) => {
     setCartItems(hold.items);
     setSelectedCustomer(hold.customer);
-    setCustomerSearch(hold.customer ? hold.customer.phone : '');
+    setCustomerPhone(hold.customer ? hold.customer.phone : '');
+    setCustomerName(
+      hold.customer
+        ? hold.customer.name
+        : hold.note && hold.note !== 'Walk-in'
+        ? hold.note
+        : ''
+    );
+    setCustomerResults([]);
+    setShowCustomerDropdown(false);
     setHeldCarts((prev) => prev.filter((h) => h.id !== hold.id));
     setShowHeldDrawer(false);
   };
 
   // Complete Sale
   const handleExecuteSale = async (payments: SalePayment[], paidAmount: number) => {
-    if (!currentUser || cartItems.length === 0) return;
+    if (!currentUser) {
+      throw new Error('No active cashier session found. Please log in again.');
+    }
+    if (cartItems.length === 0) {
+      throw new Error('Your cart is empty.');
+    }
+
+    // Customer name is mandatory if phone is entered
+    if (customerPhone.trim() && !customerName.trim() && !selectedCustomer) {
+      setCustomerNameError(true);
+      customerNameInputRef.current?.focus();
+      throw new Error('Customer Name is mandatory when a phone number is entered.');
+    }
+
+    // Determine customer to link: selected or auto-created from entered phone/name
+    let finalCustomer: Customer | null = selectedCustomer;
+    const cleanPhone = customerPhone.trim().replace(/[\s-]/g, '');
+    const cleanName = customerName.trim();
+
+    if (!finalCustomer && cleanPhone) {
+      try {
+        const existing = await posRepo.getCustomerByPhone(cleanPhone);
+        if (existing) {
+          finalCustomer = existing;
+        } else {
+          finalCustomer = await posRepo.quickCreateCustomer(
+            cleanPhone,
+            cleanName || `Customer ${cleanPhone.slice(-4)}`,
+            deviceId
+          );
+        }
+      } catch (err) {
+        console.warn('Customer auto-create/lookup during sale execution:', err);
+      }
+    }
 
     const invoiceNumber = await posRepo.getNextInvoiceNumber('INV');
     const finalTotals = calculateCartTotals(
@@ -291,7 +431,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
 
     await posRepo.completeSale({
       invoiceNumber,
-      customer: selectedCustomer,
+      customer: finalCustomer,
       cashierId: currentUser.id,
       items: cartItems,
       totals: finalTotals,
@@ -306,7 +446,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
     // Trigger Receipt modal
     setCompletedSale({
       invoiceNumber,
-      customer: selectedCustomer,
+      customer: finalCustomer,
       items: cartItems,
       payments,
       totals: finalTotals,
@@ -317,7 +457,10 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
     // Reset register for next sale
     setCartItems([]);
     setSelectedCustomer(null);
-    setCustomerSearch('');
+    setCustomerPhone('');
+    setCustomerName('');
+    setCustomerResults([]);
+    setShowCustomerDropdown(false);
     setCartDiscountPercent(0);
     setCartDiscountAmount(0);
     setCartDiscountReason('');
@@ -393,7 +536,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
         </div>
 
         {/* Products Grid */}
-        <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+        <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 content-start auto-rows-max">
           {loading ? (
             <div className="col-span-full py-16 text-center text-neutral-500">
               Loading shop products...
@@ -413,7 +556,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                 <div
                   key={p.id}
                   onClick={() => handleProductClick(p)}
-                  className="group relative p-3.5 rounded-xl bg-brand-black/60 border border-brand-border hover:border-brand-gold/60 transition-all cursor-pointer flex flex-col justify-between space-y-2 hover:shadow-lg hover:shadow-brand-gold/5"
+                  className="group relative h-36 p-3 rounded-xl bg-brand-black/60 border border-brand-border hover:border-brand-gold/60 transition-all cursor-pointer flex flex-col justify-between hover:shadow-lg hover:shadow-brand-gold/5 self-start w-full"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-1">
@@ -464,86 +607,142 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
       {/* RIGHT: CART & CHECKOUT TERMINAL (35%) */}
       <div className="w-96 flex flex-col bg-brand-surface rounded-2xl border border-brand-border overflow-hidden">
         {/* Customer Lookup & Loyalty Bar */}
-        <div className="p-3 border-b border-brand-border bg-brand-black/60 space-y-2">
+        <div className="p-3 border-b border-brand-border bg-brand-black/60 space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider flex items-center gap-1">
-              <User className="w-3 h-3 text-brand-gold" />
-              <span>Customer</span>
+            <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-brand-gold" />
+              <span>Customer Information</span>
             </span>
 
-            {selectedCustomer ? (
+            {(customerPhone || customerName || selectedCustomer) ? (
               <button
                 type="button"
-                onClick={() => {
-                  setSelectedCustomer(null);
-                  setCustomerSearch('');
-                }}
-                className="text-[10px] text-neutral-400 hover:text-red-400"
+                onClick={handleClearCustomer}
+                className="text-[10px] text-neutral-400 hover:text-red-400 flex items-center gap-1 transition-colors"
+                title="Reset to walk-in"
               >
-                Clear (Walk-in)
+                <X className="w-3 h-3" />
+                <span>Clear (Walk-in)</span>
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={() => setIsQuickCustomerOpen(true)}
-                className="text-[10px] text-brand-gold hover:underline font-semibold flex items-center gap-0.5"
-              >
-                <UserPlus className="w-3 h-3" />
-                <span>+ New</span>
-              </button>
+              <span className="text-[10px] text-neutral-500 font-medium">Walk-in</span>
             )}
           </div>
 
-          {selectedCustomer ? (
-            /* Selected Customer Loyalty Panel */
-            <div className="p-2.5 rounded-xl bg-brand-black border border-brand-gold/30 space-y-1 text-xs">
-              <div className="flex justify-between items-center font-bold text-white">
-                <span>{selectedCustomer.name}</span>
-                <span className="text-brand-gold font-mono">{selectedCustomer.phone}</span>
-              </div>
-              <div className="flex justify-between text-[10px] text-neutral-400">
-                <span>Visits: <strong>{selectedCustomer.visitCount || 1}</strong></span>
-                <span>Lifetime: <strong>৳{selectedCustomer.totalSpendBdt || 0}</strong></span>
-                {selectedCustomer.dueBalanceBdt > 0 && (
-                  <span className="text-amber-400 font-bold">
-                    Due: ৳{selectedCustomer.dueBalanceBdt}
-                  </span>
-                )}
-              </div>
-            </div>
-          ) : (
-            /* Customer Search Input */
+          {/* Dual Inputs: Customer Phone & Customer Name */}
+          <div className="grid grid-cols-2 gap-2 relative">
+            {/* Phone Input with live autocomplete */}
             <div className="relative">
-              <input
-                type="text"
-                value={customerSearch}
-                onChange={(e) => setCustomerSearch(e.target.value)}
-                placeholder="Search phone (017...) or name..."
-                className="w-full px-2.5 py-1.5 bg-brand-black border border-brand-border rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold font-mono"
-              />
+              <label className="text-[9px] uppercase font-bold text-neutral-400 tracking-wider block mb-1">
+                Phone Number
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={customerPhone}
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  onFocus={() => {
+                    if (customerResults.length > 0) setShowCustomerDropdown(true);
+                  }}
+                  placeholder="017... / 019..."
+                  className="w-full px-2.5 py-1.5 bg-brand-black border border-brand-border rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold font-mono"
+                />
+              </div>
 
-              {/* Autocomplete Results */}
-              {customerResults.length > 0 && (
-                <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-brand-black border border-brand-gold/40 rounded-xl shadow-xl overflow-hidden max-h-40 overflow-y-auto">
+              {/* Autocomplete Suggestions Live Dropdown */}
+              {showCustomerDropdown && customerResults.length > 0 && (
+                <div
+                  ref={customerDropdownRef}
+                  className="absolute left-0 w-80 top-full mt-1.5 z-30 bg-neutral-900 border border-brand-gold/40 rounded-xl shadow-2xl overflow-hidden max-h-52 overflow-y-auto"
+                >
+                  <div className="px-3 py-1.5 bg-brand-black/90 border-b border-brand-border/40 text-[9px] font-bold uppercase tracking-wider text-brand-gold flex justify-between items-center">
+                    <span>Existing Customers ({customerResults.length})</span>
+                    <span className="text-[9px] text-neutral-400 font-normal">Click to auto-fill</span>
+                  </div>
                   {customerResults.map((c) => (
                     <div
                       key={c.id}
-                      onClick={() => {
-                        setSelectedCustomer(c);
-                        setCustomerResults([]);
-                      }}
-                      className="p-2 hover:bg-neutral-800 cursor-pointer text-xs border-b border-brand-border/30 last:border-0 flex justify-between items-center"
+                      onClick={() => handleSelectCustomer(c)}
+                      className="p-2.5 hover:bg-neutral-800 cursor-pointer text-xs border-b border-brand-border/30 last:border-0 flex justify-between items-center transition-colors"
                     >
                       <div>
-                        <div className="font-semibold text-white">{c.name}</div>
+                        <div className="font-semibold text-white flex items-center gap-1.5">
+                          <span>{c.name}</span>
+                          {c.dueBalanceBdt > 0 && (
+                            <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                              Due ৳{c.dueBalanceBdt}
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[10px] text-brand-gold font-mono">{c.phone}</div>
                       </div>
-                      <span className="text-[10px] text-neutral-400 font-mono">
-                        ৳{c.totalSpendBdt || 0}
-                      </span>
+                      <div className="text-right">
+                        <div className="text-[10px] text-neutral-300 font-mono font-medium">
+                          ৳{c.totalSpendBdt || 0}
+                        </div>
+                        <div className="text-[9px] text-neutral-500">
+                          {c.visitCount || 1} visit{c.visitCount === 1 ? '' : 's'}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
+              )}
+            </div>
+
+            {/* Name Input */}
+            <div>
+              <label className="text-[9px] uppercase font-bold text-neutral-400 tracking-wider mb-1 flex items-center justify-between">
+                <span>
+                  Customer Name
+                  {customerPhone.trim() && (
+                    <span className="text-red-400 font-extrabold ml-1 text-[11px]">*</span>
+                  )}
+                </span>
+                {customerNameError && (
+                  <span className="text-[9px] text-red-400 font-bold lowercase tracking-normal">required</span>
+                )}
+              </label>
+              <input
+                ref={customerNameInputRef}
+                type="text"
+                value={customerName}
+                onChange={(e) => {
+                  setCustomerName(e.target.value);
+                  if (e.target.value.trim()) setCustomerNameError(false);
+                }}
+                placeholder={customerPhone.trim() ? "Mandatory (e.g. Rahim)" : "Name (e.g. Rahim)"}
+                className={`w-full px-2.5 py-1.5 bg-brand-black border rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none transition-colors ${
+                  customerNameError
+                    ? 'border-red-500 ring-1 ring-red-500/50 bg-red-950/20'
+                    : 'border-brand-border focus:border-brand-gold'
+                }`}
+              />
+              {customerNameError && (
+                <p className="text-[9px] text-red-400 mt-1 leading-tight font-medium">
+                  Please enter customer name
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Selected / Recognized Customer Loyalty Badge */}
+          {selectedCustomer && (
+            <div className="p-2 rounded-lg bg-brand-black border border-brand-gold/30 flex items-center justify-between text-[10px]">
+              <div className="flex items-center gap-2">
+                <span className="text-brand-gold font-bold">★ Loyalty</span>
+                <span className="text-neutral-300">
+                  Visits: <strong className="text-white">{selectedCustomer.visitCount || 1}</strong>
+                </span>
+                <span className="text-neutral-500">•</span>
+                <span className="text-neutral-300">
+                  Spend: <strong className="text-brand-gold font-mono">৳{selectedCustomer.totalSpendBdt || 0}</strong>
+                </span>
+              </div>
+              {selectedCustomer.dueBalanceBdt > 0 && (
+                <span className="text-amber-400 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30">
+                  Due: ৳{selectedCustomer.dueBalanceBdt}
+                </span>
               )}
             </div>
           )}
@@ -724,7 +923,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
           <button
             type="button"
             disabled={cartItems.length === 0}
-            onClick={() => setIsCheckoutOpen(true)}
+            onClick={handleProceedToCheckout}
             className="w-full py-3 rounded-xl bg-brand-gold hover:bg-brand-gold-light text-brand-black text-sm font-extrabold transition-all shadow-lg shadow-brand-gold/20 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>Charge ৳{cartTotals.totalAmountBdt.toFixed(2)}</span>
@@ -789,11 +988,13 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
       <QuickCustomerModal
         isOpen={isQuickCustomerOpen}
         onClose={() => setIsQuickCustomerOpen(false)}
-        initialPhone={customerSearch}
+        initialPhone={customerPhone}
         deviceId={deviceId}
         onCustomerCreated={(c) => {
           setSelectedCustomer(c);
-          setCustomerSearch(c.phone);
+          setCustomerPhone(c.phone);
+          setCustomerName(c.name);
+          setShowCustomerDropdown(false);
         }}
       />
 
@@ -801,7 +1002,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         totals={cartTotals}
-        customer={selectedCustomer}
+        customer={activeCustomer}
         onCompleteSale={handleExecuteSale}
       />
 
@@ -813,6 +1014,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
         items={completedSale?.items || []}
         totals={completedSale?.totals || cartTotals}
         payments={completedSale?.payments || []}
+        cashierName={currentUser?.displayName || currentUser?.username}
       />
     </div>
   );

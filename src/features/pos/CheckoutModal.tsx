@@ -42,12 +42,21 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Due confirmation prompt state
+  const [pendingDueSale, setPendingDueSale] = useState<{
+    payments: SalePayment[];
+    finalPaid: number;
+    dueAmount: number;
+  } | null>(null);
+
   useEffect(() => {
     if (isOpen) {
       setTenderAmount(String(totals.totalAmountBdt));
       setSplitCash('0');
       setSplitDigital(String(totals.totalAmountBdt));
       setError(null);
+      setLoading(false);
+      setPendingDueSale(null);
     }
   }, [isOpen, totals.totalAmountBdt]);
 
@@ -121,11 +130,40 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       finalPaid = splitTotal;
     }
 
+    const finalDue = Math.max(0, totals.totalAmountBdt - finalPaid);
+
+    // If there is an unpaid due amount, prompt cashier for explicit confirmation
+    if (finalDue > 0.01) {
+      setPendingDueSale({
+        payments,
+        finalPaid,
+        dueAmount: finalDue,
+      });
+      return;
+    }
+
     try {
       setLoading(true);
       await onCompleteSale(payments, finalPaid);
+      onClose();
     } catch (err: unknown) {
+      console.error('Sale finalization error:', err);
       setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const executeConfirmedSale = async (saleToExecute: { payments: SalePayment[]; finalPaid: number }) => {
+    setPendingDueSale(null);
+    try {
+      setLoading(true);
+      await onCompleteSale(saleToExecute.payments, saleToExecute.finalPaid);
+      onClose();
+    } catch (err: unknown) {
+      console.error('Sale finalization error:', err);
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
       setLoading(false);
     }
   };
@@ -419,6 +457,68 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           </div>
         </form>
       </div>
+
+      {/* Due Amount Confirmation Modal */}
+      {pendingDueSale && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-brand-surface border border-amber-500/50 rounded-2xl shadow-2xl p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-base font-bold text-white">Confirm Due Amount</h4>
+                <p className="text-[11px] text-neutral-400">Sale has an unpaid balance.</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-brand-black border border-brand-border space-y-2 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-400">Customer:</span>
+                <strong className="text-white">
+                  {customer ? `${customer.name} (${customer.phone})` : 'Walk-in Customer'}
+                </strong>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-400">Total Bill:</span>
+                <span className="font-mono text-white">৳{totals.totalAmountBdt.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-400">Paid Now:</span>
+                <span className="font-mono text-emerald-400">৳{pendingDueSale.finalPaid.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-brand-border text-sm">
+                <span className="font-bold text-amber-400">Remaining Due:</span>
+                <span className="font-mono font-bold text-amber-400">
+                  ৳{pendingDueSale.dueAmount.toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-xs text-neutral-200 font-semibold text-center">
+              Are you sure to put a due amount of{' '}
+              <strong className="text-amber-400 font-mono">৳{pendingDueSale.dueAmount.toFixed(2)}</strong>?
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-brand-border">
+              <button
+                type="button"
+                onClick={() => setPendingDueSale(null)}
+                className="flex-1 py-2.5 rounded-xl border border-neutral-700 hover:bg-neutral-800 text-neutral-300 hover:text-white text-xs font-bold transition-colors cursor-pointer"
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={() => executeConfirmedSale(pendingDueSale)}
+                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-brand-black font-extrabold text-xs transition-colors shadow cursor-pointer"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

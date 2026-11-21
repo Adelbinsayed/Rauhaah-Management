@@ -30,6 +30,8 @@ interface NavItem {
   icon: ComponentType<{ className?: string }>;
   section?: string;
   requiredPermission?: PermissionKey;
+  disabled?: boolean;
+  disabledBadge?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -40,7 +42,14 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'products', label: en.nav.products, icon: Package, section: 'Catalog & Stock' },
   { id: 'price-list', label: en.nav.priceList, icon: Tag, requiredPermission: 'price.edit' },
   { id: 'stock', label: en.nav.stock, icon: Boxes },
-  { id: 'blends', label: en.nav.blends, icon: FlaskConical, requiredPermission: 'cost.view' },
+  {
+    id: 'blends',
+    label: en.nav.blends,
+    icon: FlaskConical,
+    requiredPermission: 'cost.view',
+    disabled: true,
+    disabledBadge: 'Paused',
+  },
   { id: 'purchases', label: en.nav.purchases, icon: ShoppingBag, section: 'Operations', requiredPermission: 'cost.view' },
   { id: 'suppliers', label: en.nav.suppliers, icon: Truck, requiredPermission: 'cost.view' },
   { id: 'customers', label: en.nav.customers, icon: UserCheck },
@@ -84,16 +93,26 @@ export function Sidebar() {
               )}
               <button
                 type="button"
-                onClick={() => setActiveRoute(item.id)}
+                disabled={item.disabled}
+                onClick={() => !item.disabled && setActiveRoute(item.id)}
                 className={cn(
-                  'w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors text-left',
-                  active
+                  'w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors text-left',
+                  item.disabled
+                    ? 'opacity-40 cursor-not-allowed text-neutral-400 dark:text-neutral-500 hover:bg-transparent'
+                    : active
                     ? 'bg-brand-gold text-brand-black shadow-sm font-semibold'
                     : 'text-neutral-700 hover:bg-neutral-200/70 dark:text-neutral-300 dark:hover:bg-brand-surface'
                 )}
               >
-                <Icon className="w-4 h-4 shrink-0" />
-                <span className="truncate">{item.label}</span>
+                <div className="flex items-center gap-2.5 truncate">
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{item.label}</span>
+                </div>
+                {item.disabledBadge && (
+                  <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-neutral-200 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 shrink-0">
+                    {item.disabledBadge}
+                  </span>
+                )}
               </button>
             </div>
           );

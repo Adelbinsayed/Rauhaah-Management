@@ -66,6 +66,22 @@ const MIGRATIONS: &[Migration] = &[
         version: 5,
         sql: include_str!("../migrations/0005_sales_and_pos.sql"),
     },
+    Migration {
+        version: 6,
+        sql: include_str!("../migrations/0006_purchases_and_suppliers.sql"),
+    },
+    Migration {
+        version: 7,
+        sql: include_str!("../migrations/0007_purchases_fixes.sql"),
+    },
+    Migration {
+        version: 8,
+        sql: include_str!("../migrations/0008_customers_and_expenses.sql"),
+    },
+    Migration {
+        version: 9,
+        sql: include_str!("../migrations/0009_performance_indexes.sql"),
+    },
 ];
 
 fn resolve_portable_root() -> Result<PathBuf, String> {
@@ -153,6 +169,8 @@ pub fn init_db() -> Result<DbState, String> {
         PRAGMA synchronous = NORMAL;
         PRAGMA foreign_keys = ON;
         PRAGMA busy_timeout = 5000;
+        PRAGMA cache_size = -64000;
+        PRAGMA temp_store = MEMORY;
         ",
     )
     .map_err(|e| format!("Failed to configure SQLite PRAGMAs: {e}"))?;

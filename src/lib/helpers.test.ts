@@ -9,6 +9,8 @@ import {
   poishaToMilliPoisha,
 } from './money';
 import { formatQuantity, fromThousandths, PRODUCT_CLASS_UNITS, toThousandths } from './quantity';
+import { calculateDateRange } from './dates';
+import { escapeCsvCell } from './csvExport';
 
 describe('uuidv7', () => {
   it('generates valid RFC 9562 v7 UUIDs', () => {
@@ -60,5 +62,43 @@ describe('quantity helpers', () => {
     expect(PRODUCT_CLASS_UNITS.accessory).toEqual(['pcs']);
     expect(PRODUCT_CLASS_UNITS.liquid_fragrance).toContain('tola');
     expect(PRODUCT_CLASS_UNITS.liquid_fragrance).not.toContain('pcs');
+  });
+});
+
+describe('date range helpers', () => {
+  it('calculates bounds for today and yesterday', () => {
+    const today = calculateDateRange('today');
+    expect(today.label).toBe('Today');
+    expect(today.startDateIso.length).toBeGreaterThan(15);
+    expect(today.startDateStr).toBe(today.endDateStr);
+
+    const yesterday = calculateDateRange('yesterday');
+    expect(yesterday.label).toBe('Yesterday');
+    expect(yesterday.startDateStr).toBe(yesterday.endDateStr);
+  });
+
+  it('calculates 7 days and month intervals', () => {
+    const week = calculateDateRange('7days');
+    expect(week.label).toBe('Last 7 Days');
+
+    const month = calculateDateRange('month');
+    expect(month.label).toBe('This Month');
+    expect(month.startDateStr.endsWith('-01')).toBe(true);
+  });
+
+  it('supports custom date ranges', () => {
+    const custom = calculateDateRange('custom', '2026-05-01', '2026-05-15');
+    expect(custom.label).toBe('2026-05-01 to 2026-05-15');
+    expect(custom.startDateStr).toBe('2026-05-01');
+    expect(custom.endDateStr).toBe('2026-05-15');
+  });
+});
+
+describe('csv escaping', () => {
+  it('properly quotes and escapes commas, quotes, and newlines', () => {
+    expect(escapeCsvCell('Hello, World')).toBe('"Hello, World"');
+    expect(escapeCsvCell('Attar "Special"')).toBe('"Attar ""Special"""');
+    expect(escapeCsvCell(125.5)).toBe('"125.5"');
+    expect(escapeCsvCell(null)).toBe('""');
   });
 });

@@ -1,4 +1,4 @@
-import { dbBatchTx, dbQuery, type BatchStatement, type SqlParam } from '@/data/db';
+import { createChangeLogStatement, dbBatchTx, dbQuery, type BatchStatement, type SqlParam } from '@/data/db';
 import { nowUtcIso } from '@/lib/dates';
 import { uuidv7 } from '@/lib/ids';
 import type {
@@ -198,11 +198,7 @@ export const catalogRepo = {
           deviceId,
         ],
       },
-      {
-        sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
-              VALUES (?, 'stock_items', ?, 'insert', ?, 0)`,
-        params: [uuidv7(), id, now],
-      },
+      createChangeLogStatement('stock_items', id, 'insert', now),
     ];
 
     await dbBatchTx(statements);
@@ -285,18 +281,19 @@ export const catalogRepo = {
 
     sql += ' ORDER BY s.name ASC';
 
-    const rows = await dbQuery<Record<string, unknown>>(sql, params);
-
-    // Fetch components for all sellables
-    const components = await dbQuery<Record<string, unknown>>(`
-      SELECT sc.id, sc.sellable_id, sc.stock_item_id, sc.quantity, sc.unit_id, sc.is_primary,
-             si.name as stock_item_name, si.sku as stock_item_sku, si.cost_price_bdt as stock_item_cost,
-             si.current_quantity as stock_item_qty,
-             u.code as unit_code
-      FROM sellable_components sc
-      JOIN stock_items si ON sc.stock_item_id = si.id
-      JOIN units u ON sc.unit_id = u.id
-    `);
+    // Fetch sellables and components concurrently for faster catalog rendering
+    const [rows, components] = await Promise.all([
+      dbQuery<Record<string, unknown>>(sql, params),
+      dbQuery<Record<string, unknown>>(`
+        SELECT sc.id, sc.sellable_id, sc.stock_item_id, sc.quantity, sc.unit_id, sc.is_primary,
+               si.name as stock_item_name, si.sku as stock_item_sku, si.cost_price_bdt as stock_item_cost,
+               si.current_quantity as stock_item_qty,
+               u.code as unit_code
+        FROM sellable_components sc
+        JOIN stock_items si ON sc.stock_item_id = si.id
+        JOIN units u ON sc.unit_id = u.id
+      `),
+    ]);
 
     const compMap = new Map<string, SellableComponent[]>();
     for (const c of components) {
@@ -475,11 +472,7 @@ export const catalogRepo = {
         deviceId,
       ],
     });
-    txStatements.push({
-      sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
-            VALUES (?, 'sellables', ?, 'insert', ?, 0)`,
-      params: [uuidv7(), sellableId, now],
-    });
+    txStatements.push(createChangeLogStatement('sellables', sellableId, 'insert', now));
 
     await dbBatchTx(txStatements);
 
@@ -594,11 +587,7 @@ export const catalogRepo = {
         params: [uuidv7(), sellableId, size.wholesalePriceBdt, userId, now, deviceId],
       });
 
-      txStatements.push({
-        sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
-              VALUES (?, 'sellables', ?, 'insert', ?, 0)`,
-        params: [uuidv7(), sellableId, now],
-      });
+      txStatements.push(createChangeLogStatement('sellables', sellableId, 'insert', now));
     }
 
     // Audit log
@@ -695,11 +684,7 @@ export const catalogRepo = {
         params,
       });
 
-      txStatements.push({
-        sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
-              VALUES (?, 'sellables', ?, 'update', ?, 0)`,
-        params: [uuidv7(), item.sellableId, now],
-      });
+      txStatements.push(createChangeLogStatement('sellables', item.sellableId, 'update', now));
     }
 
     if (txStatements.length > 0) {
@@ -815,11 +800,7 @@ export const catalogRepo = {
           params: [uuidv7(), sellableId, stockItemId, defaultUnitId, now, deviceId],
         });
 
-        txStatements.push({
-          sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
-                VALUES (?, 'stock_items', ?, 'insert', ?, 0)`,
-          params: [uuidv7(), stockItemId, now],
-        });
+        txStatements.push(createChangeLogStatement('stock_items', stockItemId, 'insert', now));
       }
     } else {
       txStatements.push({
@@ -831,11 +812,7 @@ export const catalogRepo = {
         params: [addedQuantity, effectiveUnitCost, effectiveUnitCost, now, stockItemId],
       });
 
-      txStatements.push({
-        sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
-              VALUES (?, 'stock_items', ?, 'update', ?, 0)`,
-        params: [uuidv7(), stockItemId, now],
-      });
+      txStatements.push(createChangeLogStatement('stock_items', stockItemId, 'update', now));
     }
 
     if (updateRetailPrice && updateRetailPrice > 0) {
@@ -856,11 +833,7 @@ export const catalogRepo = {
         params: [uuidv7(), sellableId, oldPrice, updateRetailPrice, userId, now, deviceId],
       });
 
-      txStatements.push({
-        sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
-              VALUES (?, 'sellables', ?, 'update', ?, 0)`,
-        params: [uuidv7(), sellableId, now],
-      });
+      txStatements.push(createChangeLogStatement('sellables', sellableId, 'update', now));
     }
 
     txStatements.push({

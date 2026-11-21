@@ -19,6 +19,23 @@ export type NavRoute =
   | 'users'
   | 'settings';
 
+export interface ExportSuccessInfo {
+  filename: string;
+  filePath?: string;
+  title?: string;
+  message?: string;
+  rowCount?: number;
+}
+
+export interface ToastNotification {
+  id: string;
+  type?: 'success' | 'info' | 'warning' | 'error';
+  title?: string;
+  message: string;
+  filePath?: string;
+  durationMs?: number;
+}
+
 interface AppState {
   activeRoute: NavRoute;
   theme: 'dark' | 'light';
@@ -26,6 +43,8 @@ interface AppState {
   permissions: PermissionKey[];
   isLocked: boolean;
   shopSettings: ShopSettings | null;
+  exportModal: ExportSuccessInfo | null;
+  toast: ToastNotification | null;
 
   setActiveRoute: (route: NavRoute) => void;
   toggleTheme: () => void;
@@ -34,7 +53,13 @@ interface AppState {
   unlockSession: () => void;
   logout: () => void;
   setShopSettings: (settings: ShopSettings) => void;
+  showExportSuccess: (info: ExportSuccessInfo) => void;
+  closeExportModal: () => void;
+  showToast: (toast: Omit<ToastNotification, 'id'>) => void;
+  hideToast: () => void;
 }
+
+let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const useAppStore = create<AppState>((set) => ({
   activeRoute: 'dashboard',
@@ -43,8 +68,25 @@ export const useAppStore = create<AppState>((set) => ({
   permissions: [],
   isLocked: false,
   shopSettings: null,
+  exportModal: null,
+  toast: null,
 
   setActiveRoute: (route) => set({ activeRoute: route }),
+  showExportSuccess: (info) => set({ exportModal: info }),
+  closeExportModal: () => set({ exportModal: null }),
+  showToast: (toastData) => {
+    if (toastTimer) clearTimeout(toastTimer);
+    const id = `toast-${Date.now()}`;
+    set({ toast: { ...toastData, id } });
+    const duration = toastData.durationMs || (toastData.filePath ? 8000 : 4500);
+    toastTimer = setTimeout(() => {
+      set({ toast: null });
+    }, duration);
+  },
+  hideToast: () => {
+    if (toastTimer) clearTimeout(toastTimer);
+    set({ toast: null });
+  },
   toggleTheme: () =>
     set((state) => {
       const next = state.theme === 'dark' ? 'light' : 'dark';

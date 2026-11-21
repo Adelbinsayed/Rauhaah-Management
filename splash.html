@@ -23,7 +23,13 @@ html,body{
 .gold-bar{
   height:3px;
   background:linear-gradient(90deg,#c89a0a,#EFB810 40%,#f5d060 60%,#EFB810 80%,#c89a0a);
+  background-size:200% 100%;
+  animation:goldShimmer 3s ease infinite;
   flex-shrink:0;
+}
+@keyframes goldShimmer{
+  0%{background-position:100% 0;}
+  100%{background-position:-100% 0;}
 }
 .main{
   flex:1;display:flex;flex-direction:column;
@@ -33,32 +39,66 @@ html,body{
 }
 .main::before{
   content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse 60% 50% at 50% 45%,rgba(239,184,16,.07) 0%,transparent 100%);
+  background:radial-gradient(ellipse 65% 55% at 50% 45%,rgba(239,184,16,.09) 0%,transparent 100%);
   pointer-events:none;
+  animation:ambientPulse 4s ease-in-out infinite alternate;
 }
-.logo-wrap{margin-bottom:20px;display:flex;align-items:center;justify-content:center;}
+@keyframes ambientPulse{
+  0%{opacity:0.6;transform:scale(0.96);}
+  100%{opacity:1;transform:scale(1.04);}
+}
+.logo-wrap{
+  margin-bottom:20px;
+  display:flex;align-items:center;justify-content:center;
+  animation:logoFade 1.2s ease-out;
+}
+@keyframes logoFade{
+  0%{opacity:0;transform:scale(0.92);}
+  100%{opacity:1;transform:scale(1);}
+}
 .logo-img{
-  max-width:260px;max-height:110px;object-fit:contain;
-  filter:drop-shadow(0 4px 24px rgba(239,184,16,.2));
+  max-width:270px;max-height:115px;object-fit:contain;
+  filter:drop-shadow(0 4px 28px rgba(239,184,16,.28));
+  transition:filter 0.5s ease;
 }
 .div{width:36px;height:1px;background:#333;margin-bottom:22px;}
 .badges{display:flex;gap:8px;}
 .badge{
-  padding:3px 11px;border:1px solid #333;border-radius:20px;
-  font-size:9.5px;color:#666;letter-spacing:.05em;
+  padding:3px 12px;border:1px solid #333;border-radius:20px;
+  font-size:9.5px;color:#777;letter-spacing:.06em;
+  background:rgba(255,255,255,0.02);
+  transition:border-color 0.3s, color 0.3s;
 }
-.bar-wrap{padding:9px 18px 13px;flex-shrink:0;}
-.bar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.status{font-size:10px;color:#666;letter-spacing:.03em;min-height:14px;transition:opacity .2s;}
-.ver{font-size:10px;color:#4a4a4a;}
-.track{height:2px;background:#2a2a2a;border-radius:2px;overflow:hidden;}
+.badge.active{
+  border-color:rgba(239,184,16,0.5);
+  color:#EFB810;
+  background:rgba(239,184,16,0.08);
+}
+.bar-wrap{padding:10px 22px 14px;flex-shrink:0;background:#1d1d1d;}
+.bar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.status{
+  font-size:10.5px;color:#888;letter-spacing:.03em;
+  min-height:15px;transition:opacity .25s ease, transform .25s ease;
+  font-family:monospace;
+}
+.status.fade-in{
+  opacity:1;
+  transform:translateY(0);
+}
+.status.fade-out{
+  opacity:0;
+  transform:translateY(-2px);
+}
+.ver{font-size:10px;color:#555;font-family:monospace;}
+.track{height:3px;background:#2a2a2a;border-radius:3px;overflow:hidden;}
 .fill{
   height:100%;
-  background:linear-gradient(90deg,#c89a0a,#EFB810,#f5d060);
-  border-radius:2px;width:0%;
-  transition:width .4s ease;
+  background:linear-gradient(90deg,#c89a0a,#EFB810 50%,#f5d060);
+  border-radius:3px;width:8%;
+  transition:width 0.75s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow:0 0 10px rgba(239,184,16,0.5);
 }
-.copy{font-size:9px;color:#444;text-align:center;margin-top:6px;}
+.copy{font-size:9px;color:#4a4a4a;text-align:center;margin-top:7px;letter-spacing:0.02em;}
 </style>
 </head>
 <body>
@@ -70,19 +110,19 @@ html,body{
     </div>
     <div class="div"></div>
     <div class="badges">
-      <div class="badge">Inventory</div>
-      <div class="badge">POS</div>
-      <div class="badge">Reports</div>
-      <div class="badge">Blends</div>
+      <div class="badge" id="b-inv">Inventory</div>
+      <div class="badge" id="b-pos">POS</div>
+      <div class="badge" id="b-rep">Reports</div>
+      <div class="badge" id="b-blends">Blends</div>
     </div>
   </div>
   <div class="bar-wrap">
     <div class="bar-top">
-      <div class="status" id="msg">Starting Rauhaah Management…</div>
-      <div class="ver">v 1.0.0</div>
+      <div class="status fade-in" id="msg">Starting Rauhaah Management…</div>
+      <div class="ver">v1.0.0</div>
     </div>
     <div class="track"><div class="fill" id="fill"></div></div>
-    <div class="copy">© 2026 Sooktec &nbsp;·&nbsp; Rauhaah Management &nbsp;·&nbsp; All rights reserved</div>
+    <div class="copy">© 2026 Sooktec &nbsp;·&nbsp; Rauhaah Management &nbsp;·&nbsp; Offline Desktop POS</div>
   </div>
 </div>
 
@@ -91,25 +131,58 @@ html,body{
 
   const fill = document.getElementById('fill');
   const msg = document.getElementById('msg');
+  const bInv = document.getElementById('b-inv');
+  const bPos = document.getElementById('b-pos');
+  const bRep = document.getElementById('b-rep');
+  const bBlends = document.getElementById('b-blends');
 
+  // Dramatic 6.4 second boot sequence (between 5 and 7 seconds)
   const steps = [
-    { pct: 15, delay: 0,    text: 'Starting Rauhaah Management…' },
-    { pct: 40, delay: 300,  text: 'Initialising database…' },
-    { pct: 65, delay: 650,  text: 'Checking portable workspace…' },
-    { pct: 85, delay: 1000, text: 'Setting up workspace…' },
-    { pct: 100, delay: 1350, text: 'Welcome back.' },
+    { pct: 15, delay: 0,    text: 'Starting Rauhaah Management…', badge: null },
+    { pct: 28, delay: 1000, text: 'Connecting offline SQLite database & WAL engine…', badge: bInv },
+    { pct: 46, delay: 2100, text: 'Verifying security credentials & user session…', badge: bInv },
+    { pct: 65, delay: 3200, text: 'Loading luxury attars, decants & catalog pricing…', badge: bPos },
+    { pct: 82, delay: 4300, text: 'Preparing POS counter register & financial ledgers…', badge: bRep },
+    { pct: 95, delay: 5300, text: 'Finalizing workspace & security checks…', badge: bBlends },
+    { pct: 100, delay: 5900, text: 'Welcome back to Rauhaah. Live Peaceful.', badge: null },
   ];
 
   steps.forEach((s) => {
     setTimeout(() => {
       fill.style.width = s.pct + '%';
-      msg.textContent = s.text;
+      
+      // Text fade effect
+      msg.classList.remove('fade-in');
+      msg.classList.add('fade-out');
+      setTimeout(() => {
+        msg.textContent = s.text;
+        msg.classList.remove('fade-out');
+        msg.classList.add('fade-in');
+      }, 120);
+
+      // Light up badge as modules load
+      if (s.badge) {
+        s.badge.classList.add('active');
+      }
     }, s.delay);
   });
 
-  setTimeout(() => {
-    invoke('close_splashscreen').catch(() => {});
-  }, 1650);
+  const triggerClose = async () => {
+    try {
+      if (typeof window !== 'undefined' && window.__TAURI_INTERNALS__?.invoke) {
+        await window.__TAURI_INTERNALS__.invoke('close_splashscreen');
+      } else {
+        await invoke('close_splashscreen');
+      }
+    } catch {
+      try {
+        await invoke('close_splashscreen');
+      } catch {}
+    }
+  };
+
+  // Trigger close at 6.4 seconds for a dramatic presentation
+  setTimeout(triggerClose, 6400);
 </script>
 </body>
 </html>

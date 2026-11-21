@@ -45,9 +45,16 @@ export function milliPoishaToPoisha(milliPoisha: number): number {
 export function formatBdt(poisha: number, options?: { showDecimals?: boolean }): string {
   const showDecimals = options?.showDecimals ?? true;
   const bdt = poishaToBdt(poisha);
+  return formatBdtAmount(bdt, { showDecimals });
+}
+
+/** Format BDT decimal amount as localized currency string, e.g. "৳12,500.00" or "৳12,500". */
+export function formatBdtAmount(amountBdt: number, options?: { showDecimals?: boolean }): string {
+  const showDecimals = options?.showDecimals ?? true;
+  const num = Number.isFinite(amountBdt) ? amountBdt : 0;
   const formatted = new Intl.NumberFormat('en-BD', {
     minimumFractionDigits: showDecimals ? 2 : 0,
     maximumFractionDigits: showDecimals ? 2 : 0,
-  }).format(bdt);
+  }).format(num);
   return `৳${formatted}`;
 }

@@ -1,0 +1,410 @@
+import type { ShopSettings } from '@/domain/auth/types';
+import { PrintableReceipt } from '@/features/pos/PrintableReceipt';
+import { Printer, RefreshCw, Scissors, Zap } from 'lucide-react';
+import React from 'react';
+
+interface InvoiceTabProps {
+  printerEngine: 'direct_escpos' | 'browser';
+  onPrinterEngineChange: (engine: 'direct_escpos' | 'browser') => void;
+  selectedPrinter: string;
+  onSelectedPrinterChange: (printer: string) => void;
+  availablePrinters: string[];
+  defaultPrinter: string | null;
+  loadingPrinters: boolean;
+  onRefreshPrinters: () => void;
+  testingPrinter: boolean;
+  onTestPrintSlip: () => void;
+  testSlipMsg: { success: boolean; text: string } | null;
+  autoCutReceipt: boolean;
+  onAutoCutReceiptChange: (val: boolean) => void;
+  kickCashDrawer: boolean;
+  onKickCashDrawerChange: (val: boolean) => void;
+  invoiceSubtitle: string;
+  onInvoiceSubtitleChange: (val: string) => void;
+  invoicePaperWidth: '80mm' | '58mm' | 'a4';
+  onInvoicePaperWidthChange: (val: '80mm' | '58mm' | 'a4') => void;
+  invoiceFooterNote: string;
+  onInvoiceFooterNoteChange: (val: string) => void;
+  showLogoOnInvoice: boolean;
+  onShowLogoOnInvoiceChange: (val: boolean) => void;
+  showCashierOnInvoice: boolean;
+  onShowCashierOnInvoiceChange: (val: boolean) => void;
+  cashierName: string;
+  previewShopSettings: ShopSettings;
+}
+
+export const InvoiceTab: React.FC<InvoiceTabProps> = ({
+  printerEngine,
+  onPrinterEngineChange,
+  selectedPrinter,
+  onSelectedPrinterChange,
+  availablePrinters,
+  defaultPrinter,
+  loadingPrinters,
+  onRefreshPrinters,
+  testingPrinter,
+  onTestPrintSlip,
+  testSlipMsg,
+  autoCutReceipt,
+  onAutoCutReceiptChange,
+  kickCashDrawer,
+  onKickCashDrawerChange,
+  invoiceSubtitle,
+  onInvoiceSubtitleChange,
+  invoicePaperWidth,
+  onInvoicePaperWidthChange,
+  invoiceFooterNote,
+  onInvoiceFooterNoteChange,
+  showLogoOnInvoice,
+  onShowLogoOnInvoiceChange,
+  showCashierOnInvoice,
+  onShowCashierOnInvoiceChange,
+  cashierName,
+  previewShopSettings,
+}) => {
+  return (
+    <div className="space-y-6">
+      <div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
+              Receipt Template &amp; Thermal Printer Settings
+            </h3>
+            <p className="text-xs text-neutral-400 mt-0.5">
+              Configure direct ESC/POS high-speed thermal printing, paper width, and footer policies.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Direct ESC/POS Thermal Printing Hardware Controls */}
+      <div className="p-4 rounded-xl border border-brand-gold/30 bg-brand-black/40 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-brand-gold text-xs font-bold uppercase tracking-wider">
+            <Zap className="w-4 h-4" />
+            <span>Printing Engine &amp; Hardware Bypass</span>
+          </div>
+          <button
+            type="button"
+            onClick={onTestPrintSlip}
+            disabled={testingPrinter}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-gold/50 bg-brand-surface hover:border-brand-gold text-xs font-bold text-brand-gold hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>{testingPrinter ? 'Printing Slip…' : 'Test Direct Thermal Print'}</span>
+          </button>
+        </div>
+
+        {testSlipMsg && (
+          <div
+            className={`p-2.5 rounded-lg text-xs border ${
+              testSlipMsg.success
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                : 'bg-red-500/10 border-red-500/30 text-red-400'
+            }`}
+          >
+            {testSlipMsg.text}
+          </div>
+        )}
+
+        {/* Engine Mode */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label
+            className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+              printerEngine === 'direct_escpos'
+                ? 'bg-brand-gold/10 border-brand-gold text-white'
+                : 'bg-brand-surface/40 border-brand-border text-neutral-400 hover:text-white'
+            }`}
+          >
+            <input
+              type="radio"
+              name="printer_engine"
+              value="direct_escpos"
+              checked={printerEngine === 'direct_escpos'}
+              onChange={() => onPrinterEngineChange('direct_escpos')}
+              className="text-brand-gold focus:ring-brand-gold mt-1"
+            />
+            <div>
+              <div className="font-bold text-xs text-white flex items-center gap-1.5">
+                <span>Direct ESC/POS Thermal (Recommended)</span>
+                <span className="px-1.5 py-0.2 rounded text-[9px] bg-brand-gold/20 text-brand-gold font-mono">
+                  FAST
+                </span>
+              </div>
+              <div className="text-[11px] text-neutral-400 mt-0.5">
+                Bypasses the Windows print preview dialog for 1-click silent receipt print and instant auto-cut.
+              </div>
+            </div>
+          </label>
+
+          <label
+            className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+              printerEngine === 'browser'
+                ? 'bg-brand-gold/10 border-brand-gold text-white'
+                : 'bg-brand-surface/40 border-brand-border text-neutral-400 hover:text-white'
+            }`}
+          >
+            <input
+              type="radio"
+              name="printer_engine"
+              value="browser"
+              checked={printerEngine === 'browser'}
+              onChange={() => onPrinterEngineChange('browser')}
+              className="text-brand-gold focus:ring-brand-gold mt-1"
+            />
+            <div>
+              <div className="font-bold text-xs text-white">System Print Dialog (Preview)</div>
+              <div className="text-[11px] text-neutral-400 mt-0.5">
+                Opens the standard Windows print preview dialog (best for sheet paper or PDF exports).
+              </div>
+            </div>
+          </label>
+        </div>
+
+        {/* Printer Select */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-brand-border/40">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+                Target Thermal Printer
+              </label>
+              <button
+                type="button"
+                onClick={onRefreshPrinters}
+                disabled={loadingPrinters}
+                className="text-[11px] text-brand-gold hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <RefreshCw className={`w-3 h-3 ${loadingPrinters ? 'animate-spin' : ''}`} />
+                <span>Scan Printers</span>
+              </button>
+            </div>
+            <select
+              value={selectedPrinter}
+              onChange={(e) => onSelectedPrinterChange(e.target.value)}
+              className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold"
+            >
+              <option value="">
+                {defaultPrinter ? `Default: ${defaultPrinter}` : '-- Select Printer --'}
+              </option>
+              {availablePrinters.map((p) => (
+                <option key={p} value={p}>
+                  {p} {p === defaultPrinter ? '(System Default)' : ''}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-neutral-400 mt-1">
+              Detected via Windows raw spooler. Select your 80mm/58mm USB or Network thermal POS printer.
+            </p>
+          </div>
+
+          {/* Auto Cut & Cash Drawer toggles */}
+          <div className="space-y-2 pt-1 sm:pt-4">
+            <label className="flex items-center gap-2 cursor-pointer text-xs">
+              <input
+                type="checkbox"
+                checked={autoCutReceipt}
+                onChange={(e) => onAutoCutReceiptChange(e.target.checked)}
+                className="rounded text-brand-gold focus:ring-brand-gold h-4 w-4 bg-brand-surface border-brand-border"
+              />
+              <Scissors className="w-3.5 h-3.5 text-brand-gold" />
+              <span className="text-neutral-200 font-semibold">Auto-Cut Paper after printing (GS V)</span>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer text-xs">
+              <input
+                type="checkbox"
+                checked={kickCashDrawer}
+                onChange={(e) => onKickCashDrawerChange(e.target.checked)}
+                className="rounded text-brand-gold focus:ring-brand-gold h-4 w-4 bg-brand-surface border-brand-border"
+              />
+              <Zap className="w-3.5 h-3.5 text-brand-gold" />
+              <span className="text-neutral-200 font-semibold">Kick Cash Drawer on Cash Sale (ESC p)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        {/* Left Column: Form Controls */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
+              Receipt Subtitle / Tagline
+            </label>
+            <input
+              type="text"
+              value={invoiceSubtitle}
+              onChange={(e) => onInvoiceSubtitleChange(e.target.value)}
+              placeholder="Live Peaceful • Luxury Fragrances & Lifestyle"
+              className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold"
+            />
+            <p className="text-[10px] text-neutral-400 mt-1">
+              Printed directly under the Rauhaah logo header.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
+              Thermal Paper Width &amp; Format
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {(['80mm', '58mm', 'a4'] as const).map((width) => (
+                <button
+                  key={width}
+                  type="button"
+                  onClick={() => onInvoicePaperWidthChange(width)}
+                  className={`p-2.5 rounded-lg border text-xs font-bold transition-colors text-left cursor-pointer ${
+                    invoicePaperWidth === width
+                      ? 'bg-brand-gold/15 border-brand-gold text-brand-gold'
+                      : 'bg-neutral-50 dark:bg-brand-black border-neutral-200 dark:border-brand-border text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  <div>{width === '80mm' ? '80mm Standard' : width === '58mm' ? '58mm Compact' : 'A4 Page'}</div>
+                  <div className="text-[9px] font-normal text-neutral-500 mt-0.5">
+                    {width === '80mm' ? 'Standard 3" POS roll' : width === '58mm' ? 'Portable 2" roll' : 'Sheet paper'}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
+              Exchange Policy &amp; Footer Note
+            </label>
+            <textarea
+              rows={3}
+              value={invoiceFooterNote}
+              onChange={(e) => onInvoiceFooterNoteChange(e.target.value)}
+              placeholder="Items can be exchanged within 7 days with original invoice & intact seal. Poured oils are non-exchangeable."
+              className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold"
+            />
+            <p className="text-[10px] text-neutral-400 mt-1">
+              Custom policy note displayed at the bottom of the receipt.
+            </p>
+          </div>
+
+          <div className="pt-2 border-t border-neutral-200 dark:border-brand-border/60 space-y-3">
+            <label className="flex items-center gap-3 p-2.5 rounded-lg border border-neutral-200 dark:border-brand-border bg-neutral-50/50 dark:bg-brand-black/40 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showLogoOnInvoice}
+                onChange={(e) => onShowLogoOnInvoiceChange(e.target.checked)}
+                className="rounded text-brand-gold focus:ring-brand-gold h-4 w-4 bg-brand-surface border-brand-border"
+              />
+              <div>
+                <div className="font-semibold text-xs text-neutral-900 dark:text-white">
+                  Show Brand Logo on Receipt
+                </div>
+                <div className="text-[10px] text-neutral-400">
+                  Prints the clean monochrome vector Rauhaah logo at the top of the invoice.
+                </div>
+              </div>
+            </label>
+
+            <label className="flex items-center gap-3 p-2.5 rounded-lg border border-neutral-200 dark:border-brand-border bg-neutral-50/50 dark:bg-brand-black/40 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showCashierOnInvoice}
+                onChange={(e) => onShowCashierOnInvoiceChange(e.target.checked)}
+                className="rounded text-brand-gold focus:ring-brand-gold h-4 w-4 bg-brand-surface border-brand-border"
+              />
+              <div>
+                <div className="font-semibold text-xs text-neutral-900 dark:text-white">
+                  Show Cashier Name on Receipt
+                </div>
+                <div className="text-[10px] text-neutral-400">
+                  Includes &ldquo;Served by: [Cashier Name]&rdquo; on the receipt header.
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {/* Right Column: Live Receipt Preview */}
+        <div className="bg-neutral-100 dark:bg-neutral-950 p-4 rounded-xl border border-neutral-300 dark:border-brand-border/80 flex flex-col items-center">
+          <div className="w-full flex justify-between items-center pb-2 mb-2 border-b border-neutral-200 dark:border-neutral-800">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-500">
+              Live Preview ({invoicePaperWidth})
+            </span>
+            <span className="text-[10px] text-neutral-400 font-mono">
+              Real-time update
+            </span>
+          </div>
+
+          <div className="bg-white text-black p-3 shadow-xl border border-neutral-300 rounded font-mono text-[11px] leading-tight w-full max-w-[320px] max-h-[480px] overflow-y-auto">
+            <PrintableReceipt
+              invoiceNumber="INV-202611-00042"
+              createdAt={new Date().toISOString()}
+              customer={{
+                id: 'c1',
+                name: 'Rahim Ahmed',
+                phone: '01712345678',
+                notes: null,
+                dueBalanceBdt: 0,
+                visitCount: 3,
+                totalSpendBdt: 5400,
+                lastVisitAt: null,
+                createdAt: '',
+              }}
+              items={[
+                {
+                  id: 'item-1',
+                  sellableId: 'prod-1',
+                  productName: 'Musk Al Madinah',
+                  sku: 'RAUH-025',
+                  sellableType: 'sealed_product',
+                  quantity: 1,
+                  unitCode: 'bottle',
+                  unitPriceBdt: 700,
+                  idealRetailPriceBdt: 700,
+                  costPriceBdt: 450,
+                  discountPercent: 0,
+                  discountAmountBdt: 0,
+                  lineTotalBdt: 700,
+                  stockInHand: 10,
+                },
+                {
+                  id: 'item-2',
+                  sellableId: 'prod-2',
+                  productName: 'Musk Rizali (Decant)',
+                  sku: 'RAUH-014',
+                  sellableType: 'loose_decant',
+                  quantity: 12,
+                  bottleSizeMl: 12,
+                  unitCode: 'ml',
+                  unitPriceBdt: 50,
+                  idealRetailPriceBdt: 50,
+                  costPriceBdt: 30,
+                  discountPercent: 0,
+                  discountAmountBdt: 0,
+                  lineTotalBdt: 600,
+                  stockInHand: 50,
+                },
+              ]}
+              totals={{
+                subtotalBdt: 1300,
+                itemDiscountBdt: 0,
+                cartDiscountPercent: 0,
+                cartDiscountBdt: 0,
+                totalAmountBdt: 1300,
+                paidAmountBdt: 1300,
+                changeAmountBdt: 0,
+                dueAmountBdt: 0,
+              }}
+              payments={[
+                {
+                  method: 'card',
+                  amountBdt: 1300,
+                  reference: 'TRX-9482',
+                },
+              ]}
+              cashierName={cashierName}
+              shopSettings={previewShopSettings}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

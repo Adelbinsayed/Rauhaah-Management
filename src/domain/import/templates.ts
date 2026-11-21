@@ -1,4 +1,7 @@
 import type { ImportType } from './types';
+import { isTauriRuntime } from '@/data/db';
+import { invoke } from '@tauri-apps/api/core';
+import { useAppStore } from '@/app/store';
 
 export interface CsvTemplateDef {
   type: ImportType;
@@ -47,17 +50,41 @@ RAU-JANAMAZ-TURK,,30,,Physical audit
 };
 
 /**
- * Initiates browser file download for a CSV string using data URI (WebView2 compatible)
+ * Initiates browser / desktop file download for a CSV string and triggers the download success popup
  */
-export function downloadCsvFile(filename: string, content: string): void {
-  const uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(content);
-  const link = document.createElement('a');
-  link.setAttribute('href', uri);
-  link.setAttribute('download', filename);
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-  setTimeout(() => {
-    document.body.removeChild(link);
-  }, 100);
+export async function downloadCsvFile(filename: string, content: string): Promise<void> {
+  const targetFilename = filename.endsWith('.csv') ? filename : `${filename}.csv`;
+  let savedPath = '';
+
+  if (isTauriRuntime()) {
+    try {
+      savedPath = await invoke<string>('export_csv_file', {
+        filename: targetFilename,
+        content,
+      });
+    } catch (e) {
+      console.warn('Tauri export_csv_file failed:', e);
+    }
+  }
+
+  if (!savedPath) {
+    const uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(content);
+    const link = document.createElement('a');
+    link.setAttribute('href', uri);
+    link.setAttribute('download', targetFilename);
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+    }, 100);
+    savedPath = targetFilename;
+  }
+
+  useAppStore.getState().showExportSuccess({
+    filename: targetFilename,
+    filePath: savedPath || targetFilename,
+    title: 'Template Downloaded Successfully!',
+    message: 'CSV template file has been saved to your computer.',
+  });
 }

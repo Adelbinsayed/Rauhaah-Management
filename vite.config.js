@@ -32,7 +32,18 @@ export default defineConfig({
                 main: 'index.html',
                 splash: 'splash.html',
             },
+            output: {
+                manualChunks: function (id) {
+                    if (id.indexOf('node_modules/lucide-react') !== -1) {
+                        return 'vendor-icons';
+                    }
+                    if (id.indexOf('node_modules/@tauri-apps') !== -1) {
+                        return 'vendor-tauri';
+                    }
+                },
+            },
         },
+        chunkSizeWarningLimit: 800,
     },
     test: {
         environment: 'node',

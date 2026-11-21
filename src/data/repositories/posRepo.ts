@@ -1,4 +1,4 @@
-import { dbBatchTx, dbQuery, type BatchStatement } from '@/data/db';
+import { createChangeLogStatement, dbBatchTx, dbQuery, type BatchStatement } from '@/data/db';
 import { nowUtcIso } from '@/lib/dates';
 import { uuidv7 } from '@/lib/ids';
 import type { CartItem, CartTotals, Customer, Sale, SalePayment } from '@/domain/pos/types';
@@ -41,6 +41,41 @@ export const posRepo = {
   },
 
   /**
+   * Retrieves single customer by exact phone number
+   */
+  async getCustomerByPhone(phone: string): Promise<Customer | null> {
+    const clean = phone.trim().replace(/[\s-]/g, '');
+    if (!clean) return null;
+
+    const sql = `
+      SELECT c.id, c.phone, c.name, c.notes, c.due_balance_bdt, c.created_at,
+             COUNT(s.id) as visit_count,
+             COALESCE(SUM(s.total_amount_bdt), 0.0) as total_spend_bdt,
+             MAX(s.created_at) as last_visit_at
+      FROM customers c
+      LEFT JOIN sales s ON c.id = s.customer_id AND s.status = 'completed'
+      WHERE c.deleted_at IS NULL AND c.phone = ?
+      GROUP BY c.id
+      LIMIT 1
+    `;
+    const rows = await dbQuery<Record<string, unknown>>(sql, [clean]);
+    if (rows.length === 0) return null;
+    const r = rows[0];
+
+    return {
+      id: String(r.id),
+      phone: String(r.phone),
+      name: String(r.name),
+      notes: r.notes ? String(r.notes) : null,
+      dueBalanceBdt: Number(r.due_balance_bdt || 0),
+      visitCount: Number(r.visit_count || 0),
+      totalSpendBdt: Number(r.total_spend_bdt || 0),
+      lastVisitAt: r.last_visit_at ? String(r.last_visit_at) : null,
+      createdAt: String(r.created_at),
+    };
+  },
+
+  /**
    * Quick-add customer directly from the POS register
    */
   async quickCreateCustomer(
@@ -60,11 +95,7 @@ export const posRepo = {
               VALUES (?, ?, ?, ?, 0.0, ?, ?, ?)`,
         params: [id, cleanPhone, cleanName, notes || null, now, now, deviceId],
       },
-      {
-        sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
-              VALUES (?, 'customers', ?, 'insert', ?, 0)`,
-        params: [uuidv7(), id, now],
-      },
+      createChangeLogStatement('customers', id, 'insert', now),
     ]);
 
     return {
@@ -227,11 +258,7 @@ export const posRepo = {
     }
 
     // 5. Audit change_log
-    statements.push({
-      sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
-            VALUES (?, 'sales', ?, 'insert', ?, 0)`,
-      params: [uuidv7(), saleId, now],
-    });
+    statements.push(createChangeLogStatement('sales', saleId, 'insert', now));
 
     await dbBatchTx(statements);
 
@@ -242,17 +269,35 @@ export const posRepo = {
   },
 
   /**
-   * Retrieves sales history with line items
+   * Retrieves sales history with optional date range filtering
    */
-  async getRecentSales(limit: number = 50): Promise<Sale[]> {
-    const rows = await dbQuery<Record<string, unknown>>(
-      `SELECT s.*, u.display_name as cashier_name
-       FROM sales s
-       LEFT JOIN users u ON s.cashier_id = u.id
-       ORDER BY s.created_at DESC
-       LIMIT ?`,
-      [limit]
-    );
+  async getSales(options?: {
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+  }): Promise<Sale[]> {
+    let sql = `
+      SELECT s.*, u.display_name as cashier_name
+      FROM sales s
+      LEFT JOIN users u ON s.cashier_id = u.id
+      WHERE 1=1
+    `;
+    const params: (string | number)[] = [];
+
+    if (options?.startDate) {
+      sql += ` AND s.created_at >= ?`;
+      params.push(`${options.startDate}T00:00:00.000Z`);
+    }
+
+    if (options?.endDate) {
+      sql += ` AND s.created_at <= ?`;
+      params.push(`${options.endDate}T23:59:59.999Z`);
+    }
+
+    sql += ` ORDER BY s.created_at DESC LIMIT ?`;
+    params.push(options?.limit ?? 300);
+
+    const rows = await dbQuery<Record<string, unknown>>(sql, params);
 
     return rows.map((r) => ({
       id: String(r.id),
@@ -277,6 +322,13 @@ export const posRepo = {
   },
 
   /**
+   * Retrieves recent sales history
+   */
+  async getRecentSales(limit: number = 50): Promise<Sale[]> {
+    return this.getSales({ limit });
+  },
+
+  /**
    * Retrieves full details for a single sale including its items and payment breakdowns
    */
   async getSaleDetails(saleId: string): Promise<Sale | null> {
@@ -291,15 +343,17 @@ export const posRepo = {
     if (saleRows.length === 0) return null;
     const r = saleRows[0];
 
-    const itemRows = await dbQuery<Record<string, unknown>>(
-      `SELECT * FROM sale_items WHERE sale_id = ? ORDER BY created_at ASC`,
-      [saleId]
-    );
-
-    const paymentRows = await dbQuery<Record<string, unknown>>(
-      `SELECT * FROM sale_payments WHERE sale_id = ? ORDER BY created_at ASC`,
-      [saleId]
-    );
+    // Fetch sale items and payment lines concurrently
+    const [itemRows, paymentRows] = await Promise.all([
+      dbQuery<Record<string, unknown>>(
+        `SELECT * FROM sale_items WHERE sale_id = ? ORDER BY created_at ASC`,
+        [saleId]
+      ),
+      dbQuery<Record<string, unknown>>(
+        `SELECT * FROM sale_payments WHERE sale_id = ? ORDER BY created_at ASC`,
+        [saleId]
+      ),
+    ]);
 
     const items: CartItem[] = itemRows.map((it) => ({
       id: String(it.id),
