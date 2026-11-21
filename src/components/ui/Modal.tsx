@@ -48,30 +48,30 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
       <div
-        className={`w-full ${maxWidthMap[maxWidth]} bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150`}
+        className={`w-full ${maxWidthMap[maxWidth]} bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[90vh]`}
       >
         {(title || showCloseButton) && (
-          <div className="px-6 py-4 border-b border-neutral-200 dark:border-brand-border flex items-center justify-between shrink-0">
+          <div className="px-6 py-4 border-b border-hairline flex items-center justify-between shrink-0">
             <div>
               {typeof title === 'string' ? (
-                <h3 className="text-base font-bold text-neutral-900 dark:text-white">{title}</h3>
+                <h3 className="text-base font-medium text-ink">{title}</h3>
               ) : (
                 title
               )}
               {subtitle && (
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{subtitle}</p>
+                <p className="text-xs text-ink-muted mt-0.5">{subtitle}</p>
               )}
             </div>
             {showCloseButton && (
               <button
                 type="button"
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-brand-black transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised transition-colors duration-150 ease-unslop cursor-pointer"
                 aria-label="Close modal"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" strokeWidth={1.5} />
               </button>
             )}
           </div>

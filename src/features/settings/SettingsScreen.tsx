@@ -199,11 +199,11 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
   if (!canManageSettings(permissions)) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto">
-        <div className="w-12 h-12 rounded-full bg-red-500/15 border border-red-500/30 text-red-500 flex items-center justify-center mb-4">
-          <ShieldAlert className="w-6 h-6" />
+        <div className="w-12 h-12 rounded-full bg-negative/15 border border-negative/25 text-negative flex items-center justify-center mb-4">
+          <ShieldAlert className="w-6 h-6" strokeWidth={1.5} />
         </div>
-        <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Access Denied</h2>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+        <h2 className="text-lg font-semibold text-ink">Access Denied</h2>
+        <p className="text-xs text-ink-secondary mt-1">
           Only accounts with the <code>settings.manage</code> permission (Owner) can modify store configuration and view audit logs.
         </p>
       </div>
@@ -402,44 +402,44 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2.5">
-          <SettingsIcon className="w-5 h-5 text-brand-gold" />
+        <h2 className="text-xl font-semibold tracking-tight text-ink flex items-center gap-2.5">
+          <SettingsIcon className="w-5 h-5 text-accent-ink" strokeWidth={1.5} />
           <span>Shop Settings &amp; System Administration</span>
         </h2>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+        <p className="text-xs text-ink-secondary mt-1">
           Store parameters, thermal printer hardware, offline SQLite backups, and system audit log.
         </p>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs">
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {saveSuccess && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs">
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-positive/10 border border-positive/25 text-positive text-xs">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span>Settings successfully saved and recorded to audit log!</span>
+          <span>Settings successfully saved and recorded to audit log.</span>
         </div>
       )}
 
       {/* Floating Backup Toast */}
       {backupToast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-brand-surface border border-emerald-500/60 text-white rounded-xl shadow-2xl animate-in slide-in-from-bottom duration-200">
-          <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-surface border border-positive/40 text-ink rounded-xl shadow-lg animate-in slide-in-from-bottom duration-200">
+          <div className="w-8 h-8 rounded-full bg-positive/15 text-positive flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-xs font-bold text-white">Database Snapshot Action</div>
-            <div className="text-[11px] text-neutral-300">{backupToast.message}</div>
+            <div className="text-xs font-semibold text-ink">Database Snapshot Action</div>
+            <div className="text-[11px] text-ink-secondary">{backupToast.message}</div>
           </div>
           {backupToast.path && (
             <button
               type="button"
               onClick={() => invoke('reveal_in_explorer', { path: backupToast.path })}
-              className="ml-2 px-2.5 py-1.5 rounded-lg bg-brand-gold text-brand-black text-[11px] font-bold hover:bg-brand-gold/90 transition-colors flex items-center gap-1 shrink-0"
+              className="ml-2 px-2.5 py-1.5 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-[11px] font-semibold transition-colors flex items-center gap-1 shrink-0"
             >
               <FolderOpen className="w-3.5 h-3.5" />
               <span>Show in Folder</span>
@@ -449,17 +449,17 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
       )}
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-1 border-b border-neutral-200 dark:border-brand-border overflow-x-auto text-xs font-semibold">
+      <div className="flex items-center gap-1 border-b border-hairline overflow-x-auto text-xs font-medium">
         <button
           type="button"
           onClick={() => setActiveTab('profile')}
           className={`flex items-center gap-2 px-4 py-2.5 border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'profile'
-              ? 'border-brand-gold text-brand-gold'
-              : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+              ? 'border-accent text-accent-ink font-semibold'
+              : 'border-transparent text-ink-secondary hover:text-ink'
           }`}
         >
-          <Building className="w-4 h-4" />
+          <Building className="w-4 h-4" strokeWidth={1.5} />
           <span>Shop Profile</span>
         </button>
 
@@ -468,11 +468,11 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
           onClick={() => setActiveTab('sales')}
           className={`flex items-center gap-2 px-4 py-2.5 border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'sales'
-              ? 'border-brand-gold text-brand-gold'
-              : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+              ? 'border-accent text-accent-ink font-semibold'
+              : 'border-transparent text-ink-secondary hover:text-ink'
           }`}
         >
-          <CreditCard className="w-4 h-4" />
+          <CreditCard className="w-4 h-4" strokeWidth={1.5} />
           <span>Sales &amp; POS</span>
         </button>
 
@@ -481,11 +481,11 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
           onClick={() => setActiveTab('invoice')}
           className={`flex items-center gap-2 px-4 py-2.5 border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'invoice'
-              ? 'border-brand-gold text-brand-gold'
-              : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+              ? 'border-accent text-accent-ink font-semibold'
+              : 'border-transparent text-ink-secondary hover:text-ink'
           }`}
         >
-          <Receipt className="w-4 h-4" />
+          <Receipt className="w-4 h-4" strokeWidth={1.5} />
           <span>Receipt Template &amp; Printer</span>
         </button>
 
@@ -494,11 +494,11 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
           onClick={() => setActiveTab('backup')}
           className={`flex items-center gap-2 px-4 py-2.5 border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'backup'
-              ? 'border-brand-gold text-brand-gold'
-              : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+              ? 'border-accent text-accent-ink font-semibold'
+              : 'border-transparent text-ink-secondary hover:text-ink'
           }`}
         >
-          <Database className="w-4 h-4" />
+          <Database className="w-4 h-4" strokeWidth={1.5} />
           <span>Database &amp; Backups</span>
         </button>
 
@@ -507,11 +507,11 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
           onClick={() => setActiveTab('units')}
           className={`flex items-center gap-2 px-4 py-2.5 border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'units'
-              ? 'border-brand-gold text-brand-gold'
-              : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+              ? 'border-accent text-accent-ink font-semibold'
+              : 'border-transparent text-ink-secondary hover:text-ink'
           }`}
         >
-          <Scale className="w-4 h-4" />
+          <Scale className="w-4 h-4" strokeWidth={1.5} />
           <span>Units &amp; Measurement</span>
         </button>
 
@@ -520,11 +520,11 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
           onClick={() => setActiveTab('security')}
           className={`flex items-center gap-2 px-4 py-2.5 border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'security'
-              ? 'border-brand-gold text-brand-gold'
-              : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+              ? 'border-accent text-accent-ink font-semibold'
+              : 'border-transparent text-ink-secondary hover:text-ink'
           }`}
         >
-          <Lock className="w-4 h-4" />
+          <Lock className="w-4 h-4" strokeWidth={1.5} />
           <span>Security &amp; Terminal Lock</span>
         </button>
 
@@ -533,11 +533,11 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
           onClick={() => setActiveTab('audit')}
           className={`flex items-center gap-2 px-4 py-2.5 border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'audit'
-              ? 'border-brand-gold text-brand-gold'
-              : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+              ? 'border-accent text-accent-ink font-semibold'
+              : 'border-transparent text-ink-secondary hover:text-ink'
           }`}
         >
-          <History className="w-4 h-4" />
+          <History className="w-4 h-4" strokeWidth={1.5} />
           <span>Audit Trail</span>
         </button>
       </div>
@@ -571,7 +571,7 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
         />
       ) : (
         /* Settings Forms */
-        <form onSubmit={handleSave} className="rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface p-6 shadow-sm space-y-6">
+        <form onSubmit={handleSave} className="rounded-xl border border-hairline bg-surface p-6 space-y-6">
           <div className="space-y-6">
             {activeTab === 'profile' && (
               <ProfileTab
@@ -646,11 +646,11 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
               />
             )}
 
-            <div className="pt-4 border-t border-neutral-200 dark:border-brand-border flex justify-end">
+            <div className="pt-4 border-t border-hairline flex justify-end">
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-gold text-brand-black text-xs font-bold hover:bg-brand-gold-hover transition-colors shadow-sm disabled:opacity-40 cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-xs font-semibold transition-colors disabled:opacity-40 cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 <span>{saving ? 'Saving Changes…' : 'Save Settings'}</span>

@@ -83,28 +83,28 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black/85 backdrop-blur-md animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex flex-col bg-black/60 dark:bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
       {/* Top Floating Control Bar */}
-      <header className="h-16 shrink-0 bg-neutral-900 border-b border-brand-border px-6 flex items-center justify-between text-white select-none shadow-xl">
+      <header className="h-16 shrink-0 bg-surface border-b border-hairline px-6 flex items-center justify-between text-ink select-none shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold">
-            <FileText className="w-5 h-5" />
+          <div className="w-9 h-9 rounded-lg bg-accent/15 border border-accent/25 flex items-center justify-center text-accent-ink">
+            <FileText className="w-5 h-5" strokeWidth={1.5} />
           </div>
           <div>
-            <h2 className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+            <h2 className="text-sm font-semibold tracking-tight text-ink flex items-center gap-2">
               <span>Report Print Preview</span>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-brand-gold/20 text-brand-gold border border-brand-gold/30">
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-accent/15 text-accent-ink border border-accent/25">
                 A4 Document
               </span>
             </h2>
-            <p className="text-[11px] text-neutral-400">
-              Filter: <strong className="text-neutral-200">{filter.label}</strong> • Ready to print or export as PDF
+            <p className="text-[11px] text-ink-secondary">
+              Filter: <strong className="text-ink">{filter.label}</strong> • Ready to print or export as PDF
             </p>
           </div>
         </div>
 
         {/* View Mode Tabs */}
-        <div className="hidden md:flex items-center gap-1 bg-neutral-800/80 p-1 rounded-xl border border-brand-border">
+        <div className="hidden md:flex items-center gap-1 bg-canvas p-1 rounded-lg border border-hairline">
           {(
             [
               { key: 'pnl', label: 'P&L Statement' },
@@ -119,10 +119,10 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
               key={tab.key}
               type="button"
               onClick={() => setSelectedType(tab.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                 selectedType === tab.key
-                  ? 'bg-brand-gold text-brand-black shadow-sm font-bold'
-                  : 'text-neutral-300 hover:text-white hover:bg-neutral-700/50'
+                  ? 'bg-accent text-accent-fg font-semibold'
+                  : 'text-ink-secondary hover:text-ink hover:bg-subtle'
               }`}
             >
               {tab.label}
@@ -135,17 +135,17 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
           <button
             type="button"
             onClick={handlePrint}
-            className="py-2 px-4 rounded-xl bg-brand-gold hover:bg-brand-gold-light text-brand-black text-xs font-bold flex items-center gap-2 transition-all shadow-lg shadow-brand-gold/20 cursor-pointer"
+            className="py-2 px-4 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
             title="Open system print preview or save as PDF (Ctrl+P)"
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-4 h-4" strokeWidth={1.5} />
             <span>Print / Save PDF (Ctrl+P)</span>
           </button>
 
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+            className="p-2 rounded-lg text-ink-muted hover:text-ink hover:bg-subtle transition-colors cursor-pointer"
             title="Close Preview (Esc)"
           >
             <X className="w-5 h-5" />
@@ -154,8 +154,8 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
       </header>
 
       {/* Sheet Canvas Scroll Area */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-neutral-950 flex justify-center items-start">
-        <div className="w-full max-w-[210mm] shadow-2xl rounded-lg overflow-hidden bg-white">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-canvas flex justify-center items-start">
+        <div className="w-full max-w-[210mm] shadow-lg rounded-lg overflow-hidden bg-white">
           <PrintableReport
             reportType={selectedType}
             filter={filter}

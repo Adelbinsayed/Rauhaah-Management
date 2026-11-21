@@ -468,26 +468,26 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
 
   return (
     <div className="flex h-[calc(100vh-2rem)] gap-4 select-none">
-      {/* LEFT: PRODUCTS BROWSER (65%) */}
-      <div className="flex-1 flex flex-col bg-brand-surface rounded-2xl border border-brand-border overflow-hidden">
+      {/* LEFT: PRODUCTS BROWSER */}
+      <div className="flex-1 flex flex-col bg-surface rounded-xl border border-hairline overflow-hidden">
         {/* Top Search & Scan Bar */}
-        <div className="p-4 border-b border-brand-border bg-brand-black/40 flex items-center gap-3">
+        <div className="p-4 border-b border-hairline bg-surface flex items-center gap-3">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-ink-muted absolute left-3 top-2.5" strokeWidth={1.5} />
             <input
               ref={searchInputRef}
               type="text"
               autoFocus
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search perfumes, attars, janamaz, miswak, caps by name, SKU or barcode..."
-              className="w-full pl-9 pr-3 py-2 bg-brand-black border border-brand-border rounded-xl text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold"
+              placeholder="Search perfumes, attars, SKU or barcode"
+              className="w-full pl-9 pr-12 py-2 bg-raised border border-hairline rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-accent"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-2.5 text-xs text-neutral-500 hover:text-white"
+                className="absolute right-3 top-2.5 text-xs text-ink-muted hover:text-ink"
               >
                 Clear
               </button>
@@ -498,23 +498,23 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
             <button
               type="button"
               onClick={() => setShowHeldDrawer(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-bold hover:bg-amber-500/25 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-warning/10 border border-warning/25 text-warning text-xs font-medium hover:bg-warning/20 transition-colors duration-150 ease-unslop tabular-nums"
             >
-              <PlayCircle className="w-4 h-4" />
+              <PlayCircle className="w-4 h-4" strokeWidth={1.5} />
               <span>Held Carts ({heldCarts.length})</span>
             </button>
           )}
         </div>
 
         {/* Category Filter Chips */}
-        <div className="px-4 py-2 border-b border-brand-border/60 bg-brand-black/20 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <div className="px-4 py-2 border-b border-hairline bg-subtle flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setSelectedCategory('all')}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+            className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors duration-150 ease-unslop ${
               selectedCategory === 'all'
-                ? 'bg-brand-gold text-brand-black shadow-sm font-bold'
-                : 'bg-brand-black/60 text-neutral-400 hover:text-white'
+                ? 'bg-accent text-accent-fg font-semibold'
+                : 'bg-surface border border-hairline text-ink-secondary hover:text-ink'
             }`}
           >
             All Products
@@ -524,10 +524,10 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
               key={c.id}
               type="button"
               onClick={() => setSelectedCategory(c.id)}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+              className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors duration-150 ease-unslop ${
                 selectedCategory === c.id
-                  ? 'bg-brand-gold text-brand-black shadow-sm font-bold'
-                  : 'bg-brand-black/60 text-neutral-400 hover:text-white'
+                  ? 'bg-accent text-accent-fg font-semibold'
+                  : 'bg-surface border border-hairline text-ink-secondary hover:text-ink'
               }`}
             >
               {c.name}
@@ -538,12 +538,12 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
         {/* Products Grid */}
         <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 content-start auto-rows-max">
           {loading ? (
-            <div className="col-span-full py-16 text-center text-neutral-500">
-              Loading shop products...
+            <div className="col-span-full py-16 text-center text-ink-muted text-xs">
+              Loading shop products…
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="col-span-full py-16 text-center text-neutral-500">
-              No products found matching &ldquo;{search}&rdquo;.
+            <div className="col-span-full py-16 text-center text-ink-muted text-xs">
+              No products match &ldquo;{search}&rdquo;
             </div>
           ) : (
             filteredProducts.map((p) => {
@@ -556,45 +556,45 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                 <div
                   key={p.id}
                   onClick={() => handleProductClick(p)}
-                  className="group relative h-36 p-3 rounded-xl bg-brand-black/60 border border-brand-border hover:border-brand-gold/60 transition-all cursor-pointer flex flex-col justify-between hover:shadow-lg hover:shadow-brand-gold/5 self-start w-full"
+                  className="group relative h-36 p-3 rounded-xl bg-raised/60 hover:bg-raised border border-hairline hover:border-accent/50 transition-colors duration-150 ease-unslop cursor-pointer flex flex-col justify-between self-start w-full"
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center justify-between mb-1.5">
                       <span
-                        className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                        className={`px-1.5 py-0.5 rounded text-[11px] font-medium border ${
                           isOil
-                            ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                            : 'bg-neutral-800 text-neutral-300'
+                            ? 'bg-accent/12 text-accent-ink border-accent/25'
+                            : 'bg-surface text-ink-muted border-hairline'
                         }`}
                       >
                         {isOil ? 'Attar / Oil' : 'Packaged'}
                       </span>
                       <span
-                        className={`text-[10px] font-mono font-bold ${
-                          isLow ? 'text-red-400' : 'text-neutral-400'
+                        className={`text-[11px] font-mono tabular-nums font-medium ${
+                          isLow ? 'text-negative' : 'text-ink-muted'
                         }`}
                       >
                         {stock} {unit}
                       </span>
                     </div>
 
-                    <h4 className="text-xs font-bold text-white group-hover:text-brand-gold transition-colors line-clamp-2">
+                    <h4 className="text-xs font-medium text-ink group-hover:text-accent-ink transition-colors duration-150 ease-unslop line-clamp-2">
                       {p.name}
                     </h4>
-                    <div className="text-[10px] text-neutral-500 font-mono mt-0.5">{p.sku}</div>
+                    <div className="text-[11px] text-ink-muted font-mono mt-0.5">{p.sku}</div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-brand-border/40">
-                    <span className="text-xs font-bold font-mono text-brand-gold">
+                  <div className="flex items-center justify-between pt-2 border-t border-hairline">
+                    <span className="text-xs font-medium font-mono tabular-nums text-accent-ink">
                       ৳{p.retailPriceBdt.toFixed(2)}
-                      <span className="text-[10px] text-neutral-400 font-normal"> / {unit}</span>
+                      <span className="text-[11px] text-ink-muted font-normal"> / {unit}</span>
                     </span>
 
                     <button
                       type="button"
-                      className="p-1 rounded-lg bg-neutral-800 text-neutral-300 group-hover:bg-brand-gold group-hover:text-brand-black transition-colors"
+                      className="p-1 rounded-md bg-surface border border-hairline text-ink-secondary group-hover:bg-accent group-hover:text-accent-fg group-hover:border-accent transition-colors duration-150 ease-unslop"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-3.5 h-3.5" strokeWidth={1.75} />
                     </button>
                   </div>
                 </div>
@@ -604,28 +604,28 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
         </div>
       </div>
 
-      {/* RIGHT: CART & CHECKOUT TERMINAL (35%) */}
-      <div className="w-96 flex flex-col bg-brand-surface rounded-2xl border border-brand-border overflow-hidden">
+      {/* RIGHT: CART & CHECKOUT TERMINAL */}
+      <div className="w-96 flex flex-col bg-surface rounded-xl border border-hairline overflow-hidden">
         {/* Customer Lookup & Loyalty Bar */}
-        <div className="p-3 border-b border-brand-border bg-brand-black/60 space-y-2.5">
+        <div className="p-3 border-b border-hairline bg-subtle space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-brand-gold" />
-              <span>Customer Information</span>
+            <span className="text-xs font-medium text-ink-secondary flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
+              <span>Customer information</span>
             </span>
 
             {(customerPhone || customerName || selectedCustomer) ? (
               <button
                 type="button"
                 onClick={handleClearCustomer}
-                className="text-[10px] text-neutral-400 hover:text-red-400 flex items-center gap-1 transition-colors"
+                className="text-xs text-ink-muted hover:text-negative flex items-center gap-1 transition-colors duration-150 ease-unslop"
                 title="Reset to walk-in"
               >
-                <X className="w-3 h-3" />
-                <span>Clear (Walk-in)</span>
+                <X className="w-3 h-3" strokeWidth={1.5} />
+                <span>Clear (walk-in)</span>
               </button>
             ) : (
-              <span className="text-[10px] text-neutral-500 font-medium">Walk-in</span>
+              <span className="text-xs text-ink-muted">Walk-in</span>
             )}
           </div>
 
@@ -633,8 +633,8 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
           <div className="grid grid-cols-2 gap-2 relative">
             {/* Phone Input with live autocomplete */}
             <div className="relative">
-              <label className="text-[9px] uppercase font-bold text-neutral-400 tracking-wider block mb-1">
-                Phone Number
+              <label className="text-[11px] font-medium text-ink-muted block mb-1">
+                Phone number
               </label>
               <div className="relative">
                 <input
@@ -645,7 +645,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                     if (customerResults.length > 0) setShowCustomerDropdown(true);
                   }}
                   placeholder="017... / 019..."
-                  className="w-full px-2.5 py-1.5 bg-brand-black border border-brand-border rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold font-mono"
+                  className="w-full px-2.5 py-1.5 bg-surface border border-hairline rounded-lg text-xs text-ink placeholder-ink-muted focus:outline-none focus:border-accent font-mono tabular-nums"
                 />
               </div>
 
@@ -653,34 +653,34 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
               {showCustomerDropdown && customerResults.length > 0 && (
                 <div
                   ref={customerDropdownRef}
-                  className="absolute left-0 w-80 top-full mt-1.5 z-30 bg-neutral-900 border border-brand-gold/40 rounded-xl shadow-2xl overflow-hidden max-h-52 overflow-y-auto"
+                  className="absolute left-0 w-80 top-full mt-1.5 z-30 bg-surface border border-hairline-strong rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.45)] overflow-hidden max-h-52 overflow-y-auto"
                 >
-                  <div className="px-3 py-1.5 bg-brand-black/90 border-b border-brand-border/40 text-[9px] font-bold uppercase tracking-wider text-brand-gold flex justify-between items-center">
-                    <span>Existing Customers ({customerResults.length})</span>
-                    <span className="text-[9px] text-neutral-400 font-normal">Click to auto-fill</span>
+                  <div className="px-3 py-1.5 bg-raised border-b border-hairline text-[11px] font-medium text-accent-ink flex justify-between items-center">
+                    <span>Existing customers ({customerResults.length})</span>
+                    <span className="text-[11px] text-ink-muted font-normal">Click to fill</span>
                   </div>
                   {customerResults.map((c) => (
                     <div
                       key={c.id}
                       onClick={() => handleSelectCustomer(c)}
-                      className="p-2.5 hover:bg-neutral-800 cursor-pointer text-xs border-b border-brand-border/30 last:border-0 flex justify-between items-center transition-colors"
+                      className="p-2.5 hover:bg-raised cursor-pointer text-xs border-b border-hairline last:border-0 flex justify-between items-center transition-colors duration-150 ease-unslop"
                     >
                       <div>
-                        <div className="font-semibold text-white flex items-center gap-1.5">
+                        <div className="font-medium text-ink flex items-center gap-1.5">
                           <span>{c.name}</span>
                           {c.dueBalanceBdt > 0 && (
-                            <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-warning/10 text-warning border border-warning/25 font-mono tabular-nums">
                               Due ৳{c.dueBalanceBdt}
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-brand-gold font-mono">{c.phone}</div>
+                        <div className="text-[11px] text-accent-ink font-mono tabular-nums">{c.phone}</div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-[10px] text-neutral-300 font-mono font-medium">
+                      <div className="text-right tabular-nums">
+                        <div className="text-[11px] text-ink-secondary font-mono font-medium">
                           ৳{c.totalSpendBdt || 0}
                         </div>
-                        <div className="text-[9px] text-neutral-500">
+                        <div className="text-[11px] text-ink-muted">
                           {c.visitCount || 1} visit{c.visitCount === 1 ? '' : 's'}
                         </div>
                       </div>
@@ -692,15 +692,15 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
 
             {/* Name Input */}
             <div>
-              <label className="text-[9px] uppercase font-bold text-neutral-400 tracking-wider mb-1 flex items-center justify-between">
+              <label className="text-[11px] font-medium text-ink-muted mb-1 flex items-center justify-between">
                 <span>
-                  Customer Name
+                  Customer name
                   {customerPhone.trim() && (
-                    <span className="text-red-400 font-extrabold ml-1 text-[11px]">*</span>
+                    <span className="text-negative font-medium ml-1">*</span>
                   )}
                 </span>
                 {customerNameError && (
-                  <span className="text-[9px] text-red-400 font-bold lowercase tracking-normal">required</span>
+                  <span className="text-[11px] text-negative font-medium">required</span>
                 )}
               </label>
               <input
@@ -711,15 +711,15 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                   setCustomerName(e.target.value);
                   if (e.target.value.trim()) setCustomerNameError(false);
                 }}
-                placeholder={customerPhone.trim() ? "Mandatory (e.g. Rahim)" : "Name (e.g. Rahim)"}
-                className={`w-full px-2.5 py-1.5 bg-brand-black border rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none transition-colors ${
+                placeholder={customerPhone.trim() ? 'Required name' : 'Customer name'}
+                className={`w-full px-2.5 py-1.5 bg-surface border rounded-lg text-xs text-ink placeholder-ink-muted focus:outline-none transition-colors duration-150 ease-unslop ${
                   customerNameError
-                    ? 'border-red-500 ring-1 ring-red-500/50 bg-red-950/20'
-                    : 'border-brand-border focus:border-brand-gold'
+                    ? 'border-negative bg-negative/10'
+                    : 'border-hairline focus:border-accent'
                 }`}
               />
               {customerNameError && (
-                <p className="text-[9px] text-red-400 mt-1 leading-tight font-medium">
+                <p className="text-[11px] text-negative mt-1 leading-tight">
                   Please enter customer name
                 </p>
               )}
@@ -728,20 +728,20 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
 
           {/* Selected / Recognized Customer Loyalty Badge */}
           {selectedCustomer && (
-            <div className="p-2 rounded-lg bg-brand-black border border-brand-gold/30 flex items-center justify-between text-[10px]">
+            <div className="p-2 rounded-lg bg-surface border border-accent/25 flex items-center justify-between text-xs tabular-nums">
               <div className="flex items-center gap-2">
-                <span className="text-brand-gold font-bold">★ Loyalty</span>
-                <span className="text-neutral-300">
-                  Visits: <strong className="text-white">{selectedCustomer.visitCount || 1}</strong>
+                <span className="text-accent-ink font-medium">Loyalty</span>
+                <span className="text-ink-secondary">
+                  Visits <strong className="text-ink font-medium">{selectedCustomer.visitCount || 1}</strong>
                 </span>
-                <span className="text-neutral-500">•</span>
-                <span className="text-neutral-300">
-                  Spend: <strong className="text-brand-gold font-mono">৳{selectedCustomer.totalSpendBdt || 0}</strong>
+                <span className="text-ink-muted">·</span>
+                <span className="text-ink-secondary">
+                  Spend <strong className="text-accent-ink font-mono font-medium">৳{selectedCustomer.totalSpendBdt || 0}</strong>
                 </span>
               </div>
               {selectedCustomer.dueBalanceBdt > 0 && (
-                <span className="text-amber-400 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30">
-                  Due: ৳{selectedCustomer.dueBalanceBdt}
+                <span className="text-warning font-medium bg-warning/10 px-1.5 py-0.5 rounded border border-warning/25 font-mono">
+                  Due ৳{selectedCustomer.dueBalanceBdt}
                 </span>
               )}
             </div>
@@ -751,69 +751,69 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
         {/* Active Cart Items List */}
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {cartItems.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-neutral-500">
-              <ShoppingCart className="w-8 h-8 mb-2 opacity-30" />
-              <p className="text-xs">Cart is empty</p>
-              <p className="text-[10px] text-neutral-600 mt-0.5">Click products on the left to add items</p>
+            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-ink-muted">
+              <ShoppingCart className="w-7 h-7 mb-2 opacity-40" strokeWidth={1.5} />
+              <p className="text-xs font-medium text-ink-secondary">Cart is empty</p>
+              <p className="text-xs text-ink-muted mt-0.5">Select products on the left to add items</p>
             </div>
           ) : (
             cartItems.map((item) => (
               <div
                 key={item.id}
-                className="p-2.5 rounded-xl bg-brand-black/70 border border-brand-border space-y-1.5"
+                className="p-2.5 rounded-lg bg-raised/70 border border-hairline space-y-1.5"
               >
                 <div className="flex justify-between items-start gap-2">
                   <div>
-                    <h5 className="text-xs font-bold text-white leading-tight">
+                    <h5 className="text-xs font-medium text-ink leading-tight">
                       {item.productName}
                     </h5>
-                    <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-neutral-400">
+                    <div className="flex items-center gap-1.5 mt-1 text-[11px] text-ink-muted">
                       {item.bottleSizeMl ? (
-                        <span className="px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold font-mono">
+                        <span className="px-1.5 py-0.5 rounded bg-accent/12 text-accent-ink border border-accent/25 font-medium font-mono tabular-nums">
                           {item.bottleSizeMl} ml
                         </span>
                       ) : null}
-                      <span className="font-mono">
+                      <span className="font-mono tabular-nums">
                         ৳{item.unitPriceBdt} / {item.unitCode}
                       </span>
                     </div>
                   </div>
 
                   <div className="text-right">
-                    <span className="text-xs font-bold text-brand-gold font-mono">
+                    <span className="text-xs font-medium text-accent-ink font-mono tabular-nums">
                       ৳{item.lineTotalBdt.toFixed(2)}
                     </span>
                   </div>
                 </div>
 
                 {/* Quantity Controls & Line Discount */}
-                <div className="flex items-center justify-between pt-1 border-t border-brand-border/40">
+                <div className="flex items-center justify-between pt-1.5 border-t border-hairline">
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => handleUpdateQuantity(item.id, -1)}
-                      className="w-5 h-5 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 flex items-center justify-center"
+                      className="w-6 h-6 rounded-md bg-surface border border-hairline hover:border-hairline-strong text-ink-secondary flex items-center justify-center"
                     >
-                      <Minus className="w-3 h-3" />
+                      <Minus className="w-3 h-3" strokeWidth={1.5} />
                     </button>
-                    <span className="w-8 text-center font-mono font-bold text-xs text-white">
+                    <span className="w-8 text-center font-mono tabular-nums font-medium text-xs text-ink">
                       {item.quantity}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleUpdateQuantity(item.id, 1)}
-                      className="w-5 h-5 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 flex items-center justify-center"
+                      className="w-6 h-6 rounded-md bg-surface border border-hairline hover:border-hairline-strong text-ink-secondary flex items-center justify-center"
                     >
-                      <Plus className="w-3 h-3" />
+                      <Plus className="w-3 h-3" strokeWidth={1.5} />
                     </button>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => handleRemoveItem(item.id)}
-                    className="p-1 rounded text-neutral-500 hover:text-red-400 transition-colors"
+                    className="p-1 rounded-md text-ink-muted hover:text-negative transition-colors duration-150 ease-unslop"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
                   </button>
                 </div>
               </div>
@@ -822,19 +822,19 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
         </div>
 
         {/* Cart Bottom Summary & Checkout */}
-        <div className="p-3.5 border-t border-brand-border bg-brand-black space-y-3">
+        <div className="p-3.5 border-t border-hairline bg-subtle space-y-3">
           {/* Cart Discount Toggle / Bar */}
           <div className="flex items-center justify-between text-xs">
             <button
               type="button"
               onClick={() => setShowCartDiscountInput(!showCartDiscountInput)}
-              className="text-[11px] text-brand-gold hover:underline font-semibold flex items-center gap-1"
+              className="text-xs text-accent-ink hover:underline font-medium flex items-center gap-1"
             >
-              <Percent className="w-3 h-3" />
+              <Percent className="w-3.5 h-3.5" strokeWidth={1.5} />
               <span>
                 {cartDiscountAmount > 0 || cartDiscountPercent > 0
-                  ? `Cart Discount: ৳${cartTotals.cartDiscountBdt}`
-                  : '+ Add Cart Discount'}
+                  ? `Cart discount: ৳${cartTotals.cartDiscountBdt}`
+                  : '+ Add cart discount'}
               </span>
             </button>
 
@@ -842,19 +842,19 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
               <button
                 type="button"
                 onClick={handleHoldCart}
-                className="text-[11px] text-neutral-400 hover:text-amber-400 flex items-center gap-1"
+                className="text-xs text-ink-muted hover:text-warning flex items-center gap-1"
               >
-                <PauseCircle className="w-3 h-3" />
-                <span>Hold Cart</span>
+                <PauseCircle className="w-3.5 h-3.5" strokeWidth={1.5} />
+                <span>Hold cart</span>
               </button>
             )}
           </div>
 
           {showCartDiscountInput && (
-            <div className="p-2 rounded-lg bg-neutral-900 border border-brand-border space-y-2">
+            <div className="p-2.5 rounded-lg bg-surface border border-hairline space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] text-neutral-400 block mb-0.5">Discount %</label>
+                  <label className="text-[11px] text-ink-muted block mb-0.5">Discount %</label>
                   <input
                     type="number"
                     min="0"
@@ -865,11 +865,11 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                       setCartDiscountAmount(0);
                     }}
                     placeholder="0%"
-                    className="w-full px-2 py-1 bg-brand-black border border-brand-border rounded text-xs text-white font-mono"
+                    className="w-full px-2 py-1 bg-raised border border-hairline rounded text-xs text-ink font-mono tabular-nums focus:outline-none focus:border-accent"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-neutral-400 block mb-0.5">Fixed ৳ Off</label>
+                  <label className="text-[11px] text-ink-muted block mb-0.5">Fixed ৳ off</label>
                   <input
                     type="number"
                     min="0"
@@ -879,7 +879,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                       setCartDiscountPercent(0);
                     }}
                     placeholder="৳ 0"
-                    className="w-full px-2 py-1 bg-brand-black border border-brand-border rounded text-xs text-white font-mono"
+                    className="w-full px-2 py-1 bg-raised border border-hairline rounded text-xs text-ink font-mono tabular-nums focus:outline-none focus:border-accent"
                   />
                 </div>
               </div>
@@ -887,33 +887,33 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                 type="text"
                 value={cartDiscountReason}
                 onChange={(e) => setCartDiscountReason(e.target.value)}
-                placeholder="Discount reason (e.g. regular customer loyalty)..."
-                className="w-full px-2 py-1 bg-brand-black border border-brand-border rounded text-[11px] text-neutral-300 placeholder-neutral-500"
+                placeholder="Discount reason (optional)"
+                className="w-full px-2 py-1 bg-raised border border-hairline rounded text-xs text-ink-secondary placeholder-ink-muted focus:outline-none focus:border-accent"
               />
             </div>
           )}
 
           {/* Totals */}
-          <div className="space-y-1 text-xs">
-            <div className="flex justify-between text-neutral-400">
-              <span>Subtotal:</span>
-              <span className="font-mono text-neutral-200">
+          <div className="space-y-1.5 text-xs">
+            <div className="flex justify-between text-ink-muted">
+              <span>Subtotal</span>
+              <span className="font-mono tabular-nums text-ink-secondary">
                 ৳{cartTotals.subtotalBdt.toFixed(2)}
               </span>
             </div>
 
             {(cartTotals.itemDiscountBdt > 0 || cartTotals.cartDiscountBdt > 0) && (
-              <div className="flex justify-between text-emerald-400 font-medium">
-                <span>Total Discount:</span>
-                <span className="font-mono">
+              <div className="flex justify-between text-positive font-medium">
+                <span>Total discount</span>
+                <span className="font-mono tabular-nums">
                   -৳{(cartTotals.itemDiscountBdt + cartTotals.cartDiscountBdt).toFixed(2)}
                 </span>
               </div>
             )}
 
-            <div className="flex justify-between text-lg font-extrabold text-white pt-1 border-t border-brand-border">
-              <span>Total Payable:</span>
-              <span className="font-mono text-brand-gold">
+            <div className="flex justify-between text-base font-medium text-ink pt-1.5 border-t border-hairline">
+              <span>Total payable</span>
+              <span className="font-mono tabular-nums text-accent-ink">
                 ৳{cartTotals.totalAmountBdt.toFixed(2)}
               </span>
             </div>
@@ -924,29 +924,29 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
             type="button"
             disabled={cartItems.length === 0}
             onClick={handleProceedToCheckout}
-            className="w-full py-3 rounded-xl bg-brand-gold hover:bg-brand-gold-light text-brand-black text-sm font-extrabold transition-all shadow-lg shadow-brand-gold/20 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-sm font-semibold transition-colors duration-150 ease-unslop disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center gap-2 cursor-pointer tabular-nums"
           >
             <span>Charge ৳{cartTotals.totalAmountBdt.toFixed(2)}</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4" strokeWidth={1.75} />
           </button>
         </div>
       </div>
 
       {/* Held Carts Modal / Drawer */}
       {showHeldDrawer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-brand-surface border border-brand-border rounded-2xl shadow-2xl p-6 space-y-4">
-            <div className="flex justify-between items-center pb-3 border-b border-brand-border">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <PauseCircle className="w-5 h-5 text-amber-400" />
-                <span>Held Carts ({heldCarts.length})</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+          <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-hairline">
+              <h3 className="text-base font-medium text-ink flex items-center gap-2">
+                <PauseCircle className="w-4 h-4 text-warning" strokeWidth={1.5} />
+                <span>Held carts ({heldCarts.length})</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setShowHeldDrawer(false)}
-                className="p-1 rounded text-neutral-400 hover:text-white"
+                className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-raised"
               >
-                ✕
+                <X className="w-4 h-4" strokeWidth={1.5} />
               </button>
             </div>
 
@@ -954,19 +954,19 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
               {heldCarts.map((h) => (
                 <div
                   key={h.id}
-                  className="p-3 rounded-xl bg-brand-black border border-brand-border flex items-center justify-between"
+                  className="p-3 rounded-lg bg-raised border border-hairline flex items-center justify-between"
                 >
                   <div>
-                    <div className="text-xs font-bold text-white">{h.note}</div>
-                    <div className="text-[10px] text-neutral-400">
-                      {h.items.length} item(s) &bull; Held at {h.heldAt}
+                    <div className="text-xs font-medium text-ink">{h.note}</div>
+                    <div className="text-xs text-ink-muted tabular-nums">
+                      {h.items.length} item(s) · Held at {h.heldAt}
                     </div>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => handleResumeCart(h)}
-                    className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-md"
+                    className="px-3 py-1.5 rounded-lg bg-positive hover:opacity-90 text-white font-semibold text-xs"
                   >
                     Resume
                   </button>

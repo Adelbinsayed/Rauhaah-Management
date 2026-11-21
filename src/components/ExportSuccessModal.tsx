@@ -36,40 +36,40 @@ export const ExportSuccessModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="w-full max-w-md bg-neutral-900 border border-brand-border rounded-2xl shadow-2xl p-6 space-y-5 text-white relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+      <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.5)] p-6 space-y-5 text-ink relative">
         {/* Close Button */}
         <button
           type="button"
           onClick={closeExportModal}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised transition-colors duration-150 ease-unslop cursor-pointer"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" strokeWidth={1.5} />
         </button>
 
         {/* Hero Success Icon & Title */}
         <div className="flex flex-col items-center text-center space-y-2 pt-2">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-1 shadow-lg shadow-emerald-500/10">
-            <CheckCircle2 className="w-8 h-8" />
+          <div className="w-12 h-12 rounded-xl bg-positive/10 border border-positive/25 flex items-center justify-center text-positive mb-1">
+            <CheckCircle2 className="w-6 h-6" strokeWidth={1.5} />
           </div>
-          <h3 className="text-lg font-bold text-white tracking-tight">
-            {exportModal.title || 'File Downloaded Successfully!'}
+          <h3 className="text-lg font-medium text-ink">
+            {(exportModal.title || 'File downloaded successfully').replace(/!+$/, '')}
           </h3>
-          <p className="text-xs text-neutral-400 max-w-sm">
+          <p className="text-xs text-ink-muted max-w-sm">
             {exportModal.message || 'Your CSV report has been exported and saved to your computer.'}
           </p>
         </div>
 
         {/* File Information Card */}
-        <div className="p-3.5 rounded-xl bg-neutral-800/80 border border-brand-border/80 space-y-2.5 text-xs">
+        <div className="p-3.5 rounded-xl bg-raised border border-hairline space-y-2.5 text-xs">
           <div className="flex items-start gap-2.5">
-            <FileSpreadsheet className="w-4 h-4 text-brand-gold shrink-0 mt-0.5" />
+            <FileSpreadsheet className="w-4 h-4 text-accent-ink shrink-0 mt-0.5" strokeWidth={1.5} />
             <div className="min-w-0 flex-1">
-              <div className="font-semibold text-white truncate font-mono">
+              <div className="font-medium text-ink truncate font-mono">
                 {exportModal.filename}
               </div>
               {exportModal.rowCount !== undefined && (
-                <div className="text-[11px] text-neutral-400">
+                <div className="text-xs text-ink-muted tabular-nums">
                   {exportModal.rowCount} record{exportModal.rowCount === 1 ? '' : 's'} exported
                 </div>
               )}
@@ -77,11 +77,11 @@ export const ExportSuccessModal: React.FC = () => {
           </div>
 
           {exportModal.filePath && (
-            <div className="pt-2 border-t border-brand-border/60 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-                Saved to Location:
+            <div className="pt-2 border-t border-hairline space-y-1">
+              <span className="text-xs font-medium text-ink-muted">
+                Saved location
               </span>
-              <div className="text-[11px] text-brand-gold font-mono break-all bg-neutral-900/80 p-2 rounded-lg border border-brand-border/40 select-all">
+              <div className="text-xs text-accent-ink font-mono break-all bg-canvas p-2 rounded-lg border border-hairline select-all">
                 {exportModal.filePath}
               </div>
             </div>
@@ -89,9 +89,9 @@ export const ExportSuccessModal: React.FC = () => {
         </div>
 
         {/* Excel Compatibility Note */}
-        <div className="flex items-center justify-center gap-1.5 text-[11px] text-neutral-400">
-          <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span>UTF-8 BOM format (Ready to open in Microsoft Excel)</span>
+        <div className="flex items-center justify-center gap-2 text-xs text-ink-muted">
+          <span className="w-1.5 h-1.5 rounded-full bg-positive" />
+          <span>UTF-8 BOM format (ready for Microsoft Excel)</span>
         </div>
 
         {/* Action Buttons */}
@@ -100,16 +100,16 @@ export const ExportSuccessModal: React.FC = () => {
             <button
               type="button"
               onClick={handleOpenFolder}
-              className="flex-1 py-2.5 px-4 rounded-xl border border-brand-border bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="flex-1 py-2.5 px-4 rounded-lg border border-hairline bg-raised hover:border-hairline-strong text-ink text-xs font-medium flex items-center justify-center gap-2 transition-colors duration-150 ease-unslop cursor-pointer"
             >
               {openedFolder ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span className="text-emerald-300">Opened Folder</span>
+                  <Check className="w-4 h-4 text-positive" strokeWidth={1.5} />
+                  <span className="text-positive">Opened Folder</span>
                 </>
               ) : (
                 <>
-                  <FolderOpen className="w-4 h-4 text-brand-gold" />
+                  <FolderOpen className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
                   <span>Show in Folder</span>
                 </>
               )}
@@ -120,7 +120,7 @@ export const ExportSuccessModal: React.FC = () => {
             type="button"
             onClick={closeExportModal}
             autoFocus
-            className="flex-1 py-2.5 px-4 rounded-xl bg-brand-gold hover:bg-brand-gold-light text-brand-black text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md shadow-brand-gold/20 cursor-pointer"
+            className="flex-1 py-2.5 px-4 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors duration-150 ease-unslop cursor-pointer"
           >
             <span>Done</span>
           </button>

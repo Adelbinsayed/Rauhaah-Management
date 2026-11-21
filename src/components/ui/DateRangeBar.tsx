@@ -33,22 +33,22 @@ export const DateRangeBar: React.FC<DateRangeBarProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl border border-neutral-200 dark:border-brand-border bg-neutral-50/50 dark:bg-brand-surface/40 ${className}`}>
+    <div className={`flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl border border-hairline bg-surface ${className}`}>
       {/* Preset Buttons */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        <div className="flex items-center gap-1 text-neutral-400 text-xs font-semibold uppercase tracking-wider mr-1">
-          <Calendar className="w-3.5 h-3.5 text-brand-gold" />
-          <span>Period:</span>
+        <div className="flex items-center gap-1.5 text-ink-muted text-xs font-medium mr-1">
+          <Calendar className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
+          <span>Period</span>
         </div>
         {PRESET_OPTIONS.map((p) => (
           <button
             key={p.key}
             type="button"
             onClick={() => onPresetChange(p.key)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 ease-unslop cursor-pointer ${
               preset === p.key
-                ? 'bg-brand-gold text-brand-black shadow-sm font-bold'
-                : 'bg-white dark:bg-brand-black/60 border border-neutral-200 dark:border-brand-border text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:border-brand-gold/40'
+                ? 'bg-accent text-accent-fg font-semibold'
+                : 'bg-raised border border-hairline text-ink-secondary hover:text-ink hover:border-hairline-strong'
             }`}
           >
             {p.label}
@@ -58,8 +58,8 @@ export const DateRangeBar: React.FC<DateRangeBarProps> = ({
 
       {/* Date Pickers */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 bg-white dark:bg-brand-black/80 border border-neutral-200 dark:border-brand-border px-2.5 py-1 rounded-lg">
-          <span className="text-[10px] text-neutral-400 uppercase font-semibold">From:</span>
+        <div className="flex items-center gap-1.5 bg-raised border border-hairline px-2.5 py-1.5 rounded-lg">
+          <span className="text-xs text-ink-muted">From</span>
           <input
             type="date"
             value={startDate}
@@ -67,12 +67,12 @@ export const DateRangeBar: React.FC<DateRangeBarProps> = ({
               onStartDateChange(e.target.value);
               onPresetChange('custom');
             }}
-            className="bg-transparent text-neutral-900 dark:text-white font-mono text-xs focus:outline-none cursor-pointer"
+            className="bg-transparent text-ink font-mono text-xs tabular-nums focus:outline-none cursor-pointer"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 bg-white dark:bg-brand-black/80 border border-neutral-200 dark:border-brand-border px-2.5 py-1 rounded-lg">
-          <span className="text-[10px] text-neutral-400 uppercase font-semibold">To:</span>
+        <div className="flex items-center gap-1.5 bg-raised border border-hairline px-2.5 py-1.5 rounded-lg">
+          <span className="text-xs text-ink-muted">To</span>
           <input
             type="date"
             value={endDate}
@@ -80,7 +80,7 @@ export const DateRangeBar: React.FC<DateRangeBarProps> = ({
               onEndDateChange(e.target.value);
               onPresetChange('custom');
             }}
-            className="bg-transparent text-neutral-900 dark:text-white font-mono text-xs focus:outline-none cursor-pointer"
+            className="bg-transparent text-ink font-mono text-xs tabular-nums focus:outline-none cursor-pointer"
           />
         </div>
 
@@ -88,10 +88,10 @@ export const DateRangeBar: React.FC<DateRangeBarProps> = ({
           <button
             type="button"
             onClick={onReset}
-            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 cursor-pointer"
+            className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised transition-colors duration-150 ease-unslop cursor-pointer"
             title="Reset Date Range"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-4 h-4" strokeWidth={1.5} />
           </button>
         )}
       </div>

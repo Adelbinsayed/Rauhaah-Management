@@ -367,18 +367,18 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 select-none">
       {/* Top Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-200 dark:border-brand-border pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-brand-gold" />
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-semibold tracking-tight text-ink flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-accent-ink" strokeWidth={1.5} />
               <span>Financial & Sales Reports</span>
             </h1>
-            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-brand-gold/15 text-brand-gold border border-brand-gold/30">
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-accent/15 text-accent-ink border border-accent/25">
               {currentFilter.label}
             </span>
           </div>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+          <p className="text-xs text-ink-secondary mt-1">
             Real-time P&L analysis, sales volume, operational margins, and live inventory valuation.
           </p>
         </div>
@@ -389,52 +389,52 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
             type="button"
             onClick={loadReports}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-brand-border text-xs font-medium hover:bg-neutral-100 dark:hover:bg-brand-surface text-neutral-700 dark:text-neutral-300 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-hairline text-xs font-medium hover:bg-subtle text-ink-secondary hover:text-ink transition-colors"
             title="Refresh Report Data"
           >
-            <RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin text-brand-gold')} />
+            <RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin text-accent-ink')} />
             <span>Refresh</span>
           </button>
 
           <button
             type="button"
             onClick={() => setIsPrintModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-brand-border text-xs font-semibold hover:border-brand-gold/60 bg-neutral-50 dark:bg-brand-surface text-neutral-800 dark:text-neutral-200 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-hairline text-xs font-medium hover:border-accent/50 bg-surface text-ink transition-colors"
             title="Open printable document preview or save as PDF"
           >
-            <Printer className="w-3.5 h-3.5 text-brand-gold" />
+            <Printer className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
             <span>Print View</span>
           </button>
 
           {/* Quick Export Dropdown Group */}
-          <div className="flex items-center gap-1 border border-neutral-200 dark:border-brand-border rounded-lg p-0.5 bg-neutral-50 dark:bg-brand-surface">
+          <div className="flex items-center gap-1 border border-hairline rounded-lg p-0.5 bg-surface">
             <button
               type="button"
               onClick={handleExportPnL}
-              className="px-2.5 py-1 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:text-brand-gold transition-colors flex items-center gap-1"
+              className="px-2.5 py-1 text-xs font-medium text-ink-secondary hover:text-accent-ink transition-colors flex items-center gap-1"
               title="Export P&L Summary as CSV"
             >
-              <Download className="w-3 h-3 text-brand-gold" />
+              <Download className="w-3 h-3 text-accent-ink" />
               <span>P&L CSV</span>
             </button>
-            <div className="h-4 w-[1px] bg-neutral-200 dark:bg-brand-border" />
+            <div className="h-4 w-[1px] bg-hairline" />
             <button
               type="button"
               onClick={handleExportTopProducts}
-              className="px-2.5 py-1 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:text-brand-gold transition-colors flex items-center gap-1"
+              className="px-2.5 py-1 text-xs font-medium text-ink-secondary hover:text-accent-ink transition-colors flex items-center gap-1"
               title="Export Top Products as CSV"
             >
-              <Download className="w-3 h-3 text-brand-gold" />
+              <Download className="w-3 h-3 text-accent-ink" />
               <span>Products CSV</span>
             </button>
-            <div className="h-4 w-[1px] bg-neutral-200 dark:bg-brand-border" />
+            <div className="h-4 w-[1px] bg-hairline" />
             <button
               type="button"
               onClick={handleExportSalesLedger}
-              className="px-2.5 py-1 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:text-brand-gold transition-colors flex items-center gap-1"
+              className="px-2.5 py-1 text-xs font-medium text-ink-secondary hover:text-accent-ink transition-colors flex items-center gap-1"
               title="Export Full Sales Invoices Ledger as CSV"
             >
-              <Download className="w-3 h-3 text-brand-gold" />
+              <Download className="w-3 h-3 text-accent-ink" />
               <span>Sales CSV</span>
             </button>
           </div>
@@ -442,10 +442,10 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
       </div>
 
       {/* Date Range Selector Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl border border-neutral-200 dark:border-brand-border bg-neutral-50 dark:bg-brand-surface/60">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl border border-hairline bg-surface">
         <div className="flex flex-wrap items-center gap-1.5">
-          <Calendar className="w-4 h-4 text-brand-gold mr-1" />
-          <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider mr-1">
+          <Calendar className="w-4 h-4 text-accent-ink mr-1" strokeWidth={1.5} />
+          <span className="text-xs font-medium text-ink-secondary mr-1">
             Period:
           </span>
           {(
@@ -462,10 +462,10 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
               type="button"
               onClick={() => handlePresetChange(preset.key)}
               className={cn(
-                'px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors',
+                'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
                 activePreset === preset.key
-                  ? 'bg-brand-gold text-brand-black shadow-sm font-bold'
-                  : 'bg-white dark:bg-brand-black/60 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-brand-border hover:border-brand-gold/50'
+                  ? 'bg-accent text-accent-fg font-semibold'
+                  : 'bg-canvas text-ink-secondary border border-hairline hover:text-ink hover:border-hairline-strong'
               )}
             >
               {preset.label}
@@ -475,24 +475,24 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
 
         {/* Custom Date Range Picker */}
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-neutral-400 font-medium">Custom:</span>
+          <span className="text-ink-muted font-medium">Custom:</span>
           <input
             type="date"
             value={customStart}
             onChange={(e) => setCustomStart(e.target.value)}
-            className="px-2 py-1 rounded bg-white dark:bg-brand-black border border-neutral-200 dark:border-brand-border text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold"
+            className="px-2 py-1 rounded bg-canvas border border-hairline text-xs text-ink focus:outline-none focus:border-accent"
           />
-          <span className="text-neutral-400">to</span>
+          <span className="text-ink-muted">to</span>
           <input
             type="date"
             value={customEnd}
             onChange={(e) => setCustomEnd(e.target.value)}
-            className="px-2 py-1 rounded bg-white dark:bg-brand-black border border-neutral-200 dark:border-brand-border text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold"
+            className="px-2 py-1 rounded bg-canvas border border-hairline text-xs text-ink focus:outline-none focus:border-accent"
           />
           <button
             type="button"
             onClick={handleApplyCustomDate}
-            className="px-2.5 py-1 rounded bg-brand-gold/15 text-brand-gold border border-brand-gold/40 hover:bg-brand-gold hover:text-brand-black font-semibold transition-colors text-xs"
+            className="px-2.5 py-1 rounded bg-accent/15 text-accent-ink border border-accent/30 hover:bg-accent hover:text-accent-fg font-medium transition-colors text-xs"
           >
             Apply
           </button>
@@ -501,7 +501,7 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
 
       {/* Error Notice */}
       {error && (
-        <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 text-xs">
+        <div className="p-4 rounded-xl bg-negative/10 border border-negative/25 text-negative text-xs">
           <strong>Error loading report:</strong> {error}
         </div>
       )}
@@ -509,34 +509,34 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
       {/* Top 5 Executive Metric Cards (KPIs) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {/* 1. Net Sales Revenue */}
-        <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface p-4 space-y-1 relative overflow-hidden">
-          <div className="flex items-center justify-between text-neutral-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Net Revenue</span>
-            <DollarSign className="w-4 h-4 text-brand-gold" />
+        <div className="rounded-xl border border-hairline bg-surface p-4 space-y-1 relative overflow-hidden">
+          <div className="flex items-center justify-between text-ink-secondary">
+            <span className="text-xs font-medium">Net Revenue</span>
+            <DollarSign className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
           </div>
-          <div className="text-xl font-black text-neutral-900 dark:text-white tracking-tight">
+          <div className="text-xl font-bold font-mono tabular-nums text-ink tracking-tight">
             {formatBdt(pnl?.netRevenueBdt || 0)}
           </div>
-          <div className="text-[11px] text-neutral-500 dark:text-neutral-400 flex items-center justify-between pt-1">
+          <div className="text-[11px] text-ink-secondary flex items-center justify-between pt-1">
             <span>{pnl?.ordersCount || 0} orders completed</span>
             <span>{formatQty(pnl?.itemsSoldCount || 0)} units</span>
           </div>
         </div>
 
         {/* 2. Cost of Goods Sold (COGS) */}
-        <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface p-4 space-y-1 relative overflow-hidden">
-          <div className="flex items-center justify-between text-neutral-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">COGS (Stock Cost)</span>
-            <ShoppingBag className="w-4 h-4 text-neutral-400" />
+        <div className="rounded-xl border border-hairline bg-surface p-4 space-y-1 relative overflow-hidden">
+          <div className="flex items-center justify-between text-ink-secondary">
+            <span className="text-xs font-medium">COGS (Stock Cost)</span>
+            <ShoppingBag className="w-4 h-4 text-ink-muted" strokeWidth={1.5} />
           </div>
-          <div className="text-xl font-black text-neutral-900 dark:text-white tracking-tight">
+          <div className="text-xl font-bold font-mono tabular-nums text-ink tracking-tight">
             {allowCost ? formatBdt(pnl?.cogsBdt || 0) : '••••••'}
           </div>
-          <div className="text-[11px] text-neutral-500 dark:text-neutral-400 pt-1">
+          <div className="text-[11px] text-ink-secondary pt-1">
             {allowCost ? (
               <span>Weighted inventory cost</span>
             ) : (
-              <span className="flex items-center gap-1 text-amber-500">
+              <span className="flex items-center gap-1 text-warning">
                 <Lock className="w-3 h-3" /> Cost hidden from role
               </span>
             )}
@@ -544,18 +544,18 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
         </div>
 
         {/* 3. Gross Profit */}
-        <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface p-4 space-y-1 relative overflow-hidden">
-          <div className="flex items-center justify-between text-neutral-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Gross Profit</span>
-            <TrendingUp className="w-4 h-4 text-emerald-500" />
+        <div className="rounded-xl border border-hairline bg-surface p-4 space-y-1 relative overflow-hidden">
+          <div className="flex items-center justify-between text-ink-secondary">
+            <span className="text-xs font-medium">Gross Profit</span>
+            <TrendingUp className="w-4 h-4 text-positive" strokeWidth={1.5} />
           </div>
-          <div className="text-xl font-black text-emerald-500 tracking-tight">
+          <div className="text-xl font-bold font-mono tabular-nums text-positive tracking-tight">
             {allowProfit ? formatBdt(pnl?.grossProfitBdt || 0) : '••••••'}
           </div>
-          <div className="text-[11px] text-neutral-500 dark:text-neutral-400 flex items-center justify-between pt-1">
+          <div className="text-[11px] text-ink-secondary flex items-center justify-between pt-1">
             <span>Revenue − COGS</span>
             {allowProfit && (
-              <span className="font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[10px]">
+              <span className="font-semibold text-positive bg-positive/10 px-1.5 py-0.5 rounded text-[10px] tabular-nums">
                 {pnl?.grossMarginPercent}% margin
               </span>
             )}
@@ -563,41 +563,41 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
         </div>
 
         {/* 4. Operating Expenses */}
-        <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface p-4 space-y-1 relative overflow-hidden">
-          <div className="flex items-center justify-between text-neutral-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Operating Expenses</span>
-            <Wallet className="w-4 h-4 text-amber-500" />
+        <div className="rounded-xl border border-hairline bg-surface p-4 space-y-1 relative overflow-hidden">
+          <div className="flex items-center justify-between text-ink-secondary">
+            <span className="text-xs font-medium">Operating Expenses</span>
+            <Wallet className="w-4 h-4 text-warning" strokeWidth={1.5} />
           </div>
-          <div className="text-xl font-black text-amber-500 tracking-tight">
+          <div className="text-xl font-bold font-mono tabular-nums text-warning tracking-tight">
             {formatBdt(pnl?.operatingExpensesBdt || 0)}
           </div>
-          <div className="text-[11px] text-neutral-500 dark:text-neutral-400 pt-1">
+          <div className="text-[11px] text-ink-secondary pt-1">
             <span>Shop rent, tea, packaging, bills</span>
           </div>
         </div>
 
         {/* 5. Net Profit */}
-        <div className="rounded-xl border border-brand-gold/40 bg-brand-gold/5 dark:bg-brand-gold/10 p-4 space-y-1 relative overflow-hidden shadow-sm">
-          <div className="flex items-center justify-between text-brand-gold">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Net Profit</span>
+        <div className="rounded-xl border border-accent/35 bg-accent/10 p-4 space-y-1 relative overflow-hidden">
+          <div className="flex items-center justify-between text-accent-ink">
+            <span className="text-xs font-medium">Net Profit</span>
             {(pnl?.netProfitBdt || 0) >= 0 ? (
-              <ArrowUpRight className="w-4 h-4 text-brand-gold" />
+              <ArrowUpRight className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
             ) : (
-              <ArrowDownRight className="w-4 h-4 text-rose-500" />
+              <ArrowDownRight className="w-4 h-4 text-negative" strokeWidth={1.5} />
             )}
           </div>
           <div
             className={cn(
-              'text-xl font-black tracking-tight',
-              (pnl?.netProfitBdt || 0) >= 0 ? 'text-brand-gold' : 'text-rose-500'
+              'text-xl font-bold font-mono tabular-nums tracking-tight',
+              (pnl?.netProfitBdt || 0) >= 0 ? 'text-accent-ink' : 'text-negative'
             )}
           >
             {allowProfit ? formatBdt(pnl?.netProfitBdt || 0) : '••••••'}
           </div>
-          <div className="text-[11px] text-neutral-500 dark:text-neutral-400 flex items-center justify-between pt-1">
+          <div className="text-[11px] text-ink-secondary flex items-center justify-between pt-1">
             <span>Gross − Expenses</span>
             {allowProfit && (
-              <span className="font-bold text-brand-gold bg-brand-gold/20 px-1.5 py-0.5 rounded text-[10px]">
+              <span className="font-semibold text-accent-ink bg-accent/15 px-1.5 py-0.5 rounded text-[10px] tabular-nums">
                 {pnl?.netMarginPercent}% net
               </span>
             )}
@@ -606,35 +606,35 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
       </div>
 
       {/* Sub-KPI Highlights Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl border border-neutral-200 dark:border-brand-border bg-neutral-50 dark:bg-brand-surface/40 text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl border border-hairline bg-surface text-xs">
         <div>
-          <div className="text-neutral-400 text-[11px]">Average Order Value (AOV)</div>
-          <div className="text-sm font-bold text-neutral-900 dark:text-white mt-0.5">
+          <div className="text-ink-secondary text-[11px]">Average Order Value (AOV)</div>
+          <div className="text-sm font-semibold font-mono tabular-nums text-ink mt-0.5">
             {formatBdt(pnl?.averageOrderValueBdt || 0)}
           </div>
         </div>
         <div>
-          <div className="text-neutral-400 text-[11px]">Promotional Discounts Given</div>
-          <div className="text-sm font-bold text-rose-400 mt-0.5">
+          <div className="text-ink-secondary text-[11px]">Promotional Discounts Given</div>
+          <div className="text-sm font-semibold font-mono tabular-nums text-negative mt-0.5">
             {formatBdt(pnl?.discountTotalBdt || 0)}
           </div>
         </div>
         <div>
-          <div className="text-neutral-400 text-[11px]">Customer Dues Incurred</div>
-          <div className="text-sm font-bold text-amber-500 mt-0.5">
+          <div className="text-ink-secondary text-[11px]">Customer Dues Incurred</div>
+          <div className="text-sm font-semibold font-mono tabular-nums text-warning mt-0.5">
             {formatBdt(pnl?.customerDuesIncurredBdt || 0)}
           </div>
         </div>
         <div>
-          <div className="text-neutral-400 text-[11px]">Customer Dues Recovered</div>
-          <div className="text-sm font-bold text-emerald-500 mt-0.5">
+          <div className="text-ink-secondary text-[11px]">Customer Dues Recovered</div>
+          <div className="text-sm font-semibold font-mono tabular-nums text-positive mt-0.5">
             {formatBdt(pnl?.customerDuesCollectedBdt || 0)}
           </div>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-1 border-b border-neutral-200 dark:border-brand-border overflow-x-auto pb-px">
+      <div className="flex items-center gap-1 border-b border-hairline overflow-x-auto pb-px">
         {[
           { id: 'pnl', label: 'Profit & Loss Statement (P&L)', icon: TrendingUp },
           { id: 'products', label: 'Top Products & Fragrances', icon: ShoppingBag },
@@ -650,13 +650,13 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
               type="button"
               onClick={() => setActiveTab(tab.id as ReportTab)}
               className={cn(
-                'flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-lg transition-colors border-b-2 whitespace-nowrap',
+                'flex items-center gap-2 px-4 py-2.5 text-xs font-medium rounded-t-lg transition-colors border-b-2 whitespace-nowrap',
                 active
-                  ? 'border-brand-gold text-brand-gold bg-brand-gold/10 font-bold'
-                  : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-brand-surface'
+                  ? 'border-accent text-accent-ink bg-accent/10 font-semibold'
+                  : 'border-transparent text-ink-secondary hover:text-ink hover:bg-subtle'
               )}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className="w-3.5 h-3.5" strokeWidth={1.5} />
               <span>{tab.label}</span>
             </button>
           );
@@ -668,103 +668,103 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Income Statement Card */}
-            <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-neutral-200 dark:border-brand-border pb-3">
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                  <FileSpreadsheet className="w-4 h-4 text-brand-gold" />
+            <div className="rounded-xl border border-hairline bg-surface p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-hairline pb-3">
+                <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
+                  <FileSpreadsheet className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
                   <span>Statement of Profit and Loss</span>
                 </h3>
-                <span className="text-[10px] text-neutral-400 font-mono">
+                <span className="text-[11px] text-ink-muted font-mono">
                   {currentFilter.label}
                 </span>
               </div>
 
               <div className="space-y-2.5 text-xs">
                 {/* 1. Operating Revenue */}
-                <div className="space-y-1.5 pb-2 border-b border-neutral-100 dark:border-brand-border/60">
-                  <div className="font-bold text-neutral-400 uppercase tracking-wider text-[10px]">
+                <div className="space-y-1.5 pb-2 border-b border-hairline">
+                  <div className="font-semibold text-ink-secondary text-[11px]">
                     1. Operating Revenue
                   </div>
-                  <div className="flex justify-between items-center text-neutral-700 dark:text-neutral-300">
+                  <div className="flex justify-between items-center text-ink-secondary">
                     <span>Gross Sales</span>
-                    <span className="font-mono font-medium">{formatBdt(pnl?.grossSalesBdt || 0)}</span>
+                    <span className="font-mono font-medium tabular-nums text-ink">{formatBdt(pnl?.grossSalesBdt || 0)}</span>
                   </div>
-                  <div className="flex justify-between items-center text-rose-500">
+                  <div className="flex justify-between items-center text-negative">
                     <span>Less: POS Discounts Given</span>
-                    <span className="font-mono font-medium">− {formatBdt(pnl?.discountTotalBdt || 0)}</span>
+                    <span className="font-mono font-medium tabular-nums">− {formatBdt(pnl?.discountTotalBdt || 0)}</span>
                   </div>
-                  <div className="flex justify-between items-center font-bold text-neutral-900 dark:text-white pt-1">
+                  <div className="flex justify-between items-center font-semibold text-ink pt-1">
                     <span>Net Sales Revenue</span>
-                    <span className="font-mono text-brand-gold">{formatBdt(pnl?.netRevenueBdt || 0)}</span>
+                    <span className="font-mono tabular-nums text-accent-ink">{formatBdt(pnl?.netRevenueBdt || 0)}</span>
                   </div>
                 </div>
 
                 {/* 2. Cost of Sales */}
-                <div className="space-y-1.5 pb-2 border-b border-neutral-100 dark:border-brand-border/60">
-                  <div className="font-bold text-neutral-400 uppercase tracking-wider text-[10px]">
+                <div className="space-y-1.5 pb-2 border-b border-hairline">
+                  <div className="font-semibold text-ink-secondary text-[11px]">
                     2. Cost of Goods Sold (COGS)
                   </div>
-                  <div className="flex justify-between items-center text-neutral-700 dark:text-neutral-300">
+                  <div className="flex justify-between items-center text-ink-secondary">
                     <span>Direct Material & Stock Cost</span>
-                    <span className="font-mono font-medium">
+                    <span className="font-mono font-medium tabular-nums text-ink">
                       {allowCost ? formatBdt(pnl?.cogsBdt || 0) : '••••••'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center font-bold text-emerald-500 pt-1">
+                  <div className="flex justify-between items-center font-semibold text-positive pt-1">
                     <span>Gross Profit</span>
-                    <span className="font-mono">
+                    <span className="font-mono tabular-nums">
                       {allowProfit ? formatBdt(pnl?.grossProfitBdt || 0) : '••••••'}
                     </span>
                   </div>
-                  <div className="text-[10px] text-neutral-400 text-right">
+                  <div className="text-[11px] text-ink-muted text-right tabular-nums">
                     Gross Margin: {allowProfit ? `${pnl?.grossMarginPercent}%` : '••••'}
                   </div>
                 </div>
 
                 {/* 3. Operating Expenses */}
-                <div className="space-y-1.5 pb-2 border-b border-neutral-100 dark:border-brand-border/60">
-                  <div className="flex items-center justify-between font-bold text-neutral-400 uppercase tracking-wider text-[10px]">
+                <div className="space-y-1.5 pb-2 border-b border-hairline">
+                  <div className="flex items-center justify-between font-semibold text-ink-secondary text-[11px]">
                     <span>3. Operating Expenses</span>
                     <button
                       type="button"
                       onClick={handleExportExpenses}
-                      className="text-brand-gold hover:underline capitalize font-normal flex items-center gap-1"
+                      className="text-accent-ink hover:underline font-medium flex items-center gap-1"
                     >
                       <Download className="w-2.5 h-2.5" /> CSV
                     </button>
                   </div>
                   {expenseCats.length === 0 ? (
-                    <div className="text-neutral-400 italic text-[11px] py-1">
+                    <div className="text-ink-muted text-[11px] py-1">
                       No expenses logged during this period.
                     </div>
                   ) : (
                     expenseCats.map((cat) => (
                       <div
                         key={cat.categoryName}
-                        className="flex justify-between items-center text-neutral-600 dark:text-neutral-400"
+                        className="flex justify-between items-center text-ink-secondary"
                       >
                         <span className="truncate max-w-[220px]">
                           {cat.categoryName} ({cat.count})
                         </span>
-                        <span className="font-mono">{formatBdt(cat.amountBdt)}</span>
+                        <span className="font-mono tabular-nums">{formatBdt(cat.amountBdt)}</span>
                       </div>
                     ))
                   )}
-                  <div className="flex justify-between items-center font-bold text-amber-500 pt-1">
+                  <div className="flex justify-between items-center font-semibold text-warning pt-1">
                     <span>Total Operating Expenses</span>
-                    <span className="font-mono">− {formatBdt(pnl?.operatingExpensesBdt || 0)}</span>
+                    <span className="font-mono tabular-nums">− {formatBdt(pnl?.operatingExpensesBdt || 0)}</span>
                   </div>
                 </div>
 
                 {/* 4. Net Operating Profit */}
-                <div className="p-3 rounded-lg bg-brand-gold/10 border border-brand-gold/30 flex items-center justify-between font-black text-sm text-neutral-900 dark:text-white">
+                <div className="p-3 rounded-lg bg-accent/10 border border-accent/25 flex items-center justify-between font-semibold text-sm text-ink">
                   <div>
                     <div>Net Operating Profit</div>
-                    <div className="text-[10px] font-normal text-neutral-400">
+                    <div className="text-[11px] font-normal text-ink-secondary tabular-nums">
                       Net Profit Margin: {allowProfit ? `${pnl?.netMarginPercent}%` : '••••'}
                     </div>
                   </div>
-                  <div className="text-base font-mono text-brand-gold">
+                  <div className="text-base font-mono font-bold tabular-nums text-accent-ink">
                     {allowProfit ? formatBdt(pnl?.netProfitBdt || 0) : '••••••'}
                   </div>
                 </div>
@@ -772,25 +772,25 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
             </div>
 
             {/* Daily Trend Table */}
-            <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-neutral-200 dark:border-brand-border pb-3">
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-brand-gold" />
+            <div className="rounded-xl border border-hairline bg-surface p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-hairline pb-3">
+                <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
                   <span>Daily Revenue & Profit Progression</span>
                 </h3>
-                <span className="text-xs text-neutral-400 font-mono">
+                <span className="text-xs text-ink-muted font-mono tabular-nums">
                   {dailyTrends.length} days active
                 </span>
               </div>
 
               {dailyTrends.length === 0 ? (
-                <div className="h-48 flex items-center justify-center text-neutral-400 text-xs italic">
+                <div className="h-48 flex items-center justify-center text-ink-muted text-xs">
                   No sales recorded for the selected date range.
                 </div>
               ) : (
                 <div className="overflow-x-auto max-h-[360px] overflow-y-auto">
                   <table className="w-full text-xs text-left">
-                    <thead className="sticky top-0 bg-neutral-100 dark:bg-brand-black text-neutral-500 font-semibold border-b border-neutral-200 dark:border-brand-border">
+                    <thead className="sticky top-0 bg-subtle text-ink-secondary font-medium border-b border-hairline">
                       <tr>
                         <th className="py-2 px-2.5">Date</th>
                         <th className="py-2 px-2 text-right">Orders</th>
@@ -800,35 +800,35 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                         {allowProfit && <th className="py-2 px-2.5 text-right">Net Profit</th>}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-neutral-100 dark:divide-brand-border/40 font-mono">
+                    <tbody className="divide-y divide-hairline font-mono tabular-nums">
                       {dailyTrends.map((dt) => (
                         <tr
                           key={dt.date}
-                          className="hover:bg-neutral-50 dark:hover:bg-brand-surface/80"
+                          className="hover:bg-subtle/60 transition-colors"
                         >
-                          <td className="py-2 px-2.5 font-sans font-medium text-neutral-900 dark:text-white flex items-center gap-1.5">
+                          <td className="py-2 px-2.5 font-sans font-medium text-ink flex items-center gap-1.5">
                             <span>{dt.date}</span>
-                            <span className="text-[10px] text-neutral-400 uppercase font-bold">
+                            <span className="text-[10px] text-ink-muted font-medium">
                               {dt.dayLabel}
                             </span>
                           </td>
-                          <td className="py-2 px-2 text-right text-neutral-500">{dt.ordersCount}</td>
-                          <td className="py-2 px-2 text-right font-bold text-neutral-900 dark:text-white">
+                          <td className="py-2 px-2 text-right text-ink-secondary">{dt.ordersCount}</td>
+                          <td className="py-2 px-2 text-right font-semibold text-ink">
                             {formatBdt(dt.revenueBdt)}
                           </td>
                           {allowCost && (
-                            <td className="py-2 px-2 text-right text-neutral-400">
+                            <td className="py-2 px-2 text-right text-ink-secondary">
                               {formatBdt(dt.cogsBdt)}
                             </td>
                           )}
-                          <td className="py-2 px-2 text-right text-amber-500">
+                          <td className="py-2 px-2 text-right text-warning">
                             {dt.expensesBdt > 0 ? `− ${formatBdt(dt.expensesBdt)}` : '—'}
                           </td>
                           {allowProfit && (
                             <td
                               className={cn(
-                                'py-2 px-2.5 text-right font-bold',
-                                dt.netProfitBdt >= 0 ? 'text-emerald-500' : 'text-rose-500'
+                                'py-2 px-2.5 text-right font-semibold',
+                                dt.netProfitBdt >= 0 ? 'text-positive' : 'text-negative'
                               )}
                             >
                               {formatBdt(dt.netProfitBdt)}
@@ -853,26 +853,26 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
             {categorySales.map((cat) => (
               <div
                 key={`${cat.categoryName}-${cat.sellableType}`}
-                className="rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface p-4 space-y-1.5"
+                className="rounded-xl border border-hairline bg-surface p-4 space-y-1.5"
               >
-                <div className="flex items-center justify-between text-neutral-400">
-                  <span className="text-xs font-bold truncate">{cat.categoryName}</span>
-                  <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-brand-gold/15 text-brand-gold">
+                <div className="flex items-center justify-between text-ink-secondary">
+                  <span className="text-xs font-medium truncate">{cat.categoryName}</span>
+                  <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-accent/15 text-accent-ink tabular-nums">
                     {cat.revenuePercentage}%
                   </span>
                 </div>
-                <div className="text-lg font-black text-neutral-900 dark:text-white">
+                <div className="text-lg font-bold font-mono tabular-nums text-ink">
                   {formatBdt(cat.revenueBdt)}
                 </div>
-                <div className="flex items-center justify-between text-[11px] text-neutral-500">
+                <div className="flex items-center justify-between text-[11px] text-ink-secondary">
                   <span>{formatQty(cat.itemsSold)} units sold</span>
                   {allowProfit && (
-                    <span className="text-emerald-500 font-semibold">{cat.marginPercent}% margin</span>
+                    <span className="text-positive font-medium tabular-nums">{cat.marginPercent}% margin</span>
                   )}
                 </div>
-                <div className="w-full bg-neutral-100 dark:bg-brand-black rounded-full h-1.5 overflow-hidden">
+                <div className="w-full bg-subtle rounded-full h-1.5 overflow-hidden">
                   <div
-                    className="bg-brand-gold h-full rounded-full transition-all"
+                    className="bg-accent h-full rounded-full transition-colors"
                     style={{ width: `${Math.min(100, cat.revenuePercentage)}%` }}
                   />
                 </div>
@@ -881,21 +881,21 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
           </div>
 
           {/* Top Selling Products Table */}
-          <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-neutral-200 dark:border-brand-border pb-3">
+          <div className="rounded-xl border border-hairline bg-surface p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-hairline pb-3">
               <div>
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                  <ShoppingBag className="w-4 h-4 text-brand-gold" />
+                <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
                   <span>Best-Selling Fragrances & Products</span>
                 </h3>
-                <p className="text-[11px] text-neutral-400 mt-0.5">
-                  Sorted by <strong className="text-brand-gold capitalize">{productSortField.replace('_', ' ')}</strong> ({productSortOrder === 'asc' ? 'Ascending ↑' : 'Descending ↓'}) during {currentFilter.label}. Click column headers to reorder.
+                <p className="text-[11px] text-ink-secondary mt-0.5">
+                  Sorted by <strong className="text-accent-ink capitalize">{productSortField.replace('_', ' ')}</strong> ({productSortOrder === 'asc' ? 'Ascending ↑' : 'Descending ↓'}) during {currentFilter.label}. Click column headers to reorder.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleExportTopProducts}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-brand-border text-xs font-semibold hover:bg-neutral-100 dark:hover:bg-brand-surface text-brand-gold transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-hairline text-xs font-medium hover:bg-subtle text-accent-ink transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Export CSV</span>
@@ -903,10 +903,10 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
             </div>
 
             {/* Quick Sorting Options Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg bg-neutral-50 dark:bg-brand-black/50 border border-neutral-200 dark:border-brand-border text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg bg-canvas border border-hairline text-xs">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1 mr-1">
-                  <ArrowUpDown className="w-3.5 h-3.5 text-brand-gold" />
+                <span className="text-[11px] font-medium text-ink-secondary flex items-center gap-1 mr-1">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-accent-ink" />
                   Sort By:
                 </span>
                 {(
@@ -926,10 +926,10 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                       type="button"
                       onClick={() => handleProductSort(item.key as ProductSortField)}
                       className={cn(
-                        'px-2.5 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5',
+                        'px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5',
                         isActive
-                          ? 'bg-brand-gold text-brand-black shadow-sm font-bold'
-                          : 'bg-white dark:bg-brand-surface text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-brand-border hover:border-brand-gold/60'
+                          ? 'bg-accent text-accent-fg font-semibold'
+                          : 'bg-surface text-ink-secondary border border-hairline hover:text-ink hover:border-hairline-strong'
                       )}
                     >
                       <span>{item.label}</span>
@@ -948,7 +948,7 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
               <button
                 type="button"
                 onClick={() => setProductSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))}
-                className="px-2.5 py-1 rounded-md border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface text-neutral-700 dark:text-neutral-300 hover:text-brand-gold text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                className="px-2.5 py-1 rounded-md border border-hairline bg-surface text-ink-secondary hover:text-accent-ink text-xs font-medium flex items-center gap-1.5 transition-colors"
                 title="Toggle Sort Direction (Ascending / Descending)"
               >
                 <span>{productSortOrder === 'desc' ? 'Highest First (↓)' : 'Lowest First (↑)'}</span>
@@ -956,29 +956,29 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
             </div>
 
             {sortedTopProducts.length === 0 ? (
-              <div className="h-40 flex items-center justify-center text-neutral-400 text-xs italic">
+              <div className="h-40 flex items-center justify-center text-ink-muted text-xs">
                 No product sales found for this period.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-neutral-100 dark:bg-brand-black text-neutral-500 font-semibold border-b border-neutral-200 dark:border-brand-border">
+                  <thead className="bg-subtle text-ink-secondary font-medium border-b border-hairline">
                     <tr>
                       <th className="py-2.5 px-3 w-12 text-center">#</th>
                       <th
                         onClick={() => handleProductSort('name')}
-                        className="py-2.5 px-3 cursor-pointer select-none hover:text-brand-gold transition-colors"
+                        className="py-2.5 px-3 cursor-pointer select-none hover:text-accent-ink transition-colors"
                         title="Sort by Product Name"
                       >
                         <div className="flex items-center gap-1">
-                          <span className={cn(productSortField === 'name' && 'text-brand-gold font-bold')}>
+                          <span className={cn(productSortField === 'name' && 'text-accent-ink font-semibold')}>
                             Product / Fragrance
                           </span>
                           {productSortField === 'name' ? (
                             productSortOrder === 'asc' ? (
-                              <ArrowUp className="w-3.5 h-3.5 text-brand-gold" />
+                              <ArrowUp className="w-3.5 h-3.5 text-accent-ink" />
                             ) : (
-                              <ArrowDown className="w-3.5 h-3.5 text-brand-gold" />
+                              <ArrowDown className="w-3.5 h-3.5 text-accent-ink" />
                             )
                           ) : (
                             <ArrowUpDown className="w-3 h-3 opacity-40 hover:opacity-100" />
@@ -989,18 +989,18 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                       <th className="py-2.5 px-3">Type</th>
                       <th
                         onClick={() => handleProductSort('units')}
-                        className="py-2.5 px-3 text-right cursor-pointer select-none hover:text-brand-gold transition-colors"
+                        className="py-2.5 px-3 text-right cursor-pointer select-none hover:text-accent-ink transition-colors"
                         title="Sort by Units Sold"
                       >
                         <div className="flex items-center justify-end gap-1">
-                          <span className={cn(productSortField === 'units' && 'text-brand-gold font-bold')}>
+                          <span className={cn(productSortField === 'units' && 'text-accent-ink font-semibold')}>
                             Units Sold
                           </span>
                           {productSortField === 'units' ? (
                             productSortOrder === 'asc' ? (
-                              <ArrowUp className="w-3.5 h-3.5 text-brand-gold" />
+                              <ArrowUp className="w-3.5 h-3.5 text-accent-ink" />
                             ) : (
-                              <ArrowDown className="w-3.5 h-3.5 text-brand-gold" />
+                              <ArrowDown className="w-3.5 h-3.5 text-accent-ink" />
                             )
                           ) : (
                             <ArrowUpDown className="w-3 h-3 opacity-40 hover:opacity-100" />
@@ -1009,18 +1009,18 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                       </th>
                       <th
                         onClick={() => handleProductSort('revenue')}
-                        className="py-2.5 px-3 text-right cursor-pointer select-none hover:text-brand-gold transition-colors"
+                        className="py-2.5 px-3 text-right cursor-pointer select-none hover:text-accent-ink transition-colors"
                         title="Sort by Revenue"
                       >
                         <div className="flex items-center justify-end gap-1">
-                          <span className={cn(productSortField === 'revenue' && 'text-brand-gold font-bold')}>
+                          <span className={cn(productSortField === 'revenue' && 'text-accent-ink font-semibold')}>
                             Revenue
                           </span>
                           {productSortField === 'revenue' ? (
                             productSortOrder === 'asc' ? (
-                              <ArrowUp className="w-3.5 h-3.5 text-brand-gold" />
+                              <ArrowUp className="w-3.5 h-3.5 text-accent-ink" />
                             ) : (
-                              <ArrowDown className="w-3.5 h-3.5 text-brand-gold" />
+                              <ArrowDown className="w-3.5 h-3.5 text-accent-ink" />
                             )
                           ) : (
                             <ArrowUpDown className="w-3 h-3 opacity-40 hover:opacity-100" />
@@ -1030,18 +1030,18 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                       {allowCost && (
                         <th
                           onClick={() => handleProductSort('cogs')}
-                          className="py-2.5 px-3 text-right cursor-pointer select-none hover:text-brand-gold transition-colors"
+                          className="py-2.5 px-3 text-right cursor-pointer select-none hover:text-accent-ink transition-colors"
                           title="Sort by Cost of Goods Sold"
                         >
                           <div className="flex items-center justify-end gap-1">
-                            <span className={cn(productSortField === 'cogs' && 'text-brand-gold font-bold')}>
+                            <span className={cn(productSortField === 'cogs' && 'text-accent-ink font-semibold')}>
                               COGS
                             </span>
                             {productSortField === 'cogs' ? (
                               productSortOrder === 'asc' ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-brand-gold" />
+                                <ArrowUp className="w-3.5 h-3.5 text-accent-ink" />
                               ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-brand-gold" />
+                                <ArrowDown className="w-3.5 h-3.5 text-accent-ink" />
                               )
                             ) : (
                               <ArrowUpDown className="w-3 h-3 opacity-40 hover:opacity-100" />
@@ -1052,18 +1052,18 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                       {allowProfit && (
                         <th
                           onClick={() => handleProductSort('profit')}
-                          className="py-2.5 px-3 text-right cursor-pointer select-none hover:text-brand-gold transition-colors"
+                          className="py-2.5 px-3 text-right cursor-pointer select-none hover:text-accent-ink transition-colors"
                           title="Sort by Gross Profit"
                         >
                           <div className="flex items-center justify-end gap-1">
-                            <span className={cn(productSortField === 'profit' && 'text-brand-gold font-bold')}>
+                            <span className={cn(productSortField === 'profit' && 'text-accent-ink font-semibold')}>
                               Gross Profit
                             </span>
                             {productSortField === 'profit' ? (
                               productSortOrder === 'asc' ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-brand-gold" />
+                                <ArrowUp className="w-3.5 h-3.5 text-accent-ink" />
                               ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-brand-gold" />
+                                <ArrowDown className="w-3.5 h-3.5 text-accent-ink" />
                               )
                             ) : (
                               <ArrowUpDown className="w-3 h-3 opacity-40 hover:opacity-100" />
@@ -1074,18 +1074,18 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                       {allowProfit && (
                         <th
                           onClick={() => handleProductSort('margin')}
-                          className="py-2.5 px-3 text-right cursor-pointer select-none hover:text-brand-gold transition-colors"
+                          className="py-2.5 px-3 text-right cursor-pointer select-none hover:text-accent-ink transition-colors"
                           title="Sort by Margin %"
                         >
                           <div className="flex items-center justify-end gap-1">
-                            <span className={cn(productSortField === 'margin' && 'text-brand-gold font-bold')}>
+                            <span className={cn(productSortField === 'margin' && 'text-accent-ink font-semibold')}>
                               Margin %
                             </span>
                             {productSortField === 'margin' ? (
                               productSortOrder === 'asc' ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-brand-gold" />
+                                <ArrowUp className="w-3.5 h-3.5 text-accent-ink" />
                               ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-brand-gold" />
+                                <ArrowDown className="w-3.5 h-3.5 text-accent-ink" />
                               )
                             ) : (
                               <ArrowUpDown className="w-3 h-3 opacity-40 hover:opacity-100" />
@@ -1095,51 +1095,51 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                       )}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-100 dark:divide-brand-border/40">
+                  <tbody className="divide-y divide-hairline">
                     {sortedTopProducts.map((p, idx) => (
                       <tr
                         key={`${p.productId}-${p.sku}`}
-                        className="hover:bg-neutral-50 dark:hover:bg-brand-surface/80"
+                        className="hover:bg-subtle/60 transition-colors"
                       >
-                        <td className="py-2.5 px-3 text-center font-bold text-neutral-400 font-mono">
+                        <td className="py-2.5 px-3 text-center font-semibold text-ink-muted font-mono tabular-nums">
                           {idx + 1}
                         </td>
-                        <td className="py-2.5 px-3 font-semibold text-neutral-900 dark:text-white">
+                        <td className="py-2.5 px-3 font-medium text-ink">
                           {p.productName}
                         </td>
-                        <td className="py-2.5 px-3 font-mono text-neutral-400 text-[11px]">{p.sku}</td>
+                        <td className="py-2.5 px-3 font-mono text-ink-secondary text-[11px]">{p.sku}</td>
                         <td className="py-2.5 px-3">
                           <span
                             className={cn(
-                              'px-2 py-0.5 rounded text-[10px] font-bold uppercase',
+                              'px-2 py-0.5 rounded-full text-[11px] font-medium capitalize',
                               p.sellableType === 'loose_decant'
-                                ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                ? 'bg-warning/10 text-warning border border-warning/25'
                                 : p.sellableType === 'sealed_product'
-                                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                                : 'bg-neutral-500/10 text-neutral-400 border border-neutral-500/20'
+                                ? 'bg-accent/15 text-accent-ink border border-accent/25'
+                                : 'bg-subtle text-ink-secondary border border-hairline'
                             )}
                           >
                             {p.sellableType.replace('_', ' ')}
                           </span>
                         </td>
-                        <td className="py-2.5 px-3 text-right font-mono font-semibold text-neutral-900 dark:text-white">
+                        <td className="py-2.5 px-3 text-right font-mono font-medium tabular-nums text-ink">
                           {formatQty(p.quantitySold, p.unitCode)}
                         </td>
-                        <td className="py-2.5 px-3 text-right font-mono font-bold text-neutral-900 dark:text-white">
+                        <td className="py-2.5 px-3 text-right font-mono font-semibold tabular-nums text-ink">
                           {formatBdt(p.revenueBdt)}
                         </td>
                         {allowCost && (
-                          <td className="py-2.5 px-3 text-right font-mono text-neutral-400">
+                          <td className="py-2.5 px-3 text-right font-mono tabular-nums text-ink-secondary">
                             {formatBdt(p.cogsBdt)}
                           </td>
                         )}
                         {allowProfit && (
-                          <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-500">
+                          <td className="py-2.5 px-3 text-right font-mono font-semibold tabular-nums text-positive">
                             {formatBdt(p.grossProfitBdt)}
                           </td>
                         )}
                         {allowProfit && (
-                          <td className="py-2.5 px-3 text-right font-mono font-semibold text-brand-gold">
+                          <td className="py-2.5 px-3 text-right font-mono font-semibold tabular-nums text-accent-ink">
                             {p.marginPercent}%
                           </td>
                         )}
@@ -1158,40 +1158,40 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Payment Method Breakdown */}
-            <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-neutral-200 dark:border-brand-border pb-3">
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                  <Wallet className="w-4 h-4 text-brand-gold" />
+            <div className="rounded-xl border border-hairline bg-surface p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-hairline pb-3">
+                <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
+                  <Wallet className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
                   <span>Sales by Payment Method</span>
                 </h3>
               </div>
 
               <div className="space-y-3">
                 {paymentMethods.length === 0 ? (
-                  <div className="text-neutral-400 italic text-xs py-4 text-center">
+                  <div className="text-ink-muted text-xs py-4 text-center">
                     No payment records in this range.
                   </div>
                 ) : (
                   paymentMethods.map((pm) => (
                     <div
                       key={pm.paymentMethod}
-                      className="p-3 rounded-lg border border-neutral-100 dark:border-brand-border/60 bg-neutral-50 dark:bg-brand-black/40 space-y-1.5"
+                      className="p-3 rounded-lg border border-hairline bg-canvas space-y-1.5"
                     >
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-neutral-900 dark:text-white">
+                        <span className="font-semibold text-ink">
                           {pm.displayName}
                         </span>
-                        <span className="font-mono font-bold text-neutral-900 dark:text-white">
+                        <span className="font-mono font-semibold tabular-nums text-ink">
                           {formatBdt(pm.amountBdt)}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between text-[11px] text-neutral-400">
+                      <div className="flex items-center justify-between text-[11px] text-ink-secondary">
                         <span>{pm.count} transactions</span>
-                        <span className="font-semibold text-brand-gold">{pm.percentage}%</span>
+                        <span className="font-semibold text-accent-ink tabular-nums">{pm.percentage}%</span>
                       </div>
-                      <div className="w-full bg-neutral-200 dark:bg-brand-black rounded-full h-1.5 overflow-hidden">
+                      <div className="w-full bg-subtle rounded-full h-1.5 overflow-hidden">
                         <div
-                          className="bg-brand-gold h-full rounded-full transition-all"
+                          className="bg-accent h-full rounded-full transition-colors"
                           style={{ width: `${Math.min(100, pm.percentage)}%` }}
                         />
                       </div>
@@ -1202,70 +1202,70 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
             </div>
 
             {/* Counter Physical Cash Reconciliation Card */}
-            <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-neutral-200 dark:border-brand-border pb-3">
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-brand-gold" />
+            <div className="rounded-xl border border-hairline bg-surface p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-hairline pb-3">
+                <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
                   <span>Physical Cash Drawer Movements</span>
                 </h3>
-                <span className="text-[10px] text-neutral-400 font-mono">Cash Only</span>
+                <span className="text-[11px] text-ink-muted font-mono">Cash Only</span>
               </div>
 
               <div className="space-y-3 text-xs">
-                <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 space-y-2">
-                  <div className="font-bold text-emerald-500 uppercase tracking-wider text-[10px]">
+                <div className="p-3 rounded-lg bg-positive/10 border border-positive/25 space-y-2">
+                  <div className="font-semibold text-positive text-[11px]">
                     Total Cash Inflow
                   </div>
-                  <div className="flex justify-between items-center text-neutral-700 dark:text-neutral-300">
+                  <div className="flex justify-between items-center text-ink-secondary">
                     <span>Cash Sales</span>
-                    <span className="font-mono font-bold">
+                    <span className="font-mono font-semibold tabular-nums text-ink">
                       + {formatBdt(cashFlow?.cashSalesBdt || 0)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-neutral-700 dark:text-neutral-300">
+                  <div className="flex justify-between items-center text-ink-secondary">
                     <span>Customer Due Cash Recoveries</span>
-                    <span className="font-mono font-bold">
+                    <span className="font-mono font-semibold tabular-nums text-ink">
                       + {formatBdt(cashFlow?.customerDueCollectionsCashBdt || 0)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center font-bold text-emerald-500 border-t border-emerald-500/20 pt-1">
+                  <div className="flex justify-between items-center font-semibold text-positive border-t border-positive/20 pt-1">
                     <span>Total Cash Inflow</span>
-                    <span className="font-mono font-black">
+                    <span className="font-mono font-bold tabular-nums">
                       {formatBdt(cashFlow?.totalCashInflowBdt || 0)}
                     </span>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 space-y-2">
-                  <div className="font-bold text-rose-500 uppercase tracking-wider text-[10px]">
+                <div className="p-3 rounded-lg bg-negative/10 border border-negative/25 space-y-2">
+                  <div className="font-semibold text-negative text-[11px]">
                     Total Cash Outflow
                   </div>
-                  <div className="flex justify-between items-center text-neutral-700 dark:text-neutral-300">
+                  <div className="flex justify-between items-center text-ink-secondary">
                     <span>Cash Expenses</span>
-                    <span className="font-mono font-bold">
+                    <span className="font-mono font-semibold tabular-nums text-ink">
                       − {formatBdt(cashFlow?.cashExpensesBdt || 0)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-neutral-700 dark:text-neutral-300">
+                  <div className="flex justify-between items-center text-ink-secondary">
                     <span>Supplier Stock Cash Purchases</span>
-                    <span className="font-mono font-bold">
+                    <span className="font-mono font-semibold tabular-nums text-ink">
                       − {formatBdt(cashFlow?.cashSupplierPurchasesBdt || 0)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center font-bold text-rose-500 border-t border-rose-500/20 pt-1">
+                  <div className="flex justify-between items-center font-semibold text-negative border-t border-negative/20 pt-1">
                     <span>Total Cash Outflow</span>
-                    <span className="font-mono font-black">
+                    <span className="font-mono font-bold tabular-nums">
                       − {formatBdt(cashFlow?.totalCashOutflowBdt || 0)}
                     </span>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-neutral-100 dark:bg-brand-black border border-neutral-200 dark:border-brand-border flex items-center justify-between font-bold text-sm">
+                <div className="p-3 rounded-lg bg-canvas border border-hairline flex items-center justify-between font-semibold text-sm text-ink">
                   <span>Net Counter Cash Added</span>
                   <span
                     className={cn(
-                      'font-mono font-black text-base',
-                      (cashFlow?.netCashFlowBdt || 0) >= 0 ? 'text-brand-gold' : 'text-rose-500'
+                      'font-mono font-bold tabular-nums text-base',
+                      (cashFlow?.netCashFlowBdt || 0) >= 0 ? 'text-accent-ink' : 'text-negative'
                     )}
                   >
                     {formatBdt(cashFlow?.netCashFlowBdt || 0)}
@@ -1279,27 +1279,27 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
 
       {/* TAB CONTENT 4: Staff & Cashier Performance */}
       {activeTab === 'staff' && (
-        <div className="rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-neutral-200 dark:border-brand-border pb-3">
+        <div className="rounded-xl border border-hairline bg-surface p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-hairline pb-3">
             <div>
-              <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                <Users className="w-4 h-4 text-brand-gold" />
+              <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
+                <Users className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
                 <span>Cashier & Sales Staff Breakdown</span>
               </h3>
-              <p className="text-[11px] text-neutral-400 mt-0.5">
+              <p className="text-[11px] text-ink-secondary mt-0.5">
                 Total transactions, sales billed, and discounts processed by each staff member.
               </p>
             </div>
           </div>
 
           {cashierStats.length === 0 ? (
-            <div className="h-32 flex items-center justify-center text-neutral-400 text-xs italic">
+            <div className="h-32 flex items-center justify-center text-ink-muted text-xs">
               No staff sales records found for this period.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-neutral-100 dark:bg-brand-black text-neutral-500 font-semibold border-b border-neutral-200 dark:border-brand-border">
+                <thead className="bg-subtle text-ink-secondary font-medium border-b border-hairline">
                   <tr>
                     <th className="py-2.5 px-3">Cashier / Staff Name</th>
                     <th className="py-2.5 px-3 text-right">Orders Processed</th>
@@ -1308,28 +1308,28 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                     <th className="py-2.5 px-3 text-right">Discounts Authorized</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100 dark:divide-brand-border/40 font-mono">
+                <tbody className="divide-y divide-hairline font-mono tabular-nums">
                   {cashierStats.map((c) => (
                     <tr
                       key={c.cashierId}
-                      className="hover:bg-neutral-50 dark:hover:bg-brand-surface/80"
+                      className="hover:bg-subtle/60 transition-colors"
                     >
-                      <td className="py-2.5 px-3 font-sans font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-brand-gold/20 text-brand-gold flex items-center justify-center text-[10px] font-bold">
+                      <td className="py-2.5 px-3 font-sans font-medium text-ink flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-accent/15 text-accent-ink border border-accent/25 flex items-center justify-center text-[10px] font-semibold">
                           {c.cashierName.slice(0, 1).toUpperCase()}
                         </div>
                         <span>{c.cashierName}</span>
                       </td>
-                      <td className="py-2.5 px-3 text-right text-neutral-700 dark:text-neutral-300">
+                      <td className="py-2.5 px-3 text-right text-ink-secondary">
                         {c.ordersCount} txns
                       </td>
-                      <td className="py-2.5 px-3 text-right font-bold text-neutral-900 dark:text-white">
+                      <td className="py-2.5 px-3 text-right font-semibold text-ink">
                         {formatBdt(c.totalSalesBdt)}
                       </td>
-                      <td className="py-2.5 px-3 text-right text-neutral-400">
+                      <td className="py-2.5 px-3 text-right text-ink-secondary">
                         {formatBdt(c.avgTicketBdt)}
                       </td>
-                      <td className="py-2.5 px-3 text-right text-rose-400">
+                      <td className="py-2.5 px-3 text-right text-negative">
                         {c.discountsGivenBdt > 0 ? formatBdt(c.discountsGivenBdt) : '—'}
                       </td>
                     </tr>
@@ -1345,78 +1345,78 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
       {activeTab === 'inventory' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface space-y-1">
-              <div className="text-neutral-400 text-xs font-bold uppercase tracking-wider">
+            <div className="p-4 rounded-xl border border-hairline bg-surface space-y-1">
+              <div className="text-ink-secondary text-xs font-medium">
                 Total Stock Valuation (Cost)
               </div>
-              <div className="text-xl font-black text-neutral-900 dark:text-white">
+              <div className="text-xl font-bold font-mono tabular-nums text-ink">
                 {allowCost ? formatBdt(inventoryVal?.totalCostValueBdt || 0) : '••••••'}
               </div>
-              <div className="text-[11px] text-neutral-500">
+              <div className="text-[11px] text-ink-secondary">
                 Capital locked across {inventoryVal?.totalSkus || 0} SKUs
               </div>
             </div>
 
-            <div className="p-4 rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface space-y-1">
-              <div className="text-neutral-400 text-xs font-bold uppercase tracking-wider">
+            <div className="p-4 rounded-xl border border-hairline bg-surface space-y-1">
+              <div className="text-ink-secondary text-xs font-medium">
                 Total Selling Value (Retail)
               </div>
-              <div className="text-xl font-black text-brand-gold">
+              <div className="text-xl font-bold font-mono tabular-nums text-accent-ink">
                 {formatBdt(inventoryVal?.totalRetailValueBdt || 0)}
               </div>
-              <div className="text-[11px] text-neutral-500">
+              <div className="text-[11px] text-ink-secondary">
                 At standard retail catalog prices
               </div>
             </div>
 
-            <div className="p-4 rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface space-y-1">
-              <div className="text-neutral-400 text-xs font-bold uppercase tracking-wider">
+            <div className="p-4 rounded-xl border border-hairline bg-surface space-y-1">
+              <div className="text-ink-secondary text-xs font-medium">
                 Potential Gross Margin
               </div>
-              <div className="text-xl font-black text-emerald-500">
+              <div className="text-xl font-bold font-mono tabular-nums text-positive">
                 {allowProfit ? formatBdt(inventoryVal?.potentialGrossProfitBdt || 0) : '••••••'}
               </div>
-              <div className="text-[11px] text-emerald-500 font-semibold">
+              <div className="text-[11px] text-positive font-medium tabular-nums">
                 {allowProfit ? `+${inventoryVal?.potentialMarginPercent}% potential margin` : '••••'}
               </div>
             </div>
 
-            <div className="p-4 rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface space-y-1">
-              <div className="text-neutral-400 text-xs font-bold uppercase tracking-wider">
+            <div className="p-4 rounded-xl border border-hairline bg-surface space-y-1">
+              <div className="text-ink-secondary text-xs font-medium">
                 Total Units on Hand
               </div>
-              <div className="text-xl font-black text-neutral-900 dark:text-white">
+              <div className="text-xl font-bold font-mono tabular-nums text-ink">
                 {formatQty(inventoryVal?.totalUnitsInStock || 0)} units
               </div>
-              <div className="text-[11px] text-neutral-500">
+              <div className="text-[11px] text-ink-secondary">
                 Raw oils, bottles, perfumes, tasbihs
               </div>
             </div>
           </div>
 
           {/* Stock Health Badges */}
-          <div className="p-4 rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-6 text-xs">
+          <div className="p-4 rounded-xl border border-hairline bg-surface flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-6 text-xs text-ink">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                <CheckCircle2 className="w-4 h-4 text-positive" strokeWidth={1.5} />
                 <span>
                   Healthy Stock: <strong>{inventoryVal?.healthyStockCount || 0}</strong> SKUs
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <TrendingDown className="w-4 h-4 text-amber-500" />
+                <TrendingDown className="w-4 h-4 text-warning" strokeWidth={1.5} />
                 <span>
-                  Low Stock Alert: <strong className="text-amber-500">{inventoryVal?.lowStockCount || 0}</strong> SKUs
+                  Low Stock Alert: <strong className="text-warning">{inventoryVal?.lowStockCount || 0}</strong> SKUs
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-rose-500" />
+                <HelpCircle className="w-4 h-4 text-negative" strokeWidth={1.5} />
                 <span>
-                  Out of Stock: <strong className="text-rose-500">{inventoryVal?.outOfStockCount || 0}</strong> SKUs
+                  Out of Stock: <strong className="text-negative">{inventoryVal?.outOfStockCount || 0}</strong> SKUs
                 </span>
               </div>
             </div>
-            <span className="text-[11px] text-neutral-400 italic">
+            <span className="text-[11px] text-ink-muted">
               Live valuation based on current inventory on hand.
             </span>
           </div>

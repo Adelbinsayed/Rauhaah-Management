@@ -122,36 +122,36 @@ export const RestockModal: React.FC<RestockModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-      <div className="w-full max-w-xl bg-brand-surface border border-brand-border rounded-xl shadow-2xl p-6 my-8 space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px] overflow-y-auto">
+      <div className="w-full max-w-xl bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 my-8 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-brand-border">
+        <div className="flex items-center justify-between pb-4 border-b border-hairline">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-              <PlusCircle className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-lg bg-positive/10 border border-positive/25 flex items-center justify-center text-positive">
+              <PlusCircle className="w-4 h-4" strokeWidth={1.5} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">
-                {initialProduct ? `Restock: ${initialProduct.name}` : 'Restock / Add Purchase'}
+              <h2 className="text-base font-medium text-ink">
+                {initialProduct ? `Restock: ${initialProduct.name}` : 'Restock / add purchase'}
               </h2>
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-ink-muted">
                 {initialProduct
-                  ? 'Record incoming shipment for this item, update stock, and recalculate benchmark price.'
-                  : 'Search an existing product to record incoming shipment, new cost, and live benchmark price.'}
+                  ? 'Record incoming shipment, update stock, and recalculate benchmark price'
+                  : 'Select an existing product to record incoming shipment, cost, and benchmark price'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+            className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised transition-colors duration-150 ease-unslop"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" strokeWidth={1.5} />
           </button>
         </div>
 
         {error && (
-          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={1.5} />
             <span>{error}</span>
           </div>
         )}
@@ -159,61 +159,61 @@ export const RestockModal: React.FC<RestockModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* If opened directly from row, show Product Details Header directly */}
           {initialProduct ? (
-            <div className="p-4 rounded-xl bg-brand-black/90 border border-brand-gold/40 flex items-center justify-between gap-3">
+            <div className="p-4 rounded-xl bg-raised border border-accent/30 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold shrink-0">
-                  <Package className="w-5 h-5" />
+                <div className="w-9 h-9 rounded-lg bg-accent/12 border border-accent/25 flex items-center justify-center text-accent-ink shrink-0">
+                  <Package className="w-4 h-4" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-bold text-white">{selectedProduct?.name}</h4>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-brand-surface text-neutral-400 font-mono">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="text-sm font-medium text-ink">{selectedProduct?.name}</h4>
+                    <span className="text-[11px] px-2 py-0.5 rounded bg-surface border border-hairline text-ink-muted font-mono">
                       {selectedProduct?.sku}
                     </span>
                     <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                      className={`px-2 py-0.5 rounded text-[11px] font-medium border ${
                         isOil
-                          ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                          : 'bg-neutral-800 text-neutral-300'
+                          ? 'bg-accent/12 text-accent-ink border-accent/25'
+                          : 'bg-surface text-ink-secondary border-hairline'
                       }`}
                     >
                       {isOil ? 'Attar / Oil' : 'Packaged'}
                     </span>
                   </div>
-                  <p className="text-xs text-neutral-400 mt-1">
-                    Current Stock in Hand: <strong className="text-emerald-400 font-mono">{selectedProduct?.primaryStockQuantity ?? 0} {unitLabel}</strong>
-                    {' '}&bull;{' '}
-                    Current Retail: <strong className="text-brand-gold font-mono">৳{selectedProduct?.retailPriceBdt}</strong> / {unitLabel}
+                  <p className="text-xs text-ink-muted mt-1 tabular-nums">
+                    In hand <strong className="text-positive font-mono font-medium">{selectedProduct?.primaryStockQuantity ?? 0} {unitLabel}</strong>
+                    {' '}·{' '}
+                    Retail <strong className="text-accent-ink font-mono font-medium">৳{selectedProduct?.retailPriceBdt}</strong> / {unitLabel}
                   </p>
                 </div>
               </div>
-              <span className="text-[10px] px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold uppercase tracking-wide">
-                Direct Restock
+              <span className="text-[11px] px-2.5 py-1 rounded-md bg-positive/10 text-positive border border-positive/25 font-medium shrink-0">
+                Direct restock
               </span>
             </div>
           ) : (
             <>
               {/* Step 1: Search & Select Existing Product */}
               <div className="space-y-2">
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider">
-                  1. Search &amp; Select Existing Product *
+                <label className="block text-xs font-medium text-ink-secondary">
+                  1. Search &amp; select existing product *
                 </label>
                 <div className="relative">
-                  <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
+                  <Search className="w-4 h-4 text-ink-muted absolute left-3 top-2.5" strokeWidth={1.5} />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search by product name (e.g. Black Oud, Baccarat, Janamaz) or SKU..."
-                    className="w-full pl-9 pr-3 py-2 bg-brand-black border border-brand-border rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold"
+                    placeholder="Search product name or SKU"
+                    className="w-full pl-9 pr-3 py-2 bg-raised border border-hairline rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-accent"
                   />
                 </div>
 
                 {/* Quick selector list */}
-                <div className="max-h-36 overflow-y-auto space-y-1 p-1 bg-brand-black/60 border border-brand-border rounded-lg">
+                <div className="max-h-36 overflow-y-auto space-y-1 p-1 bg-raised/60 border border-hairline rounded-lg">
                   {searchResults.length === 0 ? (
-                    <p className="text-xs text-neutral-500 p-2 italic text-center">
-                      No matching product found. If this is a new product, use &ldquo;+ New Product&rdquo;.
+                    <p className="text-xs text-ink-muted p-2 text-center">
+                      No matching product found. Use + New Product for new items.
                     </p>
                   ) : (
                     searchResults.map((item) => (
@@ -224,17 +224,17 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                           setSelectedSellableId(item.id);
                           setSearchTerm(item.name);
                         }}
-                        className={`w-full flex items-center justify-between p-2 rounded text-left text-xs transition-colors ${
+                        className={`w-full flex items-center justify-between p-2 rounded-md text-left text-xs transition-colors duration-150 ease-unslop ${
                           selectedSellableId === item.id
-                            ? 'bg-brand-gold text-brand-black font-semibold'
-                            : 'text-neutral-300 hover:bg-neutral-800'
+                            ? 'bg-accent text-accent-fg font-semibold'
+                            : 'text-ink-secondary hover:bg-surface hover:text-ink'
                         }`}
                       >
                         <div>
                           <span className="font-medium">{item.name}</span>
-                          <span className="text-[10px] opacity-75 font-mono ml-2">({item.sku})</span>
+                          <span className="text-[11px] opacity-75 font-mono ml-2">({item.sku})</span>
                         </div>
-                        <span className="font-mono">৳{item.retailPriceBdt}</span>
+                        <span className="font-mono tabular-nums">৳{item.retailPriceBdt}</span>
                       </button>
                     ))
                   )}
@@ -243,18 +243,18 @@ export const RestockModal: React.FC<RestockModalProps> = ({
 
               {/* Selected Product Summary Card */}
               {selectedProduct && (
-                <div className="p-3.5 rounded-xl bg-brand-black/80 border border-brand-gold/30 flex items-center justify-between gap-3">
+                <div className="p-3.5 rounded-xl bg-raised border border-accent/25 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5">
-                    <Package className="w-5 h-5 text-brand-gold shrink-0" />
+                    <Package className="w-4 h-4 text-accent-ink shrink-0" strokeWidth={1.5} />
                     <div>
-                      <h4 className="text-xs font-bold text-white">{selectedProduct.name}</h4>
-                      <p className="text-[11px] text-neutral-400">
-                        Current Retail: <strong className="text-brand-gold font-mono">৳{selectedProduct.retailPriceBdt}</strong> / {unitLabel}
-                        {' '}&bull;{' '}Current Stock: <strong className="text-white font-mono">{selectedProduct.primaryStockQuantity ?? 0} {unitLabel}</strong>
+                      <h4 className="text-xs font-medium text-ink">{selectedProduct.name}</h4>
+                      <p className="text-xs text-ink-muted tabular-nums">
+                        Current retail <strong className="text-accent-ink font-mono font-medium">৳{selectedProduct.retailPriceBdt}</strong> / {unitLabel}
+                        {' '}·{' '}Stock <strong className="text-ink font-mono font-medium">{selectedProduct.primaryStockQuantity ?? 0} {unitLabel}</strong>
                       </p>
                     </div>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-brand-gold/20 text-brand-gold font-semibold uppercase">
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-accent/12 text-accent-ink font-medium">
                     Selected
                   </span>
                 </div>
@@ -264,15 +264,15 @@ export const RestockModal: React.FC<RestockModalProps> = ({
 
           {/* Step 2: Quantity and Cost */}
           {selectedProduct && (
-            <div className="p-4 rounded-xl bg-brand-black/60 border border-brand-border space-y-4">
-              <h3 className="text-xs font-bold text-brand-gold uppercase tracking-wider">
-                {initialProduct ? 'Enter Received Shipment Details' : '2. Enter Received Shipment Details'}
+            <div className="p-4 rounded-xl bg-raised/60 border border-hairline space-y-4">
+              <h3 className="text-xs font-medium text-accent-ink">
+                {initialProduct ? 'Received shipment details' : '2. Received shipment details'}
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-semibold text-neutral-300 mb-1">
-                    Quantity / Volume Added ({unitLabel}) *
+                  <label className="block text-xs font-medium text-ink-secondary mb-1">
+                    Quantity / volume added ({unitLabel}) *
                   </label>
                   <input
                     type="number"
@@ -282,17 +282,17 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                     autoFocus={Boolean(initialProduct)}
                     value={addedQuantity}
                     onChange={(e) => setAddedQuantity(e.target.value)}
-                    placeholder={unitLabel === 'ml' ? 'e.g. 100, 250' : 'e.g. 20, 50'}
-                    className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-lg text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
+                    placeholder={unitLabel === 'ml' ? '100, 250' : '20, 50'}
+                    className="w-full px-3 py-2 bg-surface border border-hairline rounded-lg text-sm text-ink font-mono tabular-nums focus:outline-none focus:border-accent"
                   />
-                  <span className="text-[10px] text-neutral-500 mt-0.5">
-                    Will be added directly to active stock
+                  <span className="text-[11px] text-ink-muted mt-0.5 block">
+                    Added directly to active stock
                   </span>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-neutral-300 mb-1">
-                    Total Invoice Cost Paid (৳) *
+                  <label className="block text-xs font-medium text-ink-secondary mb-1">
+                    Total invoice cost paid (৳) *
                   </label>
                   <input
                     type="number"
@@ -301,53 +301,53 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                     required
                     value={totalCostPaid}
                     onChange={(e) => setTotalCostPaid(e.target.value)}
-                    placeholder="e.g. 10000"
-                    className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-lg text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
+                    placeholder="10000"
+                    className="w-full px-3 py-2 bg-surface border border-hairline rounded-lg text-sm text-ink font-mono tabular-nums focus:outline-none focus:border-accent"
                   />
-                  <span className="text-[10px] text-neutral-500 mt-0.5">
-                    Total amount paid to supplier for this batch
+                  <span className="text-[11px] text-ink-muted mt-0.5 block">
+                    Total paid to supplier for this batch
                   </span>
                 </div>
               </div>
 
               {/* Automatic Math Breakdown (Owner/Manager only) */}
               {canViewCost && (
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-brand-border/60">
-                  <div className="p-2.5 rounded-lg bg-neutral-900 border border-neutral-800 text-center">
-                    <div className="text-[10px] text-neutral-400">Base Purchase Rate</div>
-                    <div className="text-xs font-mono font-bold text-neutral-200 mt-0.5">
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-hairline">
+                  <div className="p-2.5 rounded-lg bg-surface border border-hairline text-center">
+                    <div className="text-[11px] text-ink-muted">Base purchase rate</div>
+                    <div className="text-xs font-mono tabular-nums font-medium text-ink mt-0.5">
                       {baseRate > 0 ? `৳${baseRate.toFixed(2)} / ${unitLabel}` : '—'}
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-center">
-                    <div className="flex items-center justify-center gap-1 text-[10px] text-amber-300 font-semibold">
+                  <div className="p-2.5 rounded-lg bg-warning/10 border border-warning/25 text-center">
+                    <div className="flex items-center justify-center gap-1 text-[11px] text-warning font-medium">
                       <span>+</span>
                       <input
                         type="number"
                         value={overheadPercent}
                         onChange={(e) => setOverheadPercent(e.target.value)}
-                        className="w-7 text-center bg-transparent border-b border-amber-400 font-bold text-amber-300 text-[10px] focus:outline-none"
+                        className="w-7 text-center bg-transparent border-b border-warning font-medium text-warning text-[11px] focus:outline-none tabular-nums"
                       />
-                      <span>% True Cost</span>
+                      <span>% true cost</span>
                     </div>
-                    <div className="text-xs font-mono font-bold text-amber-400 mt-0.5">
+                    <div className="text-xs font-mono tabular-nums font-medium text-warning mt-0.5">
                       {trueCostRate > 0 ? `৳${trueCostRate.toFixed(2)} / ${unitLabel}` : '—'}
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
-                    <div className="flex items-center justify-center gap-1 text-[10px] text-emerald-300 font-semibold">
+                  <div className="p-2.5 rounded-lg bg-positive/10 border border-positive/25 text-center">
+                    <div className="flex items-center justify-center gap-1 text-[11px] text-positive font-medium">
                       <span>+</span>
                       <input
                         type="number"
                         value={marginPercent}
                         onChange={(e) => setMarginPercent(e.target.value)}
-                        className="w-7 text-center bg-transparent border-b border-emerald-400 font-bold text-emerald-300 text-[10px] focus:outline-none"
+                        className="w-7 text-center bg-transparent border-b border-positive font-medium text-positive text-[11px] focus:outline-none tabular-nums"
                       />
-                      <span>% Ideal Sell</span>
+                      <span>% ideal sell</span>
                     </div>
-                    <div className="text-xs font-mono font-bold text-emerald-400 mt-0.5">
+                    <div className="text-xs font-mono tabular-nums font-medium text-positive mt-0.5">
                       {recommendedSellRate > 0 ? `৳${recommendedSellRate} / ${unitLabel}` : '—'}
                     </div>
                   </div>
@@ -356,25 +356,25 @@ export const RestockModal: React.FC<RestockModalProps> = ({
 
               {/* Live Price Comparison and Update Toggle */}
               {recommendedSellRate > 0 && (
-                <div className="p-3 rounded-lg bg-brand-surface border border-brand-border space-y-2">
+                <div className="p-3 rounded-lg bg-surface border border-hairline space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-neutral-400">Current Benchmark Price:</span>
-                    <span className="font-mono text-neutral-300">৳{selectedProduct.retailPriceBdt} / {unitLabel}</span>
+                    <span className="text-ink-muted">Current benchmark price</span>
+                    <span className="font-mono tabular-nums text-ink-secondary">৳{selectedProduct.retailPriceBdt} / {unitLabel}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-emerald-400 font-semibold">New Auto-Calculated Benchmark:</span>
-                    <span className="font-mono font-bold text-emerald-400 text-sm">৳{recommendedSellRate} / {unitLabel}</span>
+                    <span className="text-positive font-medium">New calculated benchmark</span>
+                    <span className="font-mono tabular-nums font-medium text-positive text-sm">৳{recommendedSellRate} / {unitLabel}</span>
                   </div>
 
-                  <label className="flex items-center gap-2 pt-2 border-t border-brand-border/60 cursor-pointer">
+                  <label className="flex items-center gap-2 pt-2 border-t border-hairline cursor-pointer">
                     <input
                       type="checkbox"
                       checked={updatePrice}
                       onChange={(e) => setUpdatePrice(e.target.checked)}
-                      className="rounded border-brand-border text-brand-gold focus:ring-brand-gold bg-brand-surface"
+                      className="rounded border-hairline-strong accent-accent"
                     />
-                    <span className="text-xs text-neutral-200">
-                      Auto-update product benchmark price to <strong>৳{recommendedSellRate} / {unitLabel}</strong>
+                    <span className="text-xs text-ink-secondary">
+                      Update product benchmark price to <strong className="text-ink font-mono font-medium">৳{recommendedSellRate} / {unitLabel}</strong>
                     </span>
                   </label>
                 </div>
@@ -383,22 +383,22 @@ export const RestockModal: React.FC<RestockModalProps> = ({
           )}
 
           {/* Action buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-brand-border">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-hairline">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 rounded-lg border border-brand-border text-neutral-300 hover:text-white text-xs font-semibold"
+              className="px-4 py-2 rounded-lg border border-hairline bg-raised text-ink-secondary hover:text-ink text-xs font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !selectedProduct}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-xs shadow-lg shadow-emerald-500/20 disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-positive hover:opacity-90 text-white font-semibold text-xs disabled:opacity-50 transition-opacity duration-150 ease-unslop"
             >
-              <span>{loading ? 'Adding...' : 'Confirm & Add to Stock'}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>{loading ? 'Adding…' : 'Confirm & Add to Stock'}</span>
+              <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.75} />
             </button>
           </div>
         </form>

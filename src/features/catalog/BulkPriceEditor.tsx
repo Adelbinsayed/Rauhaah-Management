@@ -174,15 +174,15 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
   return (
     <div className="space-y-6">
       {/* Batch markup helper card */}
-      <div className="p-4 rounded-xl bg-brand-surface border border-brand-border flex flex-wrap items-center justify-between gap-4">
+      <div className="p-4 rounded-xl bg-surface border border-hairline flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold">
-            <Percent className="w-5 h-5" />
+          <div className="w-9 h-9 rounded-lg bg-accent/12 border border-accent/25 flex items-center justify-center text-accent-ink">
+            <Percent className="w-4 h-4" strokeWidth={1.5} />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-white">Batch Price Markup Tool</h4>
-            <p className="text-xs text-neutral-400">
-              Quickly adjust retail or wholesale prices across all listed items.
+            <h4 className="text-sm font-medium text-ink">Batch price markup tool</h4>
+            <p className="text-xs text-ink-muted">
+              Adjust retail or wholesale prices across all listed items
             </p>
           </div>
         </div>
@@ -191,7 +191,7 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
           <select
             value={markupTarget}
             onChange={(e) => setMarkupTarget(e.target.value as 'retail' | 'wholesale')}
-            className="px-3 py-1.5 bg-brand-black border border-brand-border rounded-lg text-xs text-white"
+            className="px-3 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink focus:outline-none focus:border-accent"
           >
             <option value="retail">Adjust Retail Price</option>
             <option value="wholesale">Adjust Wholesale Price</option>
@@ -201,29 +201,29 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
             <select
               value={markupBase}
               onChange={(e) => setMarkupBase(e.target.value as 'wholesale' | 'current')}
-              className="px-3 py-1.5 bg-brand-black border border-brand-border rounded-lg text-xs text-white"
+              className="px-3 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink focus:outline-none focus:border-accent"
             >
               <option value="current">Based on Current Retail</option>
               <option value="wholesale">Based on Wholesale Price</option>
             </select>
           )}
 
-          <div className="flex items-center gap-1 bg-brand-black border border-brand-border rounded-lg px-2.5 py-1">
-            <span className="text-xs text-neutral-400">+</span>
+          <div className="flex items-center gap-1 bg-raised border border-hairline rounded-lg px-2.5 py-1">
+            <span className="text-xs text-ink-muted">+</span>
             <input
               type="number"
               step="any"
               value={markupPercent}
               onChange={(e) => setMarkupPercent(e.target.value)}
-              className="w-12 bg-transparent text-xs text-white font-mono focus:outline-none"
+              className="w-12 bg-transparent text-xs text-ink font-mono tabular-nums focus:outline-none"
             />
-            <span className="text-xs text-neutral-400">%</span>
+            <span className="text-xs text-ink-muted">%</span>
           </div>
 
           <button
             type="button"
             onClick={applyMarkupToAll}
-            className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold border border-neutral-700 transition-colors"
+            className="px-3 py-1.5 rounded-lg bg-raised hover:border-hairline-strong text-ink text-xs font-medium border border-hairline transition-colors duration-150 ease-unslop"
           >
             Apply to All
           </button>
@@ -231,27 +231,27 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs">
-          <AlertCircle className="w-4 h-4 shrink-0" />
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
+          <AlertCircle className="w-4 h-4 shrink-0" strokeWidth={1.5} />
           <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs">
-          <CheckCircle2 className="w-4 h-4 shrink-0" />
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-positive/10 border border-positive/25 text-positive text-xs">
+          <CheckCircle2 className="w-4 h-4 shrink-0" strokeWidth={1.5} />
           <span>{success}</span>
         </div>
       )}
 
       {/* Save bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-brand-surface border border-brand-border rounded-xl">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-surface border border-hairline rounded-xl">
         <div className="flex items-center gap-3">
-          <span className="text-xs text-neutral-300">
-            Unsaved changes:{' '}
+          <span className="text-xs text-ink-secondary">
+            Unsaved changes{' '}
             <span
-              className={`font-bold font-mono px-2 py-0.5 rounded text-xs ${
-                changedCount > 0 ? 'bg-brand-gold text-brand-black' : 'bg-neutral-800 text-neutral-400'
+              className={`font-medium font-mono tabular-nums px-2 py-0.5 rounded text-xs ${
+                changedCount > 0 ? 'bg-accent text-accent-fg font-semibold' : 'bg-raised text-ink-muted'
               }`}
             >
               {changedCount}
@@ -263,7 +263,7 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Reason for revision (saved to audit history)"
-            className="px-3 py-1.5 bg-brand-black border border-brand-border rounded-lg text-xs text-white placeholder-neutral-500 w-64 focus:outline-none focus:border-brand-gold"
+            className="px-3 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink placeholder-ink-muted w-64 focus:outline-none focus:border-accent"
           />
         </div>
 
@@ -272,39 +272,39 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
             type="button"
             onClick={handleReset}
             disabled={changedCount === 0 || saving}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-border text-neutral-400 hover:text-white text-xs font-semibold disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-hairline bg-raised text-ink-secondary hover:text-ink text-xs font-medium disabled:opacity-40"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3.5 h-3.5" strokeWidth={1.5} />
             Discard
           </button>
           <button
             type="button"
             onClick={handleSave}
             disabled={changedCount === 0 || saving}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-brand-gold hover:bg-brand-gold-light text-brand-black font-semibold text-xs shadow-md shadow-brand-gold/20 disabled:opacity-40 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs disabled:opacity-40 transition-colors duration-150 ease-unslop tabular-nums"
           >
-            <Save className="w-3.5 h-3.5" />
-            {saving ? 'Saving...' : `Save ${changedCount} Changes`}
+            <Save className="w-3.5 h-3.5" strokeWidth={1.5} />
+            {saving ? 'Saving…' : `Save ${changedCount} Changes`}
           </button>
         </div>
       </div>
 
       {/* Table grid */}
-      <div className="overflow-x-auto rounded-xl border border-brand-border bg-brand-surface">
+      <div className="overflow-x-auto rounded-xl border border-hairline bg-surface">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-brand-border bg-brand-black/70 text-neutral-400 uppercase tracking-wider font-semibold">
-              <th className="py-3 px-4">Product Name & SKU</th>
+            <tr className="border-b border-hairline bg-raised/70 text-ink-muted font-medium">
+              <th className="py-3 px-4">Product name &amp; SKU</th>
               <th className="py-3 px-3">Type</th>
               {canViewCost && <th className="py-3 px-3 text-right">Cost (৳)</th>}
-              <th className="py-3 px-3 text-right">Retail Price (৳)</th>
-              <th className="py-3 px-3 text-right">Wholesale Price (৳)</th>
-              <th className="py-3 px-3 text-right">Floor / Min (৳)</th>
+              <th className="py-3 px-3 text-right">Retail price (৳)</th>
+              <th className="py-3 px-3 text-right">Wholesale price (৳)</th>
+              <th className="py-3 px-3 text-right">Floor / min (৳)</th>
               {canViewCost && <th className="py-3 px-3 text-right">Margin %</th>}
               <th className="py-3 px-3 text-center">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-brand-border/50 text-neutral-300">
+          <tbody className="divide-y divide-hairline text-ink-secondary">
             {sellables.map((s) => {
               const state = editedPrices[s.id] || {
                 retailPrice: s.retailPriceBdt,
@@ -323,21 +323,21 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
               return (
                 <tr
                   key={s.id}
-                  className={`hover:bg-neutral-800/40 transition-colors ${
-                    state.changed ? 'bg-brand-gold/5' : ''
+                  className={`hover:bg-raised/50 transition-colors duration-150 ease-unslop ${
+                    state.changed ? 'bg-accent/5' : ''
                   }`}
                 >
                   <td className="py-3 px-4">
-                    <div className="font-semibold text-white">{s.name}</div>
-                    <div className="text-[10px] text-neutral-500 font-mono">{s.sku}</div>
+                    <div className="font-medium text-ink">{s.name}</div>
+                    <div className="text-[11px] text-ink-muted font-mono">{s.sku}</div>
                   </td>
                   <td className="py-3 px-3">
-                    <span className="capitalize text-[11px] text-neutral-400">
+                    <span className="capitalize text-xs text-ink-muted">
                       {s.sellableType.replace('_', ' ')}
                     </span>
                   </td>
                   {canViewCost && (
-                    <td className="py-3 px-3 text-right font-mono text-neutral-400">
+                    <td className="py-3 px-3 text-right font-mono tabular-nums text-ink-muted">
                       {s.calculatedCostBdt != null ? `৳${s.calculatedCostBdt.toFixed(2)}` : '—'}
                     </td>
                   )}
@@ -350,10 +350,10 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
                       onChange={(e) =>
                         handlePriceChange(s.id, 'retailPrice', parseFloat(e.target.value))
                       }
-                      className={`w-24 text-right px-2 py-1 rounded bg-brand-black border font-mono text-xs text-white focus:outline-none ${
+                      className={`w-24 text-right px-2 py-1 rounded bg-raised border font-mono tabular-nums text-xs focus:outline-none ${
                         state.retailPrice !== s.retailPriceBdt
-                          ? 'border-brand-gold text-brand-gold font-bold'
-                          : 'border-brand-border'
+                          ? 'border-accent text-accent-ink font-semibold'
+                          : 'border-hairline text-ink'
                       }`}
                     />
                   </td>
@@ -366,10 +366,10 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
                       onChange={(e) =>
                         handlePriceChange(s.id, 'wholesalePrice', parseFloat(e.target.value))
                       }
-                      className={`w-24 text-right px-2 py-1 rounded bg-brand-black border font-mono text-xs text-white focus:outline-none ${
+                      className={`w-24 text-right px-2 py-1 rounded bg-raised border font-mono tabular-nums text-xs focus:outline-none ${
                         state.wholesalePrice !== s.wholesalePriceBdt
-                          ? 'border-brand-gold text-brand-gold font-bold'
-                          : 'border-brand-border'
+                          ? 'border-accent text-accent-ink font-semibold'
+                          : 'border-hairline text-ink'
                       }`}
                     />
                   </td>
@@ -382,15 +382,15 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
                       onChange={(e) =>
                         handlePriceChange(s.id, 'minPrice', parseFloat(e.target.value))
                       }
-                      className="w-24 text-right px-2 py-1 rounded bg-brand-black border border-brand-border font-mono text-xs text-neutral-400 focus:outline-none"
+                      className="w-24 text-right px-2 py-1 rounded bg-raised border border-hairline font-mono tabular-nums text-xs text-ink-muted focus:outline-none focus:border-accent"
                     />
                   </td>
                   {canViewCost && (
-                    <td className="py-3 px-3 text-right font-mono">
+                    <td className="py-3 px-3 text-right font-mono tabular-nums">
                       {marginPct ? (
                         <span
                           className={
-                            parseFloat(marginPct) > 0 ? 'text-emerald-400' : 'text-red-400'
+                            parseFloat(marginPct) > 0 ? 'text-positive' : 'text-negative'
                           }
                         >
                           {marginPct}
@@ -402,11 +402,11 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
                   )}
                   <td className="py-3 px-3 text-center">
                     {state.changed ? (
-                      <span className="inline-block px-1.5 py-0.5 rounded text-[10px] bg-brand-gold/20 text-brand-gold font-semibold">
+                      <span className="inline-block px-2 py-0.5 rounded text-[11px] bg-accent/15 text-accent-ink font-medium">
                         Modified
                       </span>
                     ) : (
-                      <span className="text-[10px] text-neutral-600">Saved</span>
+                      <span className="text-[11px] text-ink-muted">Saved</span>
                     )}
                   </td>
                 </tr>

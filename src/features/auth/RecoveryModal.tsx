@@ -56,43 +56,43 @@ export function RecoveryModal({ deviceId, onClose, onRecoverySuccess }: Recovery
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-brand-surface border border-brand-border rounded-xl shadow-2xl p-6 space-y-5 relative">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-5 relative">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 text-neutral-400 hover:text-white"
+          className="absolute right-4 top-4 p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-raised transition-colors duration-150 ease-unslop"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" strokeWidth={1.5} />
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-brand-gold/15 border border-brand-gold/30 text-brand-gold">
-            <KeyRound className="w-5 h-5" />
+          <div className="p-2.5 rounded-lg bg-accent/12 border border-accent/25 text-accent-ink">
+            <KeyRound className="w-5 h-5" strokeWidth={1.5} />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">Owner Password Recovery</h2>
-            <p className="text-xs text-neutral-400">Reset your password using the recovery code.</p>
+            <h2 className="text-lg font-medium text-ink">Owner password recovery</h2>
+            <p className="text-xs text-ink-muted">Reset your password using the recovery code</p>
           </div>
         </div>
 
         {error && (
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={1.5} />
             <span>{error}</span>
           </div>
         )}
 
         {success ? (
-          <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
-            <span>Password successfully reset! You can now log in with your new password.</span>
+          <div className="p-4 rounded-lg bg-positive/10 border border-positive/25 text-positive text-sm flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+            <span>Password reset. You can now sign in with your new password.</span>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
-                Recovery Code
+              <label className="block text-xs font-medium text-ink-secondary mb-1.5">
+                Recovery code
               </label>
               <input
                 type="text"
@@ -100,13 +100,13 @@ export function RecoveryModal({ deviceId, onClose, onRecoverySuccess }: Recovery
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="RAUH-XXXX-XXXX-XXXX"
-                className="w-full px-3.5 py-2.5 bg-brand-black border border-brand-border rounded-lg text-sm text-brand-gold font-mono tracking-wider focus:outline-none focus:border-brand-gold"
+                className="w-full px-3.5 py-2.5 bg-raised border border-hairline rounded-lg text-sm text-accent-ink font-mono tracking-wider focus:outline-none focus:border-accent"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
-                New Password (min 6 characters)
+              <label className="block text-xs font-medium text-ink-secondary mb-1.5">
+                New password (min 6 characters)
               </label>
               <input
                 type="password"
@@ -114,13 +114,13 @@ export function RecoveryModal({ deviceId, onClose, onRecoverySuccess }: Recovery
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-3.5 py-2.5 bg-brand-black border border-brand-border rounded-lg text-sm text-white focus:outline-none focus:border-brand-gold"
+                className="w-full px-3.5 py-2.5 bg-raised border border-hairline rounded-lg text-sm text-ink focus:outline-none focus:border-accent"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
-                Confirm New Password
+              <label className="block text-xs font-medium text-ink-secondary mb-1.5">
+                Confirm new password
               </label>
               <input
                 type="password"
@@ -128,7 +128,7 @@ export function RecoveryModal({ deviceId, onClose, onRecoverySuccess }: Recovery
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-3.5 py-2.5 bg-brand-black border border-brand-border rounded-lg text-sm text-white focus:outline-none focus:border-brand-gold"
+                className="w-full px-3.5 py-2.5 bg-raised border border-hairline rounded-lg text-sm text-ink focus:outline-none focus:border-accent"
               />
             </div>
 
@@ -136,16 +136,16 @@ export function RecoveryModal({ deviceId, onClose, onRecoverySuccess }: Recovery
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-lg border border-brand-border text-xs text-neutral-400 hover:text-white"
+                className="px-4 py-2.5 rounded-lg border border-hairline bg-raised text-xs text-ink-secondary hover:text-ink"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 py-2.5 px-4 rounded-lg bg-brand-gold text-brand-black font-bold text-xs hover:bg-brand-gold-hover transition-colors disabled:opacity-40"
+                className="flex-1 py-2.5 px-4 rounded-lg bg-accent text-accent-fg font-semibold text-xs hover:bg-accent-hover transition-colors duration-150 ease-unslop disabled:opacity-40"
               >
-                {loading ? 'Verifying Code…' : 'Reset Password'}
+                {loading ? 'Verifying code…' : 'Reset Password'}
               </button>
             </div>
           </form>

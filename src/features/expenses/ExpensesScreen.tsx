@@ -208,12 +208,12 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2.5">
-            <Wallet className="w-5 h-5 text-brand-gold" />
-            <span>Daily Expenses & Cash Drawer</span>
+          <h2 className="text-xl font-medium text-ink flex items-center gap-2.5">
+            <Wallet className="w-5 h-5 text-accent-ink" strokeWidth={1.5} />
+            <span>Daily expenses &amp; cash drawer</span>
           </h2>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-            Track daily operating overheads (rent, tea, bags, utilities) and balance physical counter cash in hand.
+          <p className="text-xs text-ink-muted mt-1">
+            Track daily operating overheads (rent, refreshments, bags, utilities) and balance physical counter cash in hand
           </p>
         </div>
 
@@ -222,9 +222,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
             <button
               type="button"
               onClick={() => setIsCloseDrawerOpen(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-400 text-xs font-bold hover:bg-amber-500 hover:text-black transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-warning/35 bg-warning/10 text-warning text-xs font-medium hover:bg-warning hover:text-accent-fg transition-colors duration-150 ease-unslop cursor-pointer"
             >
-              <Lock className="w-4 h-4" />
+              <Lock className="w-4 h-4" strokeWidth={1.5} />
               <span>Close / Reconcile Drawer</span>
             </button>
           ) : (
@@ -234,9 +234,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
                 setOpeningFloat(0);
                 setIsOpenDrawerOpen(true);
               }}
-              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 text-xs font-bold hover:bg-emerald-500 hover:text-white transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-positive/35 bg-positive/10 text-positive text-xs font-medium hover:bg-positive hover:text-white transition-colors duration-150 ease-unslop cursor-pointer"
             >
-              <Unlock className="w-4 h-4" />
+              <Unlock className="w-4 h-4" strokeWidth={1.5} />
               <span>Start Cash Drawer Session</span>
             </button>
           )}
@@ -244,9 +244,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
           <button
             type="button"
             onClick={handleOpenAdd}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-gold text-brand-black text-xs font-bold hover:bg-brand-gold-light transition-all shadow-md shadow-brand-gold/20 cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-accent-fg text-xs font-semibold hover:bg-accent-hover transition-colors duration-150 ease-unslop cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4" strokeWidth={1.75} />
             <span>Record Expense</span>
           </button>
         </div>
@@ -254,67 +254,67 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
 
       {/* Cash Drawer Real-Time Status Card */}
       {drawerSummary && (
-        <div className="p-4 rounded-2xl bg-neutral-900 text-white border border-brand-border shadow-md">
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-neutral-800">
+        <div className="p-4 rounded-xl bg-surface text-ink border border-hairline">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-hairline">
             <div className="flex items-center gap-2.5">
               <div
-                className={`w-3 h-3 rounded-full ${
-                  drawerSummary.isSessionOpen ? 'bg-emerald-500 animate-pulse' : 'bg-neutral-600'
+                className={`w-2.5 h-2.5 rounded-full ${
+                  drawerSummary.isSessionOpen ? 'bg-positive' : 'bg-ink-muted/50'
                 }`}
               />
-              <span className="text-xs font-bold uppercase tracking-wider text-neutral-300">
+              <span className="text-xs font-medium text-ink-secondary">
                 {drawerSummary.isSessionOpen
-                  ? `Active Drawer Shift (Opened by ${drawerSummary.openedByUsername || 'Staff'})`
-                  : 'Cash Drawer Shift Currently Closed'}
+                  ? `Active drawer shift (opened by ${drawerSummary.openedByUsername || 'Staff'})`
+                  : 'Cash drawer shift currently closed'}
               </span>
             </div>
 
-            <div className="text-xs font-mono text-neutral-400">
+            <div className="text-xs font-mono text-ink-muted tabular-nums">
               {drawerSummary.isSessionOpen && drawerSummary.openedAt && (
-                <span>Started: {new Date(drawerSummary.openedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                <span>Started {new Date(drawerSummary.openedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               )}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 pt-3 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 pt-3 text-xs items-center">
             <div>
-              <div className="text-[10px] uppercase font-bold text-neutral-400">Opening Float</div>
-              <div className="text-base font-bold font-mono text-white mt-0.5">
+              <div className="text-xs text-ink-muted">Opening float</div>
+              <div className="text-base font-medium font-mono tabular-nums text-ink mt-0.5">
                 ৳{drawerSummary.openingCashBdt.toFixed(2)}
               </div>
             </div>
 
             <div>
-              <div className="text-[10px] uppercase font-bold text-emerald-400">(+) Cash Sales</div>
-              <div className="text-base font-bold font-mono text-emerald-400 mt-0.5">
+              <div className="text-xs text-positive">+ Cash sales</div>
+              <div className="text-base font-medium font-mono tabular-nums text-positive mt-0.5">
                 +৳{drawerSummary.cashSalesBdt.toFixed(2)}
               </div>
             </div>
 
             <div>
-              <div className="text-[10px] uppercase font-bold text-emerald-400">(+) Due Collected</div>
-              <div className="text-base font-bold font-mono text-emerald-400 mt-0.5">
+              <div className="text-xs text-positive">+ Due collected</div>
+              <div className="text-base font-medium font-mono tabular-nums text-positive mt-0.5">
                 +৳{drawerSummary.customerDueCollectedCashBdt.toFixed(2)}
               </div>
             </div>
 
             <div>
-              <div className="text-[10px] uppercase font-bold text-red-400">(-) Cash Expenses</div>
-              <div className="text-base font-bold font-mono text-red-400 mt-0.5">
+              <div className="text-xs text-negative">− Cash expenses</div>
+              <div className="text-base font-medium font-mono tabular-nums text-negative mt-0.5">
                 -৳{drawerSummary.cashExpensesBdt.toFixed(2)}
               </div>
             </div>
 
             <div>
-              <div className="text-[10px] uppercase font-bold text-red-400">(-) Cash Purchases</div>
-              <div className="text-base font-bold font-mono text-red-400 mt-0.5">
+              <div className="text-xs text-negative">− Cash purchases</div>
+              <div className="text-base font-medium font-mono tabular-nums text-negative mt-0.5">
                 -৳{drawerSummary.supplierPurchasesCashBdt.toFixed(2)}
               </div>
             </div>
 
-            <div className="p-2 rounded-xl bg-brand-surface border border-brand-gold/40">
-              <div className="text-[10px] uppercase font-bold text-brand-gold">Expected In Drawer</div>
-              <div className="text-lg font-bold font-mono text-brand-gold mt-0.5">
+            <div className="p-2.5 rounded-lg bg-raised border border-accent/30">
+              <div className="text-xs font-medium text-accent-ink">Expected in drawer</div>
+              <div className="text-lg font-medium font-mono tabular-nums text-accent-ink mt-0.5">
                 ৳{drawerSummary.expectedCashInDrawerBdt.toFixed(2)}
               </div>
             </div>
@@ -324,43 +324,43 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
 
       {/* KPI Metric Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border shadow-sm flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400">
-            <TrendingDown className="w-5 h-5" />
+        <div className="p-4 rounded-xl bg-surface border border-hairline flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-lg bg-negative/10 border border-negative/25 flex items-center justify-center text-negative">
+            <TrendingDown className="w-4 h-4" strokeWidth={1.5} />
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-              Total Expenses ({datePreset})
+            <div className="text-xs text-ink-muted">
+              Total expenses ({datePreset})
             </div>
-            <div className="text-lg font-bold text-neutral-900 dark:text-white font-mono mt-0.5">
+            <div className="text-lg font-medium text-ink font-mono tabular-nums mt-0.5">
               ৳{metrics.totalAmount.toFixed(2)}
             </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border shadow-sm flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold">
-            <Wallet className="w-5 h-5" />
+        <div className="p-4 rounded-xl bg-surface border border-hairline flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-lg bg-raised border border-hairline flex items-center justify-center text-accent-ink">
+            <Wallet className="w-4 h-4" strokeWidth={1.5} />
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-              Paid From Cash Drawer
+            <div className="text-xs text-ink-muted">
+              Paid from cash drawer
             </div>
-            <div className="text-lg font-bold text-neutral-900 dark:text-white font-mono mt-0.5">
+            <div className="text-lg font-medium text-ink font-mono tabular-nums mt-0.5">
               ৳{metrics.cashExpenses.toFixed(2)}
             </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border shadow-sm flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
-            <CreditCard className="w-5 h-5" />
+        <div className="p-4 rounded-xl bg-surface border border-hairline flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-lg bg-raised border border-hairline flex items-center justify-center text-ink-secondary">
+            <CreditCard className="w-4 h-4" strokeWidth={1.5} />
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-              Digital / Bank Transfers
+            <div className="text-xs text-ink-muted">
+              Digital / bank transfers
             </div>
-            <div className="text-lg font-bold text-blue-400 font-mono mt-0.5">
+            <div className="text-lg font-medium text-ink font-mono tabular-nums mt-0.5">
               ৳{metrics.digitalExpenses.toFixed(2)}
             </div>
           </div>
@@ -368,26 +368,26 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
       </div>
 
       {/* Filters Bar */}
-      <div className="p-3 bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="p-3 bg-surface border border-hairline rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-ink-muted absolute left-3 top-2.5" strokeWidth={1.5} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search description, reference, notes..."
-            className="w-full pl-9 pr-3 py-1.5 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold"
+            placeholder="Search description, reference, notes"
+            className="w-full pl-9 pr-3 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink placeholder-ink-muted focus:outline-none focus:border-accent"
           />
         </div>
 
         {/* Category Filter */}
         <div className="flex items-center gap-2">
-          <span className="text-neutral-400 font-medium">Category:</span>
+          <span className="text-ink-muted font-medium">Category</span>
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-2.5 py-1.5 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold"
+            className="px-2.5 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink focus:outline-none focus:border-accent"
           >
             <option value="all">All Categories</option>
             {categories.map((c) => (
@@ -399,16 +399,16 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
         </div>
 
         {/* Date Presets */}
-        <div className="flex items-center gap-1 bg-neutral-100 dark:bg-brand-black/80 p-1 rounded-xl border border-neutral-200 dark:border-brand-border">
+        <div className="flex items-center gap-1 bg-raised p-1 rounded-lg border border-hairline">
           {(['today', '7days', 'month', 'all'] as const).map((preset) => (
             <button
               key={preset}
               type="button"
               onClick={() => handlePresetChange(preset)}
-              className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors duration-150 ease-unslop cursor-pointer ${
                 datePreset === preset
-                  ? 'bg-brand-gold text-brand-black shadow-sm'
-                  : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+                  ? 'bg-accent text-accent-fg font-semibold'
+                  : 'text-ink-muted hover:text-ink'
               }`}
             >
               {preset === 'today'
@@ -424,70 +424,70 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
       </div>
 
       {/* Expenses Table */}
-      <div className="bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-surface border border-hairline rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-neutral-50 dark:bg-brand-black/60 border-b border-neutral-200 dark:border-brand-border text-neutral-500 uppercase tracking-wider font-semibold">
+            <thead className="bg-raised/70 border-b border-hairline text-ink-muted font-medium">
               <tr>
-                <th className="py-3 px-4">Date & Time</th>
-                <th className="py-3 px-4">Description / Title</th>
+                <th className="py-3 px-4">Date &amp; time</th>
+                <th className="py-3 px-4">Description</th>
                 <th className="py-3 px-4">Category</th>
-                <th className="py-3 px-4">Paid Via</th>
-                <th className="py-3 px-4">Recorded By</th>
+                <th className="py-3 px-4">Paid via</th>
+                <th className="py-3 px-4">Recorded by</th>
                 <th className="py-3 px-4 text-right">Amount</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-200 dark:divide-brand-border text-neutral-700 dark:text-neutral-200">
+            <tbody className="divide-y divide-hairline text-ink-secondary">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-neutral-400">
-                    Loading expenses...
+                  <td colSpan={6} className="py-8 text-center text-ink-muted">
+                    Loading expenses…
                   </td>
                 </tr>
               ) : expenses.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-neutral-400">
-                    <Wallet className="w-8 h-8 mx-auto text-neutral-500 mb-2 opacity-50" />
-                    <p className="font-semibold text-neutral-300">No expenses recorded</p>
-                    <p className="text-[11px] text-neutral-500 mt-0.5">
-                      Click "Record Expense" to log overhead, refreshments, or bills.
+                  <td colSpan={6} className="py-12 text-center text-ink-muted">
+                    <Wallet className="w-7 h-7 mx-auto text-ink-muted mb-2 opacity-60" strokeWidth={1.5} />
+                    <p className="font-medium text-ink-secondary">No expenses recorded</p>
+                    <p className="text-xs text-ink-muted mt-0.5">
+                      Click Record Expense to log overhead, refreshments, or bills
                     </p>
                   </td>
                 </tr>
               ) : (
                 expenses.map((e) => (
-                  <tr key={e.id} className="hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 transition-colors">
-                    <td className="py-3 px-4 text-neutral-400 text-[11px] font-mono">
-                      {new Date(e.expenseDate).toLocaleDateString()} &bull;{' '}
+                  <tr key={e.id} className="hover:bg-raised/50 transition-colors duration-150 ease-unslop">
+                    <td className="py-3 px-4 text-ink-muted text-xs font-mono tabular-nums">
+                      {new Date(e.expenseDate).toLocaleDateString()} ·{' '}
                       {new Date(e.expenseDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </td>
 
-                    <td className="py-3 px-4 font-bold text-neutral-900 dark:text-white">
+                    <td className="py-3 px-4 font-medium text-ink">
                       <div>{e.title}</div>
                       {e.referenceNumber && (
-                        <div className="text-[10px] text-neutral-400 font-mono font-normal">
-                          Ref: {e.referenceNumber}
+                        <div className="text-[11px] text-ink-muted font-mono font-normal">
+                          Ref {e.referenceNumber}
                         </div>
                       )}
                     </td>
 
                     <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-100 dark:bg-brand-black border border-neutral-300 dark:border-brand-border text-neutral-300">
+                      <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-raised border border-hairline text-ink-secondary">
                         {e.categoryName}
                       </span>
                     </td>
 
-                    <td className="py-3 px-4 text-[11px]">
-                      <span className="uppercase font-semibold text-neutral-300">
-                        {e.paymentMethod === 'cash' ? '💵 Cash Drawer' : e.paymentMethod}
+                    <td className="py-3 px-4 text-xs">
+                      <span className="capitalize font-medium text-ink-secondary">
+                        {e.paymentMethod === 'cash' ? 'Cash drawer' : e.paymentMethod}
                       </span>
                     </td>
 
-                    <td className="py-3 px-4 text-neutral-400 text-[11px]">
+                    <td className="py-3 px-4 text-ink-muted text-xs">
                       {e.createdByUsername || 'Staff'}
                     </td>
 
-                    <td className="py-3 px-4 text-right font-mono font-bold text-red-400 text-sm">
+                    <td className="py-3 px-4 text-right font-mono tabular-nums font-medium text-negative text-sm">
                       ৳{e.amountBdt.toFixed(2)}
                     </td>
                   </tr>
@@ -498,56 +498,54 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
         </div>
       </div>
 
-      {/* ==================================================== */}
-      {/* RECORD EXPENSE MODAL                                 */}
-      {/* ==================================================== */}
+      {/* RECORD EXPENSE MODAL */}
       {isAddExpenseOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-2xl shadow-2xl p-6 space-y-4">
-            <div className="flex justify-between items-center pb-3 border-b border-neutral-200 dark:border-brand-border">
-              <h3 className="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                <Wallet className="w-4 h-4 text-brand-gold" />
-                <span>Record Store Expense</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+          <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-hairline">
+              <h3 className="text-base font-medium text-ink flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
+                <span>Record store expense</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setIsAddExpenseOpen(false)}
-                className="p-1 text-neutral-400 hover:text-white cursor-pointer"
+                className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-raised cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" strokeWidth={1.5} />
               </button>
             </div>
 
             {expError && (
-              <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs">
+              <div className="p-2.5 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
                 {expError}
               </div>
             )}
 
             <form onSubmit={handleSaveExpense} className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                  Expense Description <span className="text-red-400">*</span>
+                <label className="block font-medium text-ink-secondary mb-1">
+                  Expense description <span className="text-negative">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={expTitle}
                   onChange={(e) => setExpTitle(e.target.value)}
-                  placeholder="e.g. Afternoon tea & biscuits for guests, Carry bags"
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs"
+                  placeholder="Carry bags, refreshments, utilities"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
+                  <label className="block font-medium text-ink-secondary mb-1">
                     Category
                   </label>
                   <select
                     value={expCategoryId}
                     onChange={(e) => setExpCategoryId(e.target.value)}
-                    className="w-full px-2.5 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs"
+                    className="w-full px-2.5 py-2 bg-raised border border-hairline rounded-lg text-ink focus:outline-none focus:border-accent text-xs"
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -558,8 +556,8 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                    Amount (৳) <span className="text-red-400">*</span>
+                  <label className="block font-medium text-ink-secondary mb-1">
+                    Amount (৳) <span className="text-negative">*</span>
                   </label>
                   <input
                     type="number"
@@ -568,21 +566,21 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
                     required
                     value={expAmount || ''}
                     onChange={(e) => setExpAmount(Number(e.target.value))}
-                    placeholder="e.g. 150"
-                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white font-mono font-bold text-red-400 focus:outline-none focus:border-brand-gold text-xs"
+                    placeholder="150"
+                    className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg font-mono tabular-nums font-medium text-negative focus:outline-none focus:border-accent text-xs"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                    Payment Source
+                  <label className="block font-medium text-ink-secondary mb-1">
+                    Payment source
                   </label>
                   <select
                     value={expMethod}
                     onChange={(e) => setExpMethod(e.target.value)}
-                    className="w-full px-2.5 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white uppercase font-semibold text-xs focus:outline-none focus:border-brand-gold"
+                    className="w-full px-2.5 py-2 bg-raised border border-hairline rounded-lg text-ink text-xs focus:outline-none focus:border-accent"
                   >
                     <option value="cash">Cash in Drawer</option>
                     <option value="bkash">bKash</option>
@@ -592,21 +590,21 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                    Voucher / Slip Ref #
+                  <label className="block font-medium text-ink-secondary mb-1">
+                    Voucher / slip ref
                   </label>
                   <input
                     type="text"
                     value={expRef}
                     onChange={(e) => setExpRef(e.target.value)}
-                    placeholder="e.g. VCH-001"
-                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs font-mono"
+                    placeholder="VCH-001"
+                    className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
+                <label className="block font-medium text-ink-secondary mb-1">
                   Notes
                 </label>
                 <textarea
@@ -614,24 +612,24 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
                   value={expNotes}
                   onChange={(e) => setExpNotes(e.target.value)}
                   placeholder="Optional details"
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-neutral-200 dark:border-brand-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-hairline">
                 <button
                   type="button"
                   onClick={() => setIsAddExpenseOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-neutral-200 dark:border-brand-border text-xs text-neutral-600 dark:text-neutral-400 hover:text-white font-medium"
+                  className="px-4 py-2 rounded-lg border border-hairline bg-raised text-xs text-ink-secondary hover:text-ink font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={expSaving}
-                  className="px-5 py-2 rounded-xl bg-brand-gold text-brand-black font-extrabold text-xs hover:bg-brand-gold-light transition-all shadow-md shadow-brand-gold/20 disabled:opacity-50 cursor-pointer"
+                  className="px-5 py-2 rounded-lg bg-accent text-accent-fg font-semibold text-xs hover:bg-accent-hover transition-colors duration-150 ease-unslop disabled:opacity-50 cursor-pointer"
                 >
-                  {expSaving ? 'Saving...' : 'Record Expense'}
+                  {expSaving ? 'Saving…' : 'Record Expense'}
                 </button>
               </div>
             </form>
@@ -639,26 +637,24 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
         </div>
       )}
 
-      {/* ==================================================== */}
-      {/* START DRAWER SESSION MODAL                           */}
-      {/* ==================================================== */}
+      {/* START DRAWER SESSION MODAL */}
       {isOpenDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-sm bg-brand-surface border border-emerald-500/40 rounded-2xl shadow-2xl p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+          <div className="w-full max-w-sm bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                <Unlock className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-lg bg-positive/10 border border-positive/25 flex items-center justify-center text-positive">
+                <Unlock className="w-4 h-4" strokeWidth={1.5} />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Start Day's Cash Drawer</h3>
-                <p className="text-[11px] text-neutral-400">Enter morning opening float in drawer.</p>
+                <h3 className="text-base font-medium text-ink">Start day cash drawer</h3>
+                <p className="text-xs text-ink-muted">Enter morning opening float in drawer</p>
               </div>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-[10px] font-bold uppercase text-neutral-400 mb-1">
-                  Opening Cash Float (৳)
+                <label className="block text-xs font-medium text-ink-secondary mb-1">
+                  Opening cash float (৳)
                 </label>
                 <input
                   type="number"
@@ -666,20 +662,20 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
                   step="any"
                   value={openingFloat || ''}
                   onChange={(e) => setOpeningFloat(Number(e.target.value))}
-                  placeholder="e.g. 2000"
-                  className="w-full px-3 py-2.5 bg-brand-black border border-brand-border rounded-xl text-white font-mono font-bold text-lg text-emerald-400 focus:outline-none focus:border-brand-gold"
+                  placeholder="2000"
+                  className="w-full px-3 py-2.5 bg-raised border border-hairline rounded-lg font-mono tabular-nums font-medium text-lg text-positive focus:outline-none focus:border-accent"
                 />
-                <p className="text-[10px] text-neutral-500 mt-1">
-                  Cash already inside the counter drawer before any sales today.
+                <p className="text-xs text-ink-muted mt-1.5">
+                  Cash already inside the counter drawer before any sales today
                 </p>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-brand-border">
+            <div className="flex justify-end gap-2 pt-3 border-t border-hairline">
               <button
                 type="button"
                 onClick={() => setIsOpenDrawerOpen(false)}
-                className="px-4 py-2 rounded-xl border border-brand-border text-xs text-neutral-400 hover:text-white"
+                className="px-4 py-2 rounded-lg border border-hairline bg-raised text-xs text-ink-secondary hover:text-ink"
               >
                 Cancel
               </button>
@@ -687,66 +683,64 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
                 type="button"
                 disabled={drawerSubmitting}
                 onClick={handleOpenDrawerSession}
-                className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold text-xs transition-colors shadow cursor-pointer"
+                className="px-5 py-2 rounded-lg bg-positive hover:opacity-90 text-white font-semibold text-xs transition-opacity duration-150 ease-unslop cursor-pointer"
               >
-                {drawerSubmitting ? 'Starting...' : 'Open Drawer Session'}
+                {drawerSubmitting ? 'Starting…' : 'Open Drawer Session'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ==================================================== */}
-      {/* CLOSE / RECONCILE DRAWER SESSION MODAL               */}
-      {/* ==================================================== */}
+      {/* CLOSE / RECONCILE DRAWER SESSION MODAL */}
       {isCloseDrawerOpen && drawerSummary && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-brand-surface border border-amber-500/40 rounded-2xl shadow-2xl p-6 space-y-4">
-            <div className="flex items-center gap-3 pb-3 border-b border-brand-border">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                <Lock className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+          <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
+            <div className="flex items-center gap-3 pb-3 border-b border-hairline">
+              <div className="w-9 h-9 rounded-lg bg-warning/10 border border-warning/25 flex items-center justify-center text-warning">
+                <Lock className="w-4 h-4" strokeWidth={1.5} />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Reconcile & Close Cash Drawer</h3>
-                <p className="text-[11px] text-neutral-400">Count physical cash and close the day's shift.</p>
+                <h3 className="text-base font-medium text-ink">Reconcile &amp; close cash drawer</h3>
+                <p className="text-xs text-ink-muted">Count physical cash and close the shift</p>
               </div>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3 rounded-xl bg-brand-black/60 border border-brand-border space-y-1.5 font-mono text-[11px]">
-                <div className="flex justify-between text-neutral-400">
-                  <span>Opening Float:</span>
+              <div className="p-3 rounded-lg bg-raised border border-hairline space-y-1.5 font-mono tabular-nums text-xs">
+                <div className="flex justify-between text-ink-muted">
+                  <span>Opening float</span>
                   <span>৳{drawerSummary.openingCashBdt.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-emerald-400">
-                  <span>(+) Today's Cash Sales:</span>
+                <div className="flex justify-between text-positive">
+                  <span>+ Cash sales</span>
                   <span>+৳{drawerSummary.cashSalesBdt.toFixed(2)}</span>
                 </div>
                 {drawerSummary.customerDueCollectedCashBdt > 0 && (
-                  <div className="flex justify-between text-emerald-400">
-                    <span>(+) Customer Dues Collected:</span>
+                  <div className="flex justify-between text-positive">
+                    <span>+ Customer dues collected</span>
                     <span>+৳{drawerSummary.customerDueCollectedCashBdt.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-red-400">
-                  <span>(-) Cash Expenses:</span>
+                <div className="flex justify-between text-negative">
+                  <span>− Cash expenses</span>
                   <span>-৳{drawerSummary.cashExpensesBdt.toFixed(2)}</span>
                 </div>
                 {drawerSummary.supplierPurchasesCashBdt > 0 && (
-                  <div className="flex justify-between text-red-400">
-                    <span>(-) Cash Supplier Purchases:</span>
+                  <div className="flex justify-between text-negative">
+                    <span>− Cash supplier purchases</span>
                     <span>-৳{drawerSummary.supplierPurchasesCashBdt.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm font-bold text-brand-gold pt-1.5 border-t border-brand-border">
-                  <span>Expected Counter Cash:</span>
+                <div className="flex justify-between text-sm font-medium text-accent-ink pt-2 border-t border-hairline">
+                  <span>Expected counter cash</span>
                   <span>৳{drawerSummary.expectedCashInDrawerBdt.toFixed(2)}</span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-neutral-400 mb-1">
-                  Counted Physical Cash in Drawer (৳) <span className="text-red-400">*</span>
+                <label className="block text-xs font-medium text-ink-secondary mb-1">
+                  Counted physical cash in drawer (৳) <span className="text-negative">*</span>
                 </label>
                 <input
                   type="number"
@@ -754,53 +748,53 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
                   step="any"
                   value={actualCashCounted}
                   onChange={(e) => setActualCashCounted(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-white font-mono font-bold text-base focus:outline-none focus:border-brand-gold"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink font-mono tabular-nums font-medium text-base focus:outline-none focus:border-accent"
                 />
               </div>
 
               {/* Real-time Discrepancy Alert */}
-              <div className="p-2.5 rounded-xl border text-xs">
+              <div className="p-2.5 rounded-lg border border-hairline bg-raised/60 text-xs">
                 {Math.abs(actualCashCounted - drawerSummary.expectedCashInDrawerBdt) < 0.01 ? (
-                  <div className="text-emerald-400 font-bold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Cash matches expected balance perfectly!</span>
+                  <div className="text-positive font-medium flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" strokeWidth={1.5} />
+                    <span>Cash matches expected balance</span>
                   </div>
                 ) : actualCashCounted < drawerSummary.expectedCashInDrawerBdt ? (
-                  <div className="text-red-400 font-bold flex items-center gap-1.5">
-                    <AlertCircle className="w-4 h-4" />
+                  <div className="text-negative font-medium flex items-center gap-1.5 tabular-nums">
+                    <AlertCircle className="w-4 h-4" strokeWidth={1.5} />
                     <span>
                       Shortage of ৳{(drawerSummary.expectedCashInDrawerBdt - actualCashCounted).toFixed(2)}
                     </span>
                   </div>
                 ) : (
-                  <div className="text-amber-400 font-bold flex items-center gap-1.5">
-                    <AlertCircle className="w-4 h-4" />
+                  <div className="text-warning font-medium flex items-center gap-1.5 tabular-nums">
+                    <AlertCircle className="w-4 h-4" strokeWidth={1.5} />
                     <span>
-                      Overage/Surplus of ৳{(actualCashCounted - drawerSummary.expectedCashInDrawerBdt).toFixed(2)}
+                      Surplus of ৳{(actualCashCounted - drawerSummary.expectedCashInDrawerBdt).toFixed(2)}
                     </span>
                   </div>
                 )}
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-neutral-400 mb-1">
-                  Shift Closing Notes (Optional)
+                <label className="block text-xs font-medium text-ink-secondary mb-1">
+                  Shift closing notes (optional)
                 </label>
                 <input
                   type="text"
                   value={closeNotes}
                   onChange={(e) => setCloseNotes(e.target.value)}
-                  placeholder="e.g. Evening shift close, cash deposited into locker"
-                  className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-white text-xs focus:outline-none focus:border-brand-gold"
+                  placeholder="Evening shift close, cash deposited into locker"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted text-xs focus:outline-none focus:border-accent"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-brand-border">
+            <div className="flex justify-end gap-2 pt-3 border-t border-hairline">
               <button
                 type="button"
                 onClick={() => setIsCloseDrawerOpen(false)}
-                className="px-4 py-2 rounded-xl border border-brand-border text-xs text-neutral-400 hover:text-white"
+                className="px-4 py-2 rounded-lg border border-hairline bg-raised text-xs text-ink-secondary hover:text-ink"
               >
                 Cancel
               </button>
@@ -808,9 +802,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
                 type="button"
                 disabled={drawerSubmitting}
                 onClick={handleCloseDrawerSession}
-                className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs transition-colors shadow cursor-pointer"
+                className="px-5 py-2 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs transition-colors duration-150 ease-unslop cursor-pointer"
               >
-                {drawerSubmitting ? 'Closing...' : 'Close & Lock Session'}
+                {drawerSubmitting ? 'Closing…' : 'Close & Lock Session'}
               </button>
             </div>
           </div>

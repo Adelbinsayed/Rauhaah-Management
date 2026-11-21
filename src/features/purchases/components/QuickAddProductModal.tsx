@@ -69,17 +69,17 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-150">
-      <div className="w-full max-w-lg bg-brand-surface border border-brand-gold/50 rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] flex flex-col relative z-[101]">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 dark:bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
+      <div className="w-full max-w-lg bg-surface border border-hairline-strong rounded-2xl shadow-lg p-6 space-y-4 max-h-[90vh] flex flex-col relative z-[101]">
         {/* Modal Header */}
-        <div className="flex justify-between items-center pb-3 border-b border-brand-border shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold">
-              <Package className="w-4 h-4" />
+        <div className="flex justify-between items-center pb-3 border-b border-hairline shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-accent/15 border border-accent/25 flex items-center justify-center text-accent-ink">
+              <Package className="w-4 h-4" strokeWidth={1.5} />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Add New Product to Catalog</h3>
-              <p className="text-[11px] text-neutral-400">
+              <h3 className="text-base font-semibold text-ink">Add New Product to Catalog</h3>
+              <p className="text-xs text-ink-secondary">
                 Instantly create an item and auto-select it for stock receiving.
               </p>
             </div>
@@ -87,14 +87,14 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-neutral-400 hover:text-white cursor-pointer"
+            className="p-1 text-ink-muted hover:text-ink transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {newProdError && (
-          <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs flex items-center gap-2">
+          <div className="p-2.5 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{newProdError}</span>
           </div>
@@ -104,22 +104,22 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
         <div className="flex-1 overflow-y-auto space-y-3.5 pr-1 text-xs">
           {/* Product Name */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
-              Product / Item Name <span className="text-red-400">*</span>
+            <label className="block text-[11px] font-medium text-ink-secondary mb-1">
+              Product / Item Name <span className="text-negative">*</span>
             </label>
             <input
               type="text"
               value={newProdName}
               onChange={(e) => setNewProdName(e.target.value)}
               placeholder="e.g. Royal White Musk, 12ml Octagon Crystal Bottle"
-              className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-white font-medium focus:outline-none focus:border-brand-gold text-xs"
+              className="w-full px-3 py-2 bg-canvas border border-hairline rounded-lg text-ink font-medium placeholder:text-ink-muted focus:outline-none focus:border-accent text-xs"
             />
           </div>
 
           {/* Item Type & Base Unit */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+              <label className="block text-[11px] font-medium text-ink-secondary mb-1">
                 Item Type
               </label>
               <select
@@ -130,7 +130,7 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
                   if (val === 'raw_oil') setNewProdUnitCode('ml');
                   else setNewProdUnitCode('pcs');
                 }}
-                className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-white font-medium focus:outline-none focus:border-brand-gold text-xs"
+                className="w-full px-3 py-2 bg-canvas border border-hairline rounded-lg text-ink font-medium focus:outline-none focus:border-accent text-xs"
               >
                 <option value="raw_oil">Fragrance / Attar Oil</option>
                 <option value="sealed_product">Sealed Perfume Box</option>
@@ -141,13 +141,13 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+              <label className="block text-[11px] font-medium text-ink-secondary mb-1">
                 Base Storage Unit
               </label>
               <select
                 value={newProdUnitCode}
                 onChange={(e) => setNewProdUnitCode(e.target.value)}
-                className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-white font-bold focus:outline-none focus:border-brand-gold text-xs"
+                className="w-full px-3 py-2 bg-canvas border border-hairline rounded-lg text-ink font-semibold focus:outline-none focus:border-accent text-xs"
               >
                 <option value="ml">Millilitres (ml)</option>
                 <option value="pcs">Pieces (pcs)</option>
@@ -159,7 +159,7 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
           {/* SKU & Category */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+              <label className="block text-[11px] font-medium text-ink-secondary mb-1">
                 Custom SKU (Optional)
               </label>
               <input
@@ -167,18 +167,18 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
                 value={newProdSku}
                 onChange={(e) => setNewProdSku(e.target.value)}
                 placeholder="Auto-generated if blank"
-                className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-white font-mono focus:outline-none focus:border-brand-gold text-xs"
+                className="w-full px-3 py-2 bg-canvas border border-hairline rounded-lg text-ink font-mono placeholder:text-ink-muted focus:outline-none focus:border-accent text-xs"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+              <label className="block text-[11px] font-medium text-ink-secondary mb-1">
                 Category (Optional)
               </label>
               <select
                 value={newProdCategoryId}
                 onChange={(e) => setNewProdCategoryId(e.target.value)}
-                className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-white focus:outline-none focus:border-brand-gold text-xs"
+                className="w-full px-3 py-2 bg-canvas border border-hairline rounded-lg text-ink focus:outline-none focus:border-accent text-xs"
               >
                 <option value="">None / General</option>
                 {categories.map((c) => (
@@ -193,7 +193,7 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
           {/* Initial Cost Price & Density */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+              <label className="block text-[11px] font-medium text-ink-secondary mb-1">
                 Cost Price (৳ / {newProdUnitCode})
               </label>
               <input
@@ -203,13 +203,13 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
                 value={newProdCostPrice || ''}
                 onChange={(e) => setNewProdCostPrice(Number(e.target.value))}
                 placeholder="e.g. 250"
-                className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-brand-gold font-mono font-bold focus:outline-none focus:border-brand-gold text-xs"
+                className="w-full px-3 py-2 bg-canvas border border-hairline rounded-lg text-accent-ink font-mono font-semibold tabular-nums placeholder:text-ink-muted focus:outline-none focus:border-accent text-xs"
               />
             </div>
 
             {newProdItemType === 'raw_oil' && (
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+                <label className="block text-[11px] font-medium text-ink-secondary mb-1">
                   Density (g / ml)
                 </label>
                 <input
@@ -218,29 +218,29 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
                   value={newProdDensity || ''}
                   onChange={(e) => setNewProdDensity(Number(e.target.value))}
                   placeholder="1.0"
-                  className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-white font-mono focus:outline-none focus:border-brand-gold text-xs"
+                  className="w-full px-3 py-2 bg-canvas border border-hairline rounded-lg text-ink font-mono tabular-nums placeholder:text-ink-muted focus:outline-none focus:border-accent text-xs"
                 />
               </div>
             )}
           </div>
 
           {/* Sellable Toggle & Retail Price */}
-          <div className="p-3 rounded-xl bg-brand-black/60 border border-brand-border space-y-2">
+          <div className="p-3 rounded-xl bg-subtle border border-hairline space-y-2">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={newProdIsSellable}
                 onChange={(e) => setNewProdIsSellable(e.target.checked)}
-                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
+                className="w-4 h-4 rounded accent-accent"
               />
-              <span className="font-semibold text-white">
+              <span className="font-medium text-ink">
                 Make available for POS Sale (Create Sellable Product)
               </span>
             </label>
 
             {newProdIsSellable && (
-              <div className="pt-2 border-t border-brand-border/40">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+              <div className="pt-2 border-t border-hairline">
+                <label className="block text-[11px] font-medium text-ink-secondary mb-1">
                   POS Retail Selling Price (৳)
                 </label>
                 <input
@@ -250,7 +250,7 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
                   value={newProdRetailPrice || ''}
                   onChange={(e) => setNewProdRetailPrice(Number(e.target.value))}
                   placeholder="e.g. 500"
-                  className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-xl text-emerald-400 font-mono font-bold focus:outline-none focus:border-brand-gold text-xs"
+                  className="w-full px-3 py-2 bg-surface border border-hairline rounded-lg text-positive font-mono font-semibold tabular-nums placeholder:text-ink-muted focus:outline-none focus:border-accent text-xs"
                 />
               </div>
             )}
@@ -258,11 +258,11 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
         </div>
 
         {/* Modal Actions */}
-        <div className="pt-3 border-t border-brand-border flex justify-end gap-2.5 shrink-0">
+        <div className="pt-3 border-t border-hairline flex justify-end gap-2.5 shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-brand-border text-xs text-neutral-400 hover:text-white cursor-pointer"
+            className="px-4 py-2 rounded-lg border border-hairline text-xs text-ink-secondary hover:text-ink hover:bg-subtle transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -270,7 +270,7 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
             type="button"
             disabled={newProdSaving || !newProdName.trim()}
             onClick={handleSave}
-            className="px-5 py-2 rounded-xl bg-brand-gold text-brand-black font-extrabold text-xs hover:bg-brand-gold-light transition-all disabled:opacity-50 cursor-pointer"
+            className="px-5 py-2 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs transition-colors disabled:opacity-50 cursor-pointer"
           >
             {newProdSaving ? 'Creating...' : 'Save & Select Item'}
           </button>

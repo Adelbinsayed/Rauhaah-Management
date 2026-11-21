@@ -3,8 +3,53 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg-sidebar-rgb: 242 237 227;
+    --bg-canvas-rgb: 247 244 238;
+    --bg-card-rgb: 253 251 247;
+    --bg-raised-rgb: 239 233 223;
+    --bg-subtle-rgb: 244 239 230;
+    --ink-rgb: 31 27 22;
+    --ink-secondary-rgb: 94 85 74;
+    --ink-muted-rgb: 117 108 96;
+    --accent-rgb: 212 162 28;
+    --accent-hover-rgb: 194 146 22;
+    --accent-ink-rgb: 140 97 4;
+    --accent-fg-rgb: 26 22 17;
+    --positive-rgb: 22 163 74;
+    --negative-rgb: 220 38 38;
+    --warning-rgb: 180 83 9;
+    --border-hairline: rgba(31, 27, 22, 0.09);
+    --border-strong: rgba(31, 27, 22, 0.16);
+    color-scheme: light;
+  }
+
+  .dark {
+    --bg-sidebar-rgb: 18 17 15;
+    --bg-canvas-rgb: 22 21 19;
+    --bg-card-rgb: 28 26 24;
+    --bg-raised-rgb: 38 36 33;
+    --bg-subtle-rgb: 32 30 27;
+    --ink-rgb: 239 233 222;
+    --ink-secondary-rgb: 178 171 160;
+    --ink-muted-rgb: 138 132 122;
+    --accent-rgb: 212 162 28;
+    --accent-hover-rgb: 196 149 24;
+    --accent-ink-rgb: 217 170 43;
+    --accent-fg-rgb: 18 17 15;
+    --positive-rgb: 76 195 138;
+    --negative-rgb: 229 72 77;
+    --warning-rgb: 229 169 59;
+    --border-hairline: rgba(239, 233, 222, 0.08);
+    --border-strong: rgba(239, 233, 222, 0.15);
+    color-scheme: dark;
+  }
+
   body {
     font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    background-color: rgb(var(--bg-canvas-rgb));
+    color: rgb(var(--ink-rgb));
+    transition: background-color 180ms cubic-bezier(0.22, 1, 0.36, 1), color 180ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .tabular-nums {
@@ -14,11 +59,11 @@
   /* Custom Rauhaah scrollbars (WebView2 / Chromium) */
   * {
     scrollbar-width: thin;
-    scrollbar-color: #d4d4d4 transparent;
+    scrollbar-color: rgba(31, 27, 22, 0.18) transparent;
   }
 
   .dark * {
-    scrollbar-color: #3a3a3a transparent;
+    scrollbar-color: rgba(239, 233, 222, 0.16) transparent;
   }
 
   ::-webkit-scrollbar {
@@ -31,17 +76,17 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: rgba(163, 163, 163, 0.45);
+    background-color: rgba(31, 27, 22, 0.18);
     border-radius: 9999px;
-    transition: background-color 0.2s ease;
+    transition: background-color 150ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .dark ::-webkit-scrollbar-thumb {
-    background-color: #3a3a3a;
+    background-color: rgba(239, 233, 222, 0.16);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(239, 184, 16, 0.75);
+    background-color: rgba(212, 162, 28, 0.65);
   }
 
   ::-webkit-scrollbar-corner {

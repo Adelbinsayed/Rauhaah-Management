@@ -63,39 +63,39 @@ export const DecantPourModal: React.FC<DecantPourModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-brand-surface border border-brand-border rounded-2xl shadow-2xl p-6 space-y-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+      <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-5">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-brand-border">
+        <div className="flex items-center justify-between pb-3 border-b border-hairline">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-              <Droplet className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-lg bg-accent/12 border border-accent/25 flex items-center justify-center text-accent-ink shrink-0">
+              <Droplet className="w-4 h-4" strokeWidth={1.5} />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white leading-tight">{product.name}</h3>
-              <p className="text-xs text-neutral-400 mt-0.5">
-                Stock in hand:{' '}
-                <strong className={stockAvailable <= 5 ? 'text-red-400' : 'text-emerald-400'}>
+              <h3 className="text-base font-medium text-ink leading-tight">{product.name}</h3>
+              <p className="text-xs text-ink-muted mt-0.5 tabular-nums">
+                In hand{' '}
+                <strong className={`font-medium ${stockAvailable <= 5 ? 'text-negative' : 'text-positive'}`}>
                   {stockAvailable} ml
                 </strong>
-                {' '}&bull;{' '}Benchmark Rate:{' '}
-                <strong className="text-brand-gold font-mono">৳{product.retailPriceBdt}/ml</strong>
+                {' '}· Benchmark{' '}
+                <strong className="text-accent-ink font-mono font-medium">৳{product.retailPriceBdt}/ml</strong>
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+            className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised transition-colors duration-150 ease-unslop"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" strokeWidth={1.5} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Bottle Size Presets */}
           <div className="space-y-2">
-            <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider">
-              1. Select Pouring Volume (Bottle Size)
+            <label className="block text-xs font-medium text-ink-secondary">
+              1. Pouring volume (bottle size)
             </label>
             <div className="grid grid-cols-4 gap-2">
               {PRESET_BOTTLE_SIZES.map((b) => (
@@ -106,10 +106,10 @@ export const DecantPourModal: React.FC<DecantPourModalProps> = ({
                     setSelectedSize(b.size);
                     setIsCustom(false);
                   }}
-                  className={`py-2 px-2 rounded-xl text-xs font-bold transition-all ${
+                  className={`py-2 px-2 rounded-lg text-xs font-medium transition-colors duration-150 ease-unslop ${
                     !isCustom && selectedSize === b.size
-                      ? 'bg-amber-500 text-brand-black shadow-md shadow-amber-500/20'
-                      : 'bg-brand-black border border-brand-border text-neutral-300 hover:border-neutral-600'
+                      ? 'bg-accent text-accent-fg font-semibold'
+                      : 'bg-raised border border-hairline text-ink-secondary hover:border-hairline-strong hover:text-ink'
                   }`}
                 >
                   {b.label}
@@ -119,10 +119,10 @@ export const DecantPourModal: React.FC<DecantPourModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsCustom(true)}
-                className={`py-2 px-2 rounded-xl text-xs font-bold transition-all ${
+                className={`py-2 px-2 rounded-lg text-xs font-medium transition-colors duration-150 ease-unslop ${
                   isCustom
-                    ? 'bg-amber-500 text-brand-black shadow-md shadow-amber-500/20'
-                    : 'bg-brand-black border border-brand-border text-neutral-300 hover:border-neutral-600'
+                    ? 'bg-accent text-accent-fg font-semibold'
+                    : 'bg-raised border border-hairline text-ink-secondary hover:border-hairline-strong hover:text-ink'
                 }`}
               >
                 Custom ml
@@ -140,10 +140,10 @@ export const DecantPourModal: React.FC<DecantPourModalProps> = ({
                     required
                     value={customMl}
                     onChange={(e) => setCustomMl(e.target.value)}
-                    placeholder="Enter custom ml (e.g. 5, 8, 25)"
-                    className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
+                    placeholder="Custom ml (e.g. 5, 8, 25)"
+                    className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-sm text-ink font-mono tabular-nums focus:outline-none focus:border-accent"
                   />
-                  <span className="absolute right-3 top-2.5 text-xs text-neutral-500 font-bold">
+                  <span className="absolute right-3 top-2.5 text-xs text-ink-muted font-medium">
                     ml
                   </span>
                 </div>
@@ -152,16 +152,16 @@ export const DecantPourModal: React.FC<DecantPourModalProps> = ({
           </div>
 
           {/* Flexible Price Per ML */}
-          <div className="p-3.5 rounded-xl bg-brand-black/70 border border-brand-border space-y-2">
+          <div className="p-3.5 rounded-lg bg-raised/70 border border-hairline space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
-                2. Rate Per ML (Flexible Pricing)
+              <label className="text-xs font-medium text-ink-secondary">
+                2. Rate per ml
               </label>
               {parsedRate !== product.retailPriceBdt && (
                 <button
                   type="button"
                   onClick={() => setUnitRate(String(product.retailPriceBdt))}
-                  className="text-[10px] text-brand-gold hover:underline font-semibold"
+                  className="text-xs text-accent-ink hover:underline font-medium"
                 >
                   Reset to ৳{product.retailPriceBdt}
                 </button>
@@ -169,7 +169,7 @@ export const DecantPourModal: React.FC<DecantPourModalProps> = ({
             </div>
 
             <div className="relative">
-              <span className="absolute left-3 top-2 text-sm text-neutral-500 font-bold">৳</span>
+              <span className="absolute left-3 top-2 text-sm text-ink-muted font-medium">৳</span>
               <input
                 type="number"
                 step="any"
@@ -177,41 +177,41 @@ export const DecantPourModal: React.FC<DecantPourModalProps> = ({
                 required
                 value={unitRate}
                 onChange={(e) => setUnitRate(e.target.value)}
-                className="w-full pl-8 pr-16 py-1.5 bg-brand-surface border border-brand-border rounded-lg text-sm text-white font-mono font-bold focus:outline-none focus:border-brand-gold"
+                className="w-full pl-8 pr-16 py-1.5 bg-surface border border-hairline rounded-lg text-sm text-ink font-mono tabular-nums font-medium focus:outline-none focus:border-accent"
               />
-              <span className="absolute right-3 top-2 text-xs text-neutral-400">/ ml</span>
+              <span className="absolute right-3 top-2 text-xs text-ink-muted">/ ml</span>
             </div>
-            <p className="text-[10px] text-neutral-400">
-              You can adjust this rate up or down freely for this customer sale.
+            <p className="text-xs text-ink-muted">
+              You can adjust this rate up or down for this sale
             </p>
           </div>
 
-          {/* Overstock Warning (allowed under negative-stock policy) */}
+          {/* Overstock Warning */}
           {isOverStock && (
-            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>
-                Note: {currentMl} ml exceeds current stock ({stockAvailable} ml). Negative stock warning.
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-warning/10 border border-warning/25 text-warning text-xs">
+              <AlertTriangle className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+              <span className="tabular-nums">
+                {currentMl} ml exceeds current stock ({stockAvailable} ml)
               </span>
             </div>
           )}
 
           {/* Line Total Summary Card */}
-          <div className="p-4 rounded-xl bg-brand-black border border-brand-gold/40 flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-raised border border-accent/30 flex items-center justify-between">
             <div>
-              <div className="text-[10px] text-neutral-400 uppercase font-semibold">Line Amount</div>
-              <div className="text-xl font-bold text-brand-gold font-mono">
+              <div className="text-xs text-ink-muted font-medium">Line amount</div>
+              <div className="text-xl font-medium text-accent-ink font-mono tabular-nums">
                 ৳{lineTotal.toFixed(2)}
               </div>
             </div>
 
-            <div className="text-right text-[11px] text-neutral-400">
+            <div className="text-right text-xs text-ink-muted tabular-nums">
               <div>
-                Volume: <strong className="text-white font-mono">{currentMl} ml</strong>
+                Volume <strong className="text-ink font-mono font-medium">{currentMl} ml</strong>
               </div>
               {lineTotal !== idealTotal && (
-                <div className="text-neutral-500 line-through font-mono">
-                  Ideal: ৳{idealTotal}
+                <div className="text-ink-muted line-through font-mono">
+                  Ideal ৳{idealTotal}
                 </div>
               )}
             </div>
@@ -222,16 +222,16 @@ export const DecantPourModal: React.FC<DecantPourModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-brand-border text-neutral-300 hover:text-white text-xs font-semibold"
+              className="px-4 py-2 rounded-lg border border-hairline bg-raised text-ink-secondary hover:text-ink text-xs font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-brand-gold hover:bg-brand-gold-light text-brand-black text-xs font-bold transition-all shadow-lg shadow-brand-gold/15"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-xs font-semibold transition-colors duration-150 ease-unslop"
             >
               <span>Add to Cart</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4" strokeWidth={1.75} />
             </button>
           </div>
         </form>

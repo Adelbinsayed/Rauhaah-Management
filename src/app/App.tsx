@@ -62,9 +62,9 @@ const ImportScreen = lazy(() =>
 
 function ScreenFallback() {
   return (
-    <div className="h-full w-full flex flex-col items-center justify-center p-8 space-y-3 animate-in fade-in duration-150 select-none">
-      <div className="w-7 h-7 rounded-full border-2 border-brand-gold border-t-transparent animate-spin" />
-      <span className="text-xs text-neutral-400 font-mono tracking-wider">Loading module…</span>
+    <div className="h-full w-full flex flex-col items-center justify-center p-8 space-y-3 select-none">
+      <div className="w-6 h-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+      <span className="text-xs text-ink-muted font-mono">Loading module…</span>
     </div>
   );
 }
@@ -139,9 +139,9 @@ export function App() {
 
   if (initLoading) {
     return (
-      <div className="h-screen w-screen bg-[#202020] text-white flex flex-col items-center justify-center p-6 space-y-4">
-        <div className="w-8 h-8 rounded-full border-2 border-brand-gold border-t-transparent animate-spin" />
-        <p className="text-xs text-neutral-400 font-mono tracking-wider">Connecting database…</p>
+      <div className="h-screen w-screen bg-canvas text-ink flex flex-col items-center justify-center p-6 space-y-4">
+        <div className="w-7 h-7 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+        <p className="text-xs text-ink-muted font-mono">Connecting database…</p>
       </div>
     );
   }
@@ -174,7 +174,7 @@ export function App() {
   }
 
   return (
-    <div className="flex h-screen bg-white text-neutral-900 dark:bg-brand-black dark:text-white overflow-hidden">
+    <div className="flex h-screen bg-canvas text-ink overflow-hidden">
       {/* Auto-Lock Screen Overlay */}
       {isLocked && <LockScreen deviceId={deviceId} />}
 
@@ -188,22 +188,22 @@ export function App() {
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header Bar */}
-        <header className="h-14 shrink-0 border-b border-neutral-200 dark:border-brand-border px-6 flex items-center justify-between bg-white dark:bg-brand-black select-none">
+        <header className="h-14 shrink-0 border-b border-hairline px-6 flex items-center justify-between bg-canvas select-none">
           <div className="flex items-center gap-3">
-            <h1 className="text-base font-bold capitalize tracking-tight">
+            <h1 className="text-base font-medium capitalize text-ink">
               {activeRoute.replace('-', ' ')}
             </h1>
             {shopSettings?.shopName && (
-              <span className="text-xs text-neutral-400 hidden sm:inline">
+              <span className="text-xs text-ink-muted hidden sm:inline">
                 · {shopSettings.shopName}
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Role indicator pill */}
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-gold/15 border border-brand-gold/40 text-brand-gold">
-              <Shield className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2">
+            {/* Role indicator */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-raised border border-hairline text-ink-secondary">
+              <Shield className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
               <span>{currentUser.roleDisplayName}</span>
             </div>
 
@@ -212,9 +212,9 @@ export function App() {
               type="button"
               onClick={lockSession}
               title="Lock Terminal"
-              className="p-2 rounded-md border border-neutral-200 dark:border-brand-border hover:bg-neutral-100 dark:hover:bg-brand-surface text-neutral-600 dark:text-neutral-300 transition-colors cursor-pointer"
+              className="p-2 rounded-lg border border-hairline bg-surface hover:bg-raised text-ink-secondary hover:text-ink transition-colors duration-150 ease-unslop cursor-pointer"
             >
-              <Lock className="w-4 h-4" />
+              <Lock className="w-4 h-4" strokeWidth={1.5} />
             </button>
 
             {/* Theme toggle */}
@@ -222,12 +222,12 @@ export function App() {
               type="button"
               onClick={toggleTheme}
               title={theme === 'dark' ? en.common.lightMode : en.common.darkMode}
-              className="p-2 rounded-md border border-neutral-200 dark:border-brand-border hover:bg-neutral-100 dark:hover:bg-brand-surface transition-colors cursor-pointer"
+              className="p-2 rounded-lg border border-hairline bg-surface hover:bg-raised text-ink-secondary hover:text-ink transition-colors duration-150 ease-unslop cursor-pointer"
             >
               {theme === 'dark' ? (
-                <Sun className="w-4 h-4 text-brand-gold" />
+                <Sun className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
               ) : (
-                <Moon className="w-4 h-4 text-neutral-700" />
+                <Moon className="w-4 h-4 text-ink-secondary" strokeWidth={1.5} />
               )}
             </button>
           </div>
@@ -281,11 +281,11 @@ export function App() {
               activeRoute !== 'expenses' &&
               activeRoute !== 'reports' && (
               <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
-                <div className="w-12 h-12 rounded-full bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold mb-4">
-                  <Package className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-full bg-accent/15 border border-accent/25 flex items-center justify-center text-accent-ink mb-4">
+                  <Package className="w-5 h-5" strokeWidth={1.5} />
                 </div>
-                <h2 className="text-lg font-bold capitalize">{activeRoute.replace('-', ' ')}</h2>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                <h2 className="text-lg font-semibold text-ink capitalize">{activeRoute.replace('-', ' ')}</h2>
+                <p className="text-xs text-ink-secondary mt-1">
                   {en.common.comingSoon}. This module is scheduled for development in its upcoming phase.
                 </p>
               </div>

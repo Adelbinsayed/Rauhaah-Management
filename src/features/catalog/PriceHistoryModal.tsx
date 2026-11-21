@@ -32,37 +32,37 @@ export const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-      <div className="w-full max-w-2xl bg-brand-surface border border-brand-border rounded-xl shadow-2xl p-6 my-8 space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px] overflow-y-auto">
+      <div className="w-full max-w-2xl bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 my-8 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-brand-border">
+        <div className="flex items-center justify-between pb-4 border-b border-hairline">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold">
-              <History className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-lg bg-accent/12 border border-accent/25 flex items-center justify-center text-accent-ink">
+              <History className="w-4 h-4" strokeWidth={1.5} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Price Revision Audit Log</h2>
-              <p className="text-xs text-neutral-400">
-                {sellableName ? `Audit trail for "${sellableName}"` : 'All recent price modifications'}
+              <h2 className="text-base font-medium text-ink">Price revision audit log</h2>
+              <p className="text-xs text-ink-muted">
+                {sellableName ? `Audit trail for "${sellableName}"` : 'Recent price modifications'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+            className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised transition-colors duration-150 ease-unslop"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" strokeWidth={1.5} />
           </button>
         </div>
 
         {loading ? (
-          <div className="py-12 text-center text-neutral-400 text-xs">Loading price logs...</div>
+          <div className="py-12 text-center text-ink-muted text-xs">Loading price logs…</div>
         ) : history.length === 0 ? (
-          <div className="py-12 text-center text-neutral-500 text-xs italic">
-            No price revisions recorded yet.
+          <div className="py-12 text-center text-ink-muted text-xs">
+            No price revisions recorded yet
           </div>
         ) : (
-          <div className="max-h-[400px] overflow-y-auto space-y-3 pr-1">
+          <div className="max-h-[400px] overflow-y-auto space-y-2.5 pr-1">
             {history.map((entry) => {
               const diff = entry.newPrice - entry.oldPrice;
               const isIncrease = diff > 0;
@@ -71,33 +71,33 @@ export const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({
               return (
                 <div
                   key={entry.id}
-                  className="p-3.5 rounded-xl bg-brand-black/60 border border-brand-border flex items-center justify-between gap-4"
+                  className="p-3.5 rounded-xl bg-raised border border-hairline flex items-center justify-between gap-4"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-white">
+                      <span className="text-xs font-medium text-ink">
                         {entry.sellableName || 'Product'}
                       </span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase bg-neutral-800 text-neutral-300">
-                        {entry.priceType} Price
+                      <span className="px-1.5 py-0.5 rounded text-[11px] font-medium capitalize bg-surface border border-hairline text-ink-secondary">
+                        {entry.priceType} price
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-3 text-[11px] text-neutral-400">
+                    <div className="flex items-center gap-3 text-xs text-ink-muted tabular-nums">
                       <span className="inline-flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-neutral-500" />
+                        <Clock className="w-3 h-3" strokeWidth={1.5} />
                         {new Date(entry.createdAt).toLocaleString()}
                       </span>
                       {entry.changedByUsername && (
                         <span className="inline-flex items-center gap-1">
-                          <UserIcon className="w-3 h-3 text-neutral-500" />
+                          <UserIcon className="w-3 h-3" strokeWidth={1.5} />
                           {entry.changedByUsername}
                         </span>
                       )}
                     </div>
 
                     {entry.changeReason && (
-                      <p className="text-xs text-brand-gold/90 italic">
+                      <p className="text-xs text-accent-ink">
                         &ldquo;{entry.changeReason}&rdquo;
                       </p>
                     )}
@@ -105,24 +105,24 @@ export const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({
 
                   <div className="text-right shrink-0">
                     <div className="flex items-center justify-end gap-1.5">
-                      <span className="text-xs text-neutral-500 font-mono line-through">
+                      <span className="text-xs text-ink-muted font-mono tabular-nums line-through">
                         {isNew ? 'New' : `৳${entry.oldPrice}`}
                       </span>
-                      <span className="text-sm font-bold text-white font-mono">
+                      <span className="text-sm font-medium text-ink font-mono tabular-nums">
                         ৳{entry.newPrice}
                       </span>
                     </div>
 
                     {!isNew && (
                       <div
-                        className={`inline-flex items-center gap-0.5 text-[11px] font-mono font-semibold ${
-                          isIncrease ? 'text-emerald-400' : 'text-red-400'
+                        className={`inline-flex items-center gap-0.5 text-xs font-mono tabular-nums font-medium ${
+                          isIncrease ? 'text-positive' : 'text-negative'
                         }`}
                       >
                         {isIncrease ? (
-                          <TrendingUp className="w-3 h-3" />
+                          <TrendingUp className="w-3 h-3" strokeWidth={1.5} />
                         ) : (
-                          <TrendingDown className="w-3 h-3" />
+                          <TrendingDown className="w-3 h-3" strokeWidth={1.5} />
                         )}
                         <span>
                           {isIncrease ? '+' : ''}
@@ -137,10 +137,10 @@ export const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({
           </div>
         )}
 
-        <div className="flex justify-end pt-2 border-t border-brand-border">
+        <div className="flex justify-end pt-3 border-t border-hairline">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold"
+            className="px-4 py-2 rounded-lg bg-raised border border-hairline hover:border-hairline-strong text-ink text-xs font-medium"
           >
             Close
           </button>

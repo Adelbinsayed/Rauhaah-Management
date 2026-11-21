@@ -12,7 +12,7 @@ import {
   Search,
   FileText,
   Clock,
-  Sparkles,
+  Award,
   RefreshCw,
   CreditCard,
   CheckCircle2,
@@ -97,39 +97,37 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   if (loading && !summary) {
     return (
       <div className="h-96 flex flex-col items-center justify-center space-y-3">
-        <RefreshCw className="w-8 h-8 text-brand-gold animate-spin" />
-        <p className="text-xs text-neutral-400 font-mono">Loading live shop dashboard…</p>
+        <RefreshCw className="w-6 h-6 text-accent-ink animate-spin" strokeWidth={1.5} />
+        <p className="text-xs text-ink-muted font-mono">Loading shop dashboard…</p>
       </div>
     );
   }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12 select-none">
-      {/* Top Welcome & Shift Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-neutral-900 border border-brand-border text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 bottom-0 w-96 bg-gradient-to-l from-brand-gold/10 to-transparent pointer-events-none" />
-
-        <div className="space-y-1.5 relative z-10">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-gold/20 text-brand-gold border border-brand-gold/40 flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              {currentUser?.roleDisplayName || 'Staff'} Active
+      {/* Top Counter Context & Period Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-xl bg-surface border border-hairline text-ink">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium bg-accent/12 text-accent-ink border border-accent/25">
+              <ShieldCheck className="w-3.5 h-3.5" strokeWidth={1.5} />
+              {currentUser?.roleDisplayName || 'Staff'} active
             </span>
-            <span className="text-xs text-neutral-400 font-mono">
-              Terminal: {shopSettings?.shopName || 'Rauhaah Flagship'}
+            <span className="text-xs text-ink-muted font-mono">
+              Terminal: {shopSettings?.shopName || 'Rauhaah Flagship'} · {currentUser?.displayName}
             </span>
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-            <span>Welcome, {currentUser?.displayName}!</span>
+          <h1 className="text-2xl font-medium text-ink">
+            Counter overview — {summary?.dateRangeLabel || 'Today'}
           </h1>
-          <p className="text-xs text-neutral-400">
-            Live overview of today’s retail counter, physical cash flow, and stock movements.
+          <p className="text-xs text-ink-secondary">
+            Retail counter sales, physical cash flow, and inventory levels
           </p>
         </div>
 
         {/* Timeframe Controls & Refresh */}
-        <div className="flex items-center gap-2 relative z-10 flex-wrap">
-          <div className="flex items-center bg-brand-surface rounded-xl p-1 border border-brand-border">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center bg-raised rounded-lg p-1 border border-hairline">
             {(
               [
                 { id: 'today', label: 'Today' },
@@ -142,10 +140,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                 key={t.id}
                 type="button"
                 onClick={() => setTimeframe(t.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-150 ease-unslop ${
                   timeframe === t.id
-                    ? 'bg-brand-gold text-black shadow-md'
-                    : 'text-neutral-400 hover:text-white'
+                    ? 'bg-accent text-accent-fg font-semibold'
+                    : 'text-ink-secondary hover:text-ink'
                 }`}
               >
                 {t.label}
@@ -158,9 +156,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
             onClick={() => loadDashboardData(true)}
             disabled={refreshing}
             title="Refresh Live Data"
-            className="p-2.5 rounded-xl border border-brand-border bg-brand-surface text-neutral-300 hover:text-brand-gold hover:border-brand-gold/50 transition-colors"
+            className="p-2 rounded-lg border border-hairline bg-raised text-ink-secondary hover:text-ink hover:border-hairline-strong transition-colors duration-150 ease-unslop"
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-brand-gold' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-accent-ink' : ''}`} strokeWidth={1.5} />
           </button>
         </div>
       </div>
@@ -170,54 +168,54 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
         <button
           type="button"
           onClick={() => handleNavigate('pos')}
-          className="group flex flex-col items-center justify-center p-3.5 rounded-xl bg-brand-gold hover:bg-brand-gold/90 text-black font-bold text-xs transition-all shadow-lg shadow-brand-gold/10 hover:shadow-brand-gold/20"
+          className="flex flex-col items-center justify-center p-4 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs transition-colors duration-150 ease-unslop"
         >
-          <ShoppingCart className="w-5 h-5 mb-1.5 group-hover:scale-110 transition-transform" />
+          <ShoppingCart className="w-4 h-4 mb-2" strokeWidth={1.75} />
           <span>New Sale (POS)</span>
         </button>
 
         <button
           type="button"
           onClick={() => handleNavigate('price-checker')}
-          className="group flex flex-col items-center justify-center p-3.5 rounded-xl bg-neutral-800 hover:bg-neutral-700/80 border border-brand-border text-white font-semibold text-xs transition-all hover:border-brand-gold/50"
+          className="flex flex-col items-center justify-center p-4 rounded-xl bg-surface hover:bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs transition-colors duration-150 ease-unslop"
         >
-          <Search className="w-5 h-5 mb-1.5 text-brand-gold group-hover:scale-110 transition-transform" />
+          <Search className="w-4 h-4 mb-2 text-accent-ink" strokeWidth={1.5} />
           <span>Price Checker</span>
         </button>
 
         <button
           type="button"
           onClick={() => handleNavigate('purchases')}
-          className="group flex flex-col items-center justify-center p-3.5 rounded-xl bg-neutral-800 hover:bg-neutral-700/80 border border-brand-border text-white font-semibold text-xs transition-all hover:border-brand-gold/50"
+          className="flex flex-col items-center justify-center p-4 rounded-xl bg-surface hover:bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs transition-colors duration-150 ease-unslop"
         >
-          <ShoppingBag className="w-5 h-5 mb-1.5 text-blue-400 group-hover:scale-110 transition-transform" />
+          <ShoppingBag className="w-4 h-4 mb-2 text-ink-muted" strokeWidth={1.5} />
           <span>Stock Intake</span>
         </button>
 
         <button
           type="button"
           onClick={() => handleNavigate('expenses')}
-          className="group flex flex-col items-center justify-center p-3.5 rounded-xl bg-neutral-800 hover:bg-neutral-700/80 border border-brand-border text-white font-semibold text-xs transition-all hover:border-brand-gold/50"
+          className="flex flex-col items-center justify-center p-4 rounded-xl bg-surface hover:bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs transition-colors duration-150 ease-unslop"
         >
-          <Wallet className="w-5 h-5 mb-1.5 text-rose-400 group-hover:scale-110 transition-transform" />
+          <Wallet className="w-4 h-4 mb-2 text-ink-muted" strokeWidth={1.5} />
           <span>Daily Expense</span>
         </button>
 
         <button
           type="button"
           onClick={() => handleNavigate('customers')}
-          className="group flex flex-col items-center justify-center p-3.5 rounded-xl bg-neutral-800 hover:bg-neutral-700/80 border border-brand-border text-white font-semibold text-xs transition-all hover:border-brand-gold/50"
+          className="flex flex-col items-center justify-center p-4 rounded-xl bg-surface hover:bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs transition-colors duration-150 ease-unslop"
         >
-          <Users className="w-5 h-5 mb-1.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+          <Users className="w-4 h-4 mb-2 text-ink-muted" strokeWidth={1.5} />
           <span>Customer Dues</span>
         </button>
 
         <button
           type="button"
           onClick={() => handleNavigate('reports')}
-          className="group flex flex-col items-center justify-center p-3.5 rounded-xl bg-neutral-800 hover:bg-neutral-700/80 border border-brand-border text-white font-semibold text-xs transition-all hover:border-brand-gold/50"
+          className="flex flex-col items-center justify-center p-4 rounded-xl bg-surface hover:bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs transition-colors duration-150 ease-unslop"
         >
-          <FileText className="w-5 h-5 mb-1.5 text-amber-400 group-hover:scale-110 transition-transform" />
+          <FileText className="w-4 h-4 mb-2 text-ink-muted" strokeWidth={1.5} />
           <span>Financial Reports</span>
         </button>
       </div>
@@ -225,109 +223,105 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 1. Net Sales Revenue */}
-        <div className="p-5 rounded-2xl bg-neutral-900 border border-brand-border flex flex-col justify-between shadow-lg relative overflow-hidden">
-          <div className="space-y-1">
+        <div className="p-5 rounded-xl bg-surface border border-hairline flex flex-col justify-between">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
-                Net Sales ({summary?.dateRangeLabel || 'Period'})
+              <span className="text-xs font-medium text-ink-muted">
+                Net sales ({summary?.dateRangeLabel || 'Period'})
               </span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                <TrendingUp className="w-4 h-4" />
-              </div>
+              <TrendingUp className="w-4 h-4 text-ink-muted" strokeWidth={1.5} />
             </div>
-            <div className="text-2xl font-black text-white tracking-tight">
+            <div className="text-2xl font-medium text-ink font-mono tabular-nums">
               {formatBdt(summary?.netRevenueBdt || 0)}
             </div>
           </div>
-          <div className="pt-4 border-t border-brand-border/60 flex items-center justify-between text-xs text-neutral-400">
-            <span>{summary?.ordersCount || 0} Invoices</span>
-            <span>Avg: {formatBdt(summary?.averageOrderValueBdt || 0)}</span>
+          <div className="pt-4 mt-4 border-t border-hairline flex items-center justify-between text-xs text-ink-muted tabular-nums">
+            <span>{summary?.ordersCount || 0} invoices</span>
+            <span>Avg {formatBdt(summary?.averageOrderValueBdt || 0)}</span>
           </div>
         </div>
 
         {/* 2. Net Operating Profit or Sales Velocity */}
-        <div className="p-5 rounded-2xl bg-neutral-900 border border-brand-border flex flex-col justify-between shadow-lg relative overflow-hidden">
-          <div className="space-y-1">
+        <div className="p-5 rounded-xl bg-surface border border-hairline flex flex-col justify-between">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
-                {hasCostPermission ? `Net Profit (${summary?.dateRangeLabel})` : 'Items Sold & Velocity'}
+              <span className="text-xs font-medium text-ink-muted">
+                {hasCostPermission ? `Net profit (${summary?.dateRangeLabel})` : 'Items sold'}
               </span>
-              <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-brand-gold">
-                {hasCostPermission ? <DollarSign className="w-4 h-4" /> : <Package className="w-4 h-4" />}
-              </div>
+              {hasCostPermission ? (
+                <DollarSign className="w-4 h-4 text-ink-muted" strokeWidth={1.5} />
+              ) : (
+                <Package className="w-4 h-4 text-ink-muted" strokeWidth={1.5} />
+              )}
             </div>
-            <div className="text-2xl font-black text-white tracking-tight">
+            <div className="text-2xl font-medium text-ink font-mono tabular-nums">
               {hasCostPermission ? (
                 formatBdt(summary?.netProfitBdt || 0)
               ) : (
-                `${summary?.itemsSoldCount || 0} Units Sold`
+                `${summary?.itemsSoldCount || 0} units`
               )}
             </div>
           </div>
-          <div className="pt-4 border-t border-brand-border/60 flex items-center justify-between text-xs text-neutral-400">
+          <div className="pt-4 mt-4 border-t border-hairline flex items-center justify-between text-xs text-ink-muted tabular-nums">
             {hasCostPermission ? (
               <>
-                <span className="text-emerald-400 font-semibold">
-                  Margin: {summary?.grossMarginPercent || 0}%
+                <span className="text-positive font-medium">
+                  Margin {summary?.grossMarginPercent || 0}%
                 </span>
-                <span>Exp: {formatBdt(summary?.operatingExpensesBdt || 0)}</span>
+                <span>Exp {formatBdt(summary?.operatingExpensesBdt || 0)}</span>
               </>
             ) : (
-              <span className="text-amber-400 flex items-center gap-1 text-[11px]">
-                <Lock className="w-3 h-3" /> Profit confidential to Admin
+              <span className="text-ink-muted flex items-center gap-1.5 text-xs">
+                <Lock className="w-3.5 h-3.5" strokeWidth={1.5} /> Profit restricted to Admin
               </span>
             )}
           </div>
         </div>
 
         {/* 3. Physical Cash Drawer Added */}
-        <div className="p-5 rounded-2xl bg-neutral-900 border border-brand-border flex flex-col justify-between shadow-lg relative overflow-hidden">
-          <div className="space-y-1">
+        <div className="p-5 rounded-xl bg-surface border border-hairline flex flex-col justify-between">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
-                Counter Cash Added
+              <span className="text-xs font-medium text-ink-muted">
+                Counter cash added
               </span>
-              <div className="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
-                <Wallet className="w-4 h-4" />
-              </div>
+              <Wallet className="w-4 h-4 text-ink-muted" strokeWidth={1.5} />
             </div>
-            <div className="text-2xl font-black text-white tracking-tight">
+            <div className="text-2xl font-medium text-ink font-mono tabular-nums">
               {formatBdt(summary?.counterCashBalanceBdt || 0)}
             </div>
           </div>
-          <div className="pt-4 border-t border-brand-border/60 flex items-center justify-between text-xs text-neutral-400">
-            <span className="text-emerald-400 flex items-center gap-0.5">
-              <ArrowUpRight className="w-3.5 h-3.5" />
-              In: {formatBdt((summary?.cashSalesBdt || 0) + (summary?.customerDuesCollectedCashBdt || 0))}
+          <div className="pt-4 mt-4 border-t border-hairline flex items-center justify-between text-xs tabular-nums">
+            <span className="text-positive flex items-center gap-1">
+              <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={1.5} />
+              In {formatBdt((summary?.cashSalesBdt || 0) + (summary?.customerDuesCollectedCashBdt || 0))}
             </span>
-            <span className="text-rose-400 flex items-center gap-0.5">
-              <ArrowDownRight className="w-3.5 h-3.5" />
-              Out: {formatBdt(summary?.cashExpensesBdt || 0)}
+            <span className="text-negative flex items-center gap-1">
+              <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={1.5} />
+              Out {formatBdt(summary?.cashExpensesBdt || 0)}
             </span>
           </div>
         </div>
 
         {/* 4. Customer Credit / Receivables */}
-        <div className="p-5 rounded-2xl bg-neutral-900 border border-brand-border flex flex-col justify-between shadow-lg relative overflow-hidden">
-          <div className="space-y-1">
+        <div className="p-5 rounded-xl bg-surface border border-hairline flex flex-col justify-between">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
-                Customer Dues / Ledger
+              <span className="text-xs font-medium text-ink-muted">
+                Customer dues ledger
               </span>
-              <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                <Users className="w-4 h-4" />
-              </div>
+              <Users className="w-4 h-4 text-ink-muted" strokeWidth={1.5} />
             </div>
-            <div className="text-2xl font-black text-rose-400 tracking-tight">
+            <div className="text-2xl font-medium text-negative font-mono tabular-nums">
               {formatBdt(summary?.totalOutstandingCustomerDuesBdt || 0)}
             </div>
           </div>
-          <div className="pt-4 border-t border-brand-border/60 flex items-center justify-between text-xs text-neutral-400">
-            <span>Period Incurred: {formatBdt(summary?.customerDuesIncurredBdt || 0)}</span>
+          <div className="pt-4 mt-4 border-t border-hairline flex items-center justify-between text-xs text-ink-muted tabular-nums">
+            <span>Period {formatBdt(summary?.customerDuesIncurredBdt || 0)}</span>
             <button
               type="button"
               onClick={() => handleNavigate('customers')}
-              className="text-brand-gold hover:underline font-semibold"
+              className="text-accent-ink hover:underline font-medium"
             >
               Collect →
             </button>
@@ -340,27 +334,27 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
         {/* Left 2 Cols: Low Stock Alerts + Payment Methods */}
         <div className="lg:col-span-2 space-y-6">
           {/* Inventory Low Stock Alert Widget */}
-          <div className="p-5 rounded-2xl bg-neutral-900 border border-brand-border space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-brand-border">
+          <div className="p-5 rounded-xl bg-surface border border-hairline space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-hairline">
               <div className="flex items-center gap-2.5">
                 <div
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center border ${
                     lowStockItems.length > 0
-                      ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400'
-                      : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+                      ? 'bg-warning/10 border-warning/25 text-warning'
+                      : 'bg-positive/10 border-positive/25 text-positive'
                   }`}
                 >
                   {lowStockItems.length > 0 ? (
-                    <AlertTriangle className="w-4 h-4" />
+                    <AlertTriangle className="w-4 h-4" strokeWidth={1.5} />
                   ) : (
-                    <CheckCircle2 className="w-4 h-4" />
+                    <CheckCircle2 className="w-4 h-4" strokeWidth={1.5} />
                   )}
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Inventory Health & Stock Alerts</h3>
-                  <p className="text-[11px] text-neutral-400">
+                  <h3 className="text-sm font-medium text-ink">Inventory health and stock alerts</h3>
+                  <p className="text-xs text-ink-muted">
                     {lowStockItems.length > 0
-                      ? `${lowStockItems.length} items have fallen below their safety threshold`
+                      ? `${lowStockItems.length} items below safety threshold`
                       : 'All products currently have adequate stock on hand'}
                   </p>
                 </div>
@@ -369,36 +363,36 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               <button
                 type="button"
                 onClick={() => handleNavigate('stock')}
-                className="text-xs text-brand-gold hover:underline font-semibold flex items-center gap-1"
+                className="text-xs text-accent-ink hover:underline font-medium flex items-center gap-1"
               >
-                <span>View Inventory</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+                <span>View inventory</span>
+                <ChevronRight className="w-3.5 h-3.5" strokeWidth={1.5} />
               </button>
             </div>
 
             {lowStockItems.length > 0 ? (
-              <div className="divide-y divide-brand-border/40">
+              <div className="divide-y divide-hairline">
                 {lowStockItems.map((item) => (
                   <div key={item.id} className="py-2.5 flex items-center justify-between text-xs">
                     <div>
-                      <div className="font-semibold text-white">{item.name}</div>
-                      <div className="text-[11px] text-neutral-400">
-                        SKU: <span className="font-mono">{item.sku}</span> · {item.categoryName || 'General'}
+                      <div className="font-medium text-ink">{item.name}</div>
+                      <div className="text-xs text-ink-muted">
+                        SKU <span className="font-mono">{item.sku}</span> · {item.categoryName || 'General'}
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className="font-bold text-rose-400">
+                      <div className="text-right tabular-nums">
+                        <div className="font-medium text-negative">
                           {item.currentQuantity} {item.unitCode}
                         </div>
-                        <div className="text-[10px] text-neutral-500">
-                          Min Alert: {item.minAlertQuantity} {item.unitCode}
+                        <div className="text-[11px] text-ink-muted">
+                          Min {item.minAlertQuantity} {item.unitCode}
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleNavigate('purchases')}
-                        className="px-2.5 py-1 rounded-md bg-brand-surface hover:bg-neutral-800 border border-brand-border text-brand-gold font-semibold text-[11px] transition-colors"
+                        className="px-2.5 py-1.5 rounded-lg bg-raised hover:border-hairline-strong border border-hairline text-accent-ink font-medium text-xs transition-colors duration-150 ease-unslop"
                       >
                         + Restock
                       </button>
@@ -408,56 +402,56 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               </div>
             ) : (
               <div className="py-6 flex flex-col items-center justify-center text-center space-y-2">
-                <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                  <CheckCircle2 className="w-5 h-5" />
+                <div className="w-9 h-9 rounded-lg bg-positive/10 border border-positive/25 flex items-center justify-center text-positive">
+                  <CheckCircle2 className="w-4 h-4" strokeWidth={1.5} />
                 </div>
-                <div className="text-xs font-semibold text-emerald-400">
-                  All 55 catalog products are safely above minimum stock levels!
+                <div className="text-xs font-medium text-positive">
+                  All catalog products are safely above minimum stock levels
                 </div>
-                <p className="text-[11px] text-neutral-500 max-w-sm">
-                  Stock deductions are tracked live at checkout and decant intake.
+                <p className="text-xs text-ink-muted max-w-sm">
+                  Stock deductions update live at checkout and decant intake
                 </p>
               </div>
             )}
           </div>
 
           {/* Payment Method Shares */}
-          <div className="p-5 rounded-2xl bg-neutral-900 border border-brand-border space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-brand-border">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-brand-gold" />
-                <span>Payment Method Breakdown ({summary?.dateRangeLabel})</span>
+          <div className="p-5 rounded-xl bg-surface border border-hairline space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-hairline">
+              <h3 className="text-sm font-medium text-ink flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-ink-muted" strokeWidth={1.5} />
+                <span>Payment method breakdown ({summary?.dateRangeLabel})</span>
               </h3>
-              <span className="text-xs text-neutral-400">
-                Total: {formatBdt(summary?.netRevenueBdt || 0)}
+              <span className="text-xs text-ink-muted font-mono tabular-nums">
+                Total {formatBdt(summary?.netRevenueBdt || 0)}
               </span>
             </div>
 
             {paymentShares.length > 0 ? (
               <div className="space-y-3">
-                {paymentShares.map((p) => (
-                  <div key={p.method} className="space-y-1">
+                {paymentShares.map((p, idx) => (
+                  <div key={p.method} className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-neutral-300">{p.label}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-neutral-400 font-mono">
+                      <span className="font-medium text-ink-secondary">{p.label}</span>
+                      <div className="flex items-center gap-3 tabular-nums">
+                        <span className="text-ink-muted font-mono">
                           {p.count} bills ({p.percentage}%)
                         </span>
-                        <span className="font-bold text-white">{formatBdt(p.amountBdt)}</span>
+                        <span className="font-medium text-ink font-mono">{formatBdt(p.amountBdt)}</span>
                       </div>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-neutral-800 overflow-hidden">
+                    <div className="h-2 w-full rounded-full bg-raised overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          p.method === 'cash'
-                            ? 'bg-blue-400'
-                            : p.method === 'bkash'
-                            ? 'bg-pink-500'
-                            : p.method === 'nagad'
-                            ? 'bg-orange-500'
-                            : p.method === 'card'
-                            ? 'bg-emerald-400'
-                            : 'bg-brand-gold'
+                        className={`h-full rounded-full transition-[width] duration-300 ease-unslop ${
+                          idx === 0
+                            ? 'bg-accent'
+                            : p.method === 'due'
+                            ? 'bg-negative/75'
+                            : idx === 1
+                            ? 'bg-ink/55'
+                            : idx === 2
+                            ? 'bg-ink/40'
+                            : 'bg-ink/25'
                         }`}
                         style={{ width: `${Math.min(100, Math.max(2, p.percentage))}%` }}
                       />
@@ -466,8 +460,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                 ))}
               </div>
             ) : (
-              <div className="py-6 text-center text-xs text-neutral-500">
-                No payment transactions recorded in {summary?.dateRangeLabel.toLowerCase()}.
+              <div className="py-6 text-center text-xs text-ink-muted">
+                No payment transactions recorded in {summary?.dateRangeLabel.toLowerCase()}
               </div>
             )}
           </div>
@@ -475,148 +469,138 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
 
         {/* Right 1 Col: Top Selling Fragrances */}
         <div className="space-y-6">
-          <div className="p-5 rounded-2xl bg-neutral-900 border border-brand-border space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-brand-border">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-brand-gold" />
-                <span>Top Fragrances & Products</span>
+          <div className="p-5 rounded-xl bg-surface border border-hairline space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-hairline">
+              <h3 className="text-sm font-medium text-ink flex items-center gap-2">
+                <Award className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
+                <span>Top fragrances and products</span>
               </h3>
-              <span className="text-xs text-neutral-400">{summary?.dateRangeLabel}</span>
+              <span className="text-xs text-ink-muted">{summary?.dateRangeLabel}</span>
             </div>
 
             {topSelling.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {topSelling.map((prod, idx) => (
                   <div
                     key={`${prod.sku}-${idx}`}
-                    className="p-3 rounded-xl bg-neutral-800/60 border border-brand-border/60 flex items-center justify-between text-xs"
+                    className="p-3 rounded-lg bg-raised/60 border border-hairline flex items-center justify-between text-xs"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] ${
+                        className={`w-6 h-6 rounded-md flex items-center justify-center font-mono font-medium text-xs shrink-0 ${
                           idx === 0
-                            ? 'bg-brand-gold text-black'
-                            : idx === 1
-                            ? 'bg-neutral-300 text-black'
-                            : idx === 2
-                            ? 'bg-amber-700 text-white'
-                            : 'bg-neutral-700 text-neutral-300'
+                            ? 'bg-accent text-accent-fg'
+                            : 'bg-raised border border-hairline text-ink-secondary'
                         }`}
                       >
                         {idx + 1}
                       </div>
-                      <div>
-                        <div className="font-semibold text-white truncate max-w-[150px]">
+                      <div className="min-w-0">
+                        <div className="font-medium text-ink truncate max-w-[150px]">
                           {prod.productName}
                         </div>
-                        <div className="text-[10px] text-neutral-400">
-                          {prod.totalQty} units sold · {prod.sellableType.replace('_', ' ')}
+                        <div className="text-[11px] text-ink-muted tabular-nums">
+                          {prod.totalQty} sold · {prod.sellableType.replace('_', ' ')}
                         </div>
                       </div>
                     </div>
-                    <div className="font-bold text-brand-gold text-right">
+                    <div className="font-medium font-mono tabular-nums text-accent-ink text-right shrink-0">
                       {formatBdt(prod.totalRevenueBdt)}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="py-8 text-center text-xs text-neutral-500">
-                No sales recorded in this period yet.
+              <div className="py-8 text-center text-xs text-ink-muted">
+                No sales recorded in this period
               </div>
             )}
           </div>
 
           {/* Quick Counter Shortcut Card */}
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-brand-gold/15 to-transparent border border-brand-gold/30 space-y-3 text-white">
-            <div className="flex items-center gap-2 text-brand-gold font-bold text-sm">
-              <Search className="w-4 h-4" />
-              <span>Customer Asking Prices?</span>
+          <div className="p-5 rounded-xl bg-surface border border-hairline space-y-3">
+            <div className="flex items-center gap-2 text-ink font-medium text-sm">
+              <Search className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
+              <span>Quick price lookup</span>
             </div>
-            <p className="text-xs text-neutral-300 leading-relaxed">
-              Use the fast <strong>Quick Price Checker</strong> to scan bottles, check tola conversions, wholesale margins, and available stock without touching an active cart.
+            <p className="text-xs text-ink-secondary leading-relaxed">
+              Use the Quick Price Checker to scan bottles, check tola conversions, wholesale margins, and available stock without touching an active cart.
             </p>
             <button
               type="button"
               onClick={() => handleNavigate('price-checker')}
-              className="w-full py-2.5 rounded-xl bg-brand-gold hover:bg-brand-gold/90 text-black font-bold text-xs transition-colors flex items-center justify-center gap-2 shadow-lg"
+              className="w-full py-2.5 px-3 rounded-lg bg-raised hover:border-hairline-strong border border-hairline text-ink font-medium text-xs transition-colors duration-150 ease-unslop flex items-center justify-center gap-2"
             >
-              <span>Launch Quick Price Checker</span>
-              <ChevronRight className="w-4 h-4" />
+              <span>Open Price Checker</span>
+              <ChevronRight className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
             </button>
           </div>
         </div>
       </div>
 
       {/* Bottom Section: Recent Counter Activity Stream */}
-      <div className="p-5 rounded-2xl bg-neutral-900 border border-brand-border space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-brand-border">
+      <div className="p-5 rounded-xl bg-surface border border-hairline space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-hairline">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-brand-gold" />
-            <h3 className="text-sm font-bold text-white">Recent Counter Sales Stream</h3>
+            <Clock className="w-4 h-4 text-ink-muted" strokeWidth={1.5} />
+            <h3 className="text-sm font-medium text-ink">Recent counter sales</h3>
           </div>
           <button
             type="button"
             onClick={() => handleNavigate('sales')}
-            className="text-xs text-brand-gold hover:underline font-semibold flex items-center gap-1"
+            className="text-xs text-accent-ink hover:underline font-medium flex items-center gap-1"
           >
-            <span>View All Sales & Invoices</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <span>View all sales</span>
+            <ChevronRight className="w-3.5 h-3.5" strokeWidth={1.5} />
           </button>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-brand-border text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">
-                <th className="py-2.5 px-3">Invoice #</th>
+              <tr className="border-b border-hairline text-ink-muted font-medium">
+                <th className="py-2.5 px-3">Invoice</th>
                 <th className="py-2.5 px-3">Customer</th>
-                <th className="py-2.5 px-3">Date & Time</th>
+                <th className="py-2.5 px-3">Date & time</th>
                 <th className="py-2.5 px-3">Cashier</th>
                 <th className="py-2.5 px-3">Items</th>
                 <th className="py-2.5 px-3">Payment</th>
-                <th className="py-2.5 px-3 text-right">Total (৳)</th>
+                <th className="py-2.5 px-3 text-right">Total</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-border/40">
+            <tbody className="divide-y divide-hairline">
               {recentSales.map((sale) => (
-                <tr key={sale.id} className="hover:bg-neutral-800/40 transition-colors">
-                  <td className="py-2.5 px-3 font-mono font-bold text-brand-gold">
+                <tr key={sale.id} className="hover:bg-raised/50 transition-colors duration-150 ease-unslop">
+                  <td className="py-2.5 px-3 font-mono font-medium text-accent-ink tabular-nums">
                     {sale.invoiceNumber}
                   </td>
-                  <td className="py-2.5 px-3 text-white font-medium">
+                  <td className="py-2.5 px-3 text-ink font-medium">
                     {sale.customerName || (
-                      <span className="text-neutral-500 italic">Walk-in Customer</span>
+                      <span className="text-ink-muted font-normal">Walk-in customer</span>
                     )}
                     {sale.customerPhone && (
-                      <div className="text-[10px] text-neutral-500 font-mono">
+                      <div className="text-[11px] text-ink-muted font-mono tabular-nums">
                         {sale.customerPhone}
                       </div>
                     )}
                   </td>
-                  <td className="py-2.5 px-3 text-neutral-400">
+                  <td className="py-2.5 px-3 text-ink-secondary tabular-nums">
                     {formatDhakaDateTime(sale.createdAt)}
                   </td>
-                  <td className="py-2.5 px-3 text-neutral-300">{sale.cashierName}</td>
-                  <td className="py-2.5 px-3 text-neutral-400">{sale.itemCount} items</td>
+                  <td className="py-2.5 px-3 text-ink-secondary">{sale.cashierName}</td>
+                  <td className="py-2.5 px-3 text-ink-muted tabular-nums">{sale.itemCount} items</td>
                   <td className="py-2.5 px-3">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        sale.paymentMethod === 'cash'
-                          ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                          : sale.paymentMethod === 'bkash'
-                          ? 'bg-pink-500/20 text-pink-400 border border-pink-500/30'
-                          : sale.paymentMethod === 'nagad'
-                          ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                          : sale.paymentMethod === 'due'
-                          ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                          : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium capitalize border ${
+                        sale.paymentMethod === 'due'
+                          ? 'bg-negative/10 text-negative border-negative/25'
+                          : 'bg-raised text-ink-secondary border-hairline'
                       }`}
                     >
                       {sale.paymentMethod}
                     </span>
                   </td>
-                  <td className="py-2.5 px-3 text-right font-bold text-white font-mono">
+                  <td className="py-2.5 px-3 text-right font-medium text-ink font-mono tabular-nums">
                     {formatBdt(sale.totalAmountBdt)}
                   </td>
                 </tr>

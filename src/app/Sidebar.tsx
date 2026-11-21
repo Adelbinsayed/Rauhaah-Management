@@ -27,7 +27,7 @@ import { type NavRoute, useAppStore } from './store';
 interface NavItem {
   id: NavRoute;
   label: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string; strokeWidth?: string | number }>;
   section?: string;
   requiredPermission?: PermissionKey;
   disabled?: boolean;
@@ -69,13 +69,18 @@ export function Sidebar() {
   });
 
   return (
-    <aside className="w-60 shrink-0 border-r border-neutral-200 bg-[#F9F9F9] dark:border-brand-border dark:bg-brand-black flex flex-col h-screen select-none">
+    <aside className="w-60 shrink-0 border-r border-hairline bg-sidebar flex flex-col h-screen select-none">
       {/* Brand Header */}
-      <div className="px-5 py-4 border-b border-neutral-200 dark:border-brand-border flex items-center justify-center bg-brand-black">
+      <div className="h-14 px-5 border-b border-hairline flex items-center justify-center bg-sidebar">
         <img
           src="/assets/rauhaah-logo-white.png"
           alt="Rauhaah — Live Peaceful"
-          className="h-10 w-auto object-contain"
+          className="hidden dark:block h-9 w-auto object-contain"
+        />
+        <img
+          src="/assets/rauhaah-logo-dark.png"
+          alt="Rauhaah — Live Peaceful"
+          className="block dark:hidden h-9 w-auto object-contain"
         />
       </div>
 
@@ -87,7 +92,7 @@ export function Sidebar() {
           return (
             <div key={item.id}>
               {item.section && (
-                <div className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+                <div className="px-3 pt-5 pb-1.5 text-xs font-medium text-ink-muted">
                   {item.section}
                 </div>
               )}
@@ -96,20 +101,29 @@ export function Sidebar() {
                 disabled={item.disabled}
                 onClick={() => !item.disabled && setActiveRoute(item.id)}
                 className={cn(
-                  'w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors text-left',
+                  'w-full h-9 flex items-center justify-between px-3 rounded-lg text-sm transition-colors duration-150 ease-unslop text-left',
                   item.disabled
-                    ? 'opacity-40 cursor-not-allowed text-neutral-400 dark:text-neutral-500 hover:bg-transparent'
+                    ? 'opacity-40 cursor-not-allowed text-ink-muted'
                     : active
-                    ? 'bg-brand-gold text-brand-black shadow-sm font-semibold'
-                    : 'text-neutral-700 hover:bg-neutral-200/70 dark:text-neutral-300 dark:hover:bg-brand-surface'
+                    ? 'bg-surface dark:bg-raised text-ink font-medium border border-hairline-strong shadow-[0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'text-ink-secondary hover:text-ink hover:bg-raised/60 font-normal'
                 )}
               >
                 <div className="flex items-center gap-2.5 truncate">
-                  <Icon className="w-4 h-4 shrink-0" />
+                  <Icon
+                    className={cn(
+                      'w-4 h-4 shrink-0',
+                      active ? 'text-accent-ink' : 'text-ink-muted'
+                    )}
+                    strokeWidth={1.5}
+                  />
                   <span className="truncate">{item.label}</span>
                 </div>
+                {active && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+                )}
                 {item.disabledBadge && (
-                  <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-neutral-200 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 shrink-0">
+                  <span className="text-[11px] font-mono text-ink-muted shrink-0">
                     {item.disabledBadge}
                   </span>
                 )}
@@ -121,12 +135,12 @@ export function Sidebar() {
 
       {/* User Footer Profile & Lock/Logout */}
       {currentUser && (
-        <div className="p-3 border-t border-neutral-200 dark:border-brand-border bg-neutral-100/60 dark:bg-brand-surface/40 flex items-center justify-between gap-2">
+        <div className="p-3 border-t border-hairline bg-sidebar flex items-center justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-neutral-900 dark:text-white truncate">
+            <div className="text-sm font-medium text-ink truncate">
               {currentUser.displayName}
             </div>
-            <div className="text-[10px] font-medium text-brand-gold uppercase tracking-wider">
+            <div className="text-xs text-accent-ink">
               {currentUser.roleDisplayName}
             </div>
           </div>
@@ -136,17 +150,17 @@ export function Sidebar() {
               type="button"
               onClick={lockSession}
               title="Lock Terminal"
-              className="p-1.5 rounded-md hover:bg-neutral-200 dark:hover:bg-brand-surface text-neutral-500 dark:text-neutral-400 hover:text-brand-gold transition-colors"
+              className="p-1.5 rounded-lg hover:bg-raised text-ink-muted hover:text-ink transition-colors duration-150 ease-unslop"
             >
-              <Lock className="w-4 h-4" />
+              <Lock className="w-4 h-4" strokeWidth={1.5} />
             </button>
             <button
               type="button"
               onClick={logout}
               title="Sign Out"
-              className="p-1.5 rounded-md hover:bg-neutral-200 dark:hover:bg-brand-surface text-neutral-500 dark:text-neutral-400 hover:text-red-400 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-raised text-ink-muted hover:text-negative transition-colors duration-150 ease-unslop"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4" strokeWidth={1.5} />
             </button>
           </div>
         </div>

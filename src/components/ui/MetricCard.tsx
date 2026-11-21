@@ -24,42 +24,42 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 }) => {
   return (
     <div
-      className={`p-4 rounded-xl border transition-all ${
+      className={`p-5 rounded-xl border transition-colors duration-150 ease-unslop ${
         highlight
-          ? 'bg-brand-gold/10 border-brand-gold/50 text-white shadow-sm'
-          : 'bg-white dark:bg-brand-surface border-neutral-200 dark:border-brand-border text-neutral-900 dark:text-white shadow-sm hover:border-neutral-300 dark:hover:border-brand-gold/30'
+          ? 'bg-accent/10 border-accent/35 text-ink'
+          : 'bg-surface border-hairline text-ink hover:border-hairline-strong shadow-[0_1px_2px_rgba(0,0,0,0.03)] dark:shadow-none'
       } ${className}`}
     >
-      <div className="flex items-center justify-between gap-2 mb-1.5">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <span className="text-xs font-medium text-ink-muted">
           {label}
         </span>
         {icon && (
-          <div className="w-6 h-6 rounded-lg bg-neutral-100 dark:bg-brand-black/60 flex items-center justify-center text-brand-gold shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-raised border border-hairline flex items-center justify-center text-ink-muted shrink-0">
             {icon}
           </div>
         )}
       </div>
 
-      <div className="text-xl font-bold font-mono tracking-tight text-neutral-900 dark:text-white">
+      <div className="text-2xl font-medium font-mono tabular-nums text-ink">
         {value}
       </div>
 
       {(subtitle || trend) && (
-        <div className="mt-1 flex items-center gap-2 text-xs">
+        <div className="mt-2 flex items-center gap-2 text-xs">
           {trend && (
             <span
-              className={`font-semibold text-[11px] px-1.5 py-0.2 rounded ${
+              className={`font-medium text-xs px-1.5 py-0.5 rounded tabular-nums ${
                 trend.isPositive
-                  ? 'bg-emerald-500/15 text-emerald-400'
-                  : 'bg-rose-500/15 text-rose-400'
+                  ? 'bg-positive/10 text-positive'
+                  : 'bg-negative/10 text-negative'
               }`}
             >
               {trend.value}
             </span>
           )}
           {subtitle && (
-            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
+            <span className="text-xs text-ink-muted truncate">
               {subtitle}
             </span>
           )}

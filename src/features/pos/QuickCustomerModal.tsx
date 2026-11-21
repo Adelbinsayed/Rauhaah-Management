@@ -62,81 +62,81 @@ export const QuickCustomerModal: React.FC<QuickCustomerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-sm bg-brand-surface border border-brand-border rounded-2xl shadow-2xl p-6 space-y-5">
-        <div className="flex items-center justify-between pb-3 border-b border-brand-border">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+      <div className="w-full max-w-sm bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-5">
+        <div className="flex items-center justify-between pb-3 border-b border-hairline">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold shrink-0">
-              <UserPlus className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-lg bg-accent/12 border border-accent/25 flex items-center justify-center text-accent-ink shrink-0">
+              <UserPlus className="w-4 h-4" strokeWidth={1.5} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Quick-Add Customer</h3>
-              <p className="text-[11px] text-neutral-400">Save for loyalty tracking &amp; purchase history</p>
+              <h3 className="text-sm font-medium text-ink">Quick-add customer</h3>
+              <p className="text-xs text-ink-muted">Save for loyalty tracking &amp; history</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800"
+            className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" strokeWidth={1.5} />
           </button>
         </div>
 
         {error && (
-          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs">
+          <div className="p-3 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
-            <label className="block text-[11px] font-semibold text-neutral-300 uppercase tracking-wider mb-1">
-              Mobile Number *
+            <label className="block text-xs font-medium text-ink-secondary mb-1">
+              Mobile number *
             </label>
             <div className="relative">
-              <Phone className="w-4 h-4 text-neutral-500 absolute left-3 top-2.5" />
+              <Phone className="w-4 h-4 text-ink-muted absolute left-3 top-2.5" strokeWidth={1.5} />
               <input
                 type="tel"
                 required
                 autoFocus={!initialPhone}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="e.g. 01712345678"
-                className="w-full pl-9 pr-3 py-2 bg-brand-black border border-brand-border rounded-lg text-sm text-white font-mono placeholder-neutral-500 focus:outline-none focus:border-brand-gold"
+                placeholder="01712345678"
+                className="w-full pl-9 pr-3 py-2 bg-raised border border-hairline rounded-lg text-sm text-ink font-mono placeholder-ink-muted focus:outline-none focus:border-accent"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-neutral-300 uppercase tracking-wider mb-1">
-              Customer Full Name *
+            <label className="block text-xs font-medium text-ink-secondary mb-1">
+              Customer full name *
             </label>
             <div className="relative">
-              <UserIcon className="w-4 h-4 text-neutral-500 absolute left-3 top-2.5" />
+              <UserIcon className="w-4 h-4 text-ink-muted absolute left-3 top-2.5" strokeWidth={1.5} />
               <input
                 type="text"
                 required
                 autoFocus={Boolean(initialPhone)}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Rafiqul Islam"
-                className="w-full pl-9 pr-3 py-2 bg-brand-black border border-brand-border rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold"
+                placeholder="Rafiqul Islam"
+                className="w-full pl-9 pr-3 py-2 bg-raised border border-hairline rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-accent"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-neutral-300 uppercase tracking-wider mb-1">
-              Notes (Optional)
+            <label className="block text-xs font-medium text-ink-secondary mb-1">
+              Notes (optional)
             </label>
             <div className="relative">
-              <FileText className="w-4 h-4 text-neutral-500 absolute left-3 top-2.5" />
+              <FileText className="w-4 h-4 text-ink-muted absolute left-3 top-2.5" strokeWidth={1.5} />
               <input
                 type="text"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g. Regular attar lover, prefers woody notes"
-                className="w-full pl-9 pr-3 py-2 bg-brand-black border border-brand-border rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold"
+                placeholder="Prefers woody attar notes"
+                className="w-full pl-9 pr-3 py-2 bg-raised border border-hairline rounded-lg text-xs text-ink placeholder-ink-muted focus:outline-none focus:border-accent"
               />
             </div>
           </div>
@@ -145,16 +145,16 @@ export const QuickCustomerModal: React.FC<QuickCustomerModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-2 rounded-lg border border-brand-border text-neutral-300 hover:text-white text-xs font-semibold"
+              className="px-3.5 py-2 rounded-lg border border-hairline bg-raised text-ink-secondary hover:text-ink text-xs font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded-lg bg-brand-gold hover:bg-brand-gold-light text-brand-black font-bold text-xs transition-colors shadow-md shadow-brand-gold/10"
+              className="px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs transition-colors duration-150 ease-unslop"
             >
-              {loading ? 'Saving...' : 'Save & Attach to Sale'}
+              {loading ? 'Saving…' : 'Save & Attach to Sale'}
             </button>
           </div>
         </form>

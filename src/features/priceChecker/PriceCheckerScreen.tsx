@@ -132,8 +132,8 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
   if (loading) {
     return (
       <div className="h-96 flex flex-col items-center justify-center space-y-3">
-        <RefreshCw className="w-8 h-8 text-brand-gold animate-spin" />
-        <p className="text-xs text-neutral-400 font-mono">Loading product price matrix…</p>
+        <RefreshCw className="w-7 h-7 text-accent-ink animate-spin" />
+        <p className="text-xs text-ink-secondary font-mono">Loading product price matrix…</p>
       </div>
     );
   }
@@ -141,40 +141,40 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12 select-none">
       {/* Header & Search Bar */}
-      <div className="p-6 rounded-2xl bg-neutral-900 border border-brand-border text-white shadow-xl space-y-4">
+      <div className="p-6 rounded-xl bg-surface border border-hairline text-ink space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-              <Tag className="w-6 h-6 text-brand-gold" />
-              <span>Quick Price & Decant Checker</span>
+            <h1 className="text-2xl font-medium text-ink flex items-center gap-2.5">
+              <Tag className="w-5 h-5 text-accent-ink" strokeWidth={1.5} />
+              <span>Quick price &amp; decant checker</span>
             </h1>
-            <p className="text-xs text-neutral-400 mt-1">
-              Instantly scan barcodes or search products to check retail rates, wholesale pricing, tola conversions, and stock availability.
+            <p className="text-xs text-ink-muted mt-1">
+              Scan barcodes or search products to check retail rates, wholesale pricing, tola conversions, and stock availability
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-neutral-400">
-            <span className="px-2 py-1 rounded bg-neutral-800 border border-brand-border font-mono">
+          <div className="flex items-center gap-2 text-xs text-ink-muted">
+            <kbd className="px-2 py-1 rounded bg-raised border border-hairline font-mono text-[11px] text-ink-secondary">
               F2 / /
-            </span>
-            <span>Focus Search</span>
-            <span className="px-2 py-1 rounded bg-neutral-800 border border-brand-border font-mono ml-2">
+            </kbd>
+            <span>Focus search</span>
+            <kbd className="px-2 py-1 rounded bg-raised border border-hairline font-mono text-[11px] text-ink-secondary ml-2">
               Esc
-            </span>
+            </kbd>
             <span>Clear</span>
           </div>
         </div>
 
         {/* Big Search Input */}
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-brand-gold pointer-events-none" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent-ink pointer-events-none" strokeWidth={1.5} />
           <input
             ref={searchInputRef}
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Scan barcode or type fragrance name, SKU, or brand..."
-            className="w-full pl-13 pr-12 py-4 rounded-xl bg-neutral-800/90 border-2 border-brand-border focus:border-brand-gold text-white text-base placeholder-neutral-500 font-medium tracking-wide outline-none shadow-inner transition-colors"
+            placeholder="Scan barcode or search fragrance, SKU, brand"
+            className="w-full pl-12 pr-12 py-3.5 rounded-xl bg-raised border border-hairline focus:border-accent text-ink text-base placeholder-ink-muted font-normal outline-none transition-colors duration-150 ease-unslop"
           />
           {searchTerm && (
             <button
@@ -183,9 +183,9 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
                 setSearchTerm('');
                 searchInputRef.current?.focus();
               }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-surface transition-colors duration-150 ease-unslop"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" strokeWidth={1.5} />
             </button>
           )}
         </div>
@@ -195,10 +195,10 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
           <button
             type="button"
             onClick={() => setSelectedCategory('all')}
-            className={`px-3 py-1.5 rounded-lg font-semibold shrink-0 transition-all ${
+            className={`px-3 py-1.5 rounded-lg font-medium shrink-0 transition-colors duration-150 ease-unslop ${
               selectedCategory === 'all'
-                ? 'bg-brand-gold text-black shadow-md'
-                : 'bg-neutral-800 text-neutral-400 hover:text-white border border-brand-border'
+                ? 'bg-accent text-accent-fg font-semibold'
+                : 'bg-raised text-ink-secondary hover:text-ink border border-hairline'
             }`}
           >
             All Products ({products.length})
@@ -210,10 +210,10 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-lg font-semibold shrink-0 transition-all ${
+                className={`px-3 py-1.5 rounded-lg font-medium shrink-0 transition-colors duration-150 ease-unslop ${
                   selectedCategory === cat.id
-                    ? 'bg-brand-gold text-black shadow-md'
-                    : 'bg-neutral-800 text-neutral-400 hover:text-white border border-brand-border'
+                    ? 'bg-accent text-accent-fg font-semibold'
+                    : 'bg-raised text-ink-secondary hover:text-ink border border-hairline'
                 }`}
               >
                 {cat.name} ({count})
@@ -228,47 +228,47 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
         {/* Left Column (5 Cols): Selected Product Details / Spotlight */}
         <div className="lg:col-span-5 space-y-4">
           {selectedProduct ? (
-            <div className="p-6 rounded-2xl bg-neutral-900 border-2 border-brand-gold/60 text-white shadow-2xl space-y-5 sticky top-4">
+            <div className="p-6 rounded-xl bg-surface border border-hairline-strong text-ink space-y-5 sticky top-4">
               {/* Top Identity */}
-              <div className="space-y-2 pb-4 border-b border-brand-border">
-                <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-gold/20 text-brand-gold border border-brand-gold/40">
+              <div className="space-y-2 pb-4 border-b border-hairline">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-accent/12 text-accent-ink border border-accent/25">
                     {selectedProduct.categoryName || 'General Product'}
                   </span>
 
                   {/* Stock Status Badge */}
                   <span
-                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold flex items-center gap-1 ${
+                    className={`px-2.5 py-0.5 rounded-md text-xs font-medium flex items-center gap-1.5 border ${
                       stockQty <= 0
-                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        ? 'bg-negative/10 text-negative border-negative/25'
                         : stockQty <= 10
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                        : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        ? 'bg-warning/10 text-warning border-warning/25'
+                        : 'bg-positive/10 text-positive border-positive/25'
                     }`}
                   >
                     {stockQty <= 0 ? (
                       <>
-                        <AlertTriangle className="w-3 h-3" />
-                        Out of Stock
+                        <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} />
+                        Out of stock
                       </>
                     ) : (
                       <>
-                        <CheckCircle2 className="w-3 h-3" />
-                        In Stock: {stockQty} {isDecant ? 'ml' : 'pcs'}
+                        <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+                        <span className="tabular-nums">In stock: {stockQty} {isDecant ? 'ml' : 'pcs'}</span>
                       </>
                     )}
                   </span>
                 </div>
 
-                <h2 className="text-xl font-black text-white leading-tight">
+                <h2 className="text-xl font-medium text-ink leading-tight">
                   {selectedProduct.name}
                 </h2>
 
-                <div className="flex items-center gap-3 text-xs text-neutral-400 font-mono">
+                <div className="flex items-center gap-3 text-xs text-ink-muted font-mono tabular-nums">
                   <span>SKU: {selectedProduct.sku}</span>
                   {selectedProduct.barcode && (
-                    <span className="flex items-center gap-1 text-neutral-300">
-                      <Barcode className="w-3.5 h-3.5 text-brand-gold" />
+                    <span className="flex items-center gap-1 text-ink-secondary">
+                      <Barcode className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
                       {selectedProduct.barcode}
                     </span>
                   )}
@@ -276,88 +276,88 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
               </div>
 
               {/* Retail Price Display */}
-              <div className="p-4 rounded-xl bg-gradient-to-r from-brand-gold/15 to-transparent border border-brand-gold/30 flex items-center justify-between">
+              <div className="p-4 rounded-xl bg-raised border border-hairline flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-brand-gold">
-                    {isDecant ? 'Catalog Rate' : 'Retail Price'}
+                  <span className="text-xs font-medium text-accent-ink">
+                    {isDecant ? 'Catalog rate' : 'Retail price'}
                   </span>
-                  <div className="text-3xl font-black text-white tracking-tight">
+                  <div className="text-3xl font-medium text-ink font-mono tabular-nums mt-0.5">
                     {formatBdt(selectedProduct.retailPriceBdt)}
                   </div>
                   {isDecant && (
-                    <div className="text-[10px] text-neutral-400 mt-0.5">
+                    <div className="text-xs text-ink-muted mt-0.5">
                       Standard pricing base
                     </div>
                   )}
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold">
-                  <Tag className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-xl bg-surface border border-hairline flex items-center justify-center text-accent-ink">
+                  <Tag className="w-5 h-5" strokeWidth={1.5} />
                 </div>
               </div>
 
               {/* Attar Decant Bottle Sizes Breakdown */}
               {isDecant && (
                 <div className="space-y-3 pt-1">
-                  <div className="flex items-center justify-between text-xs font-bold text-neutral-300">
+                  <div className="flex items-center justify-between text-xs font-medium text-ink-secondary">
                     <span className="flex items-center gap-1.5">
-                      <Droplet className="w-4 h-4 text-amber-400" />
-                      <span>Standard Decant Sizes</span>
+                      <Droplet className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
+                      <span>Standard decant sizes</span>
                     </span>
-                    <span className="text-[11px] text-neutral-400 font-normal">
-                      Instant Counter Rates
+                    <span className="text-xs text-ink-muted font-normal">
+                      Counter rates
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2.5 rounded-xl bg-neutral-800/80 border border-brand-border flex items-center justify-between">
+                    <div className="p-3 rounded-lg bg-raised border border-hairline flex items-center justify-between">
                       <div className="text-xs">
-                        <div className="font-bold text-white">3 ml</div>
-                        <div className="text-[10px] text-neutral-400">Quarter Tola</div>
+                        <div className="font-medium text-ink">3 ml</div>
+                        <div className="text-[11px] text-ink-muted">Quarter Tola</div>
                       </div>
-                      <div className="font-black text-brand-gold text-sm">
+                      <div className="font-medium font-mono tabular-nums text-accent-ink text-sm">
                         {formatBdt(decant3mlPrice)}
                       </div>
                     </div>
 
-                    <div className="p-2.5 rounded-xl bg-neutral-800/80 border border-brand-border flex items-center justify-between">
+                    <div className="p-3 rounded-lg bg-raised border border-hairline flex items-center justify-between">
                       <div className="text-xs">
-                        <div className="font-bold text-white">6 ml</div>
-                        <div className="text-[10px] text-neutral-400">Half Tola</div>
+                        <div className="font-medium text-ink">6 ml</div>
+                        <div className="text-[11px] text-ink-muted">Half Tola</div>
                       </div>
-                      <div className="font-black text-brand-gold text-sm">
+                      <div className="font-medium font-mono tabular-nums text-accent-ink text-sm">
                         {formatBdt(decant6mlPrice)}
                       </div>
                     </div>
 
-                    <div className="p-2.5 rounded-xl bg-neutral-800/80 border border-brand-border flex items-center justify-between">
+                    <div className="p-3 rounded-lg bg-raised border border-hairline flex items-center justify-between">
                       <div className="text-xs">
-                        <div className="font-bold text-white">9 ml</div>
-                        <div className="text-[10px] text-neutral-400">3/4 Tola</div>
+                        <div className="font-medium text-ink">9 ml</div>
+                        <div className="text-[11px] text-ink-muted">3/4 Tola</div>
                       </div>
-                      <div className="font-black text-brand-gold text-sm">
+                      <div className="font-medium font-mono tabular-nums text-accent-ink text-sm">
                         {formatBdt(decant9mlPrice)}
                       </div>
                     </div>
 
-                    <div className="p-2.5 rounded-xl bg-neutral-800/80 border border-brand-border flex items-center justify-between bg-amber-500/10 border-amber-500/30">
+                    <div className="p-3 rounded-lg bg-accent/12 border border-accent/30 flex items-center justify-between">
                       <div className="text-xs">
-                        <div className="font-bold text-amber-300">12 ml</div>
-                        <div className="text-[10px] text-amber-400/80">Full 1 Tola</div>
+                        <div className="font-medium text-accent-ink">12 ml</div>
+                        <div className="text-[11px] text-ink-secondary">Full 1 Tola</div>
                       </div>
-                      <div className="font-black text-amber-300 text-sm">
+                      <div className="font-medium font-mono tabular-nums text-accent-ink text-sm">
                         {formatBdt(decant12mlPrice)}
                       </div>
                     </div>
                   </div>
 
                   {/* Custom Decant Calculator */}
-                  <div className="p-3 rounded-xl bg-neutral-800 border border-brand-border space-y-2">
+                  <div className="p-3 rounded-lg bg-raised border border-hairline space-y-2.5">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-neutral-300 flex items-center gap-1.5">
-                        <Calculator className="w-3.5 h-3.5 text-brand-gold" />
-                        <span>Custom Volume Calculator</span>
+                      <span className="font-medium text-ink-secondary flex items-center gap-1.5">
+                        <Calculator className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
+                        <span>Custom volume calculator</span>
                       </span>
-                      <span className="font-bold text-white font-mono">
+                      <span className="font-medium text-ink font-mono tabular-nums">
                         {formatBdt(customCalculatedPrice)}
                       </span>
                     </div>
@@ -370,10 +370,10 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
                           step="0.5"
                           value={customMl}
                           onChange={(e) => setCustomMl(e.target.value)}
-                          placeholder="Type ml (e.g. 5)"
-                          className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-brand-border text-white text-xs font-mono outline-none focus:border-brand-gold"
+                          placeholder="ml (e.g. 5)"
+                          className="w-full px-3 py-1.5 rounded-lg bg-surface border border-hairline text-ink text-xs font-mono tabular-nums outline-none focus:border-accent"
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-neutral-400">
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-ink-muted">
                           ml
                         </span>
                       </div>
@@ -383,10 +383,10 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
                             key={val}
                             type="button"
                             onClick={() => setCustomMl(val)}
-                            className={`px-2 py-1 rounded text-[10px] font-semibold border ${
+                            className={`px-2 py-1 rounded text-[11px] font-medium border transition-colors duration-150 ease-unslop ${
                               customMl === val
-                                ? 'bg-brand-gold text-black border-brand-gold'
-                                : 'bg-neutral-900 text-neutral-400 border-brand-border hover:text-white'
+                                ? 'bg-accent text-accent-fg border-accent font-semibold'
+                                : 'bg-surface text-ink-muted border-hairline hover:text-ink'
                             }`}
                           >
                             {val}m
@@ -399,19 +399,19 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
               )}
 
               {/* Wholesale & Commercial Guardrails */}
-              <div className="p-3.5 rounded-xl bg-neutral-800/80 border border-brand-border space-y-2 text-xs">
-                <div className="flex items-center justify-between pb-1.5 border-b border-brand-border/60">
-                  <span className="text-neutral-400 font-semibold">Wholesale Rate:</span>
-                  <span className="font-bold text-blue-400 font-mono">
+              <div className="p-3.5 rounded-lg bg-raised border border-hairline space-y-2 text-xs">
+                <div className="flex items-center justify-between pb-2 border-b border-hairline">
+                  <span className="text-ink-muted font-medium">Wholesale rate</span>
+                  <span className="font-medium text-ink font-mono tabular-nums">
                     {selectedProduct.wholesalePriceBdt
                       ? formatBdt(selectedProduct.wholesalePriceBdt)
                       : 'None set'}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between pb-1.5 border-b border-brand-border/60">
-                  <span className="text-neutral-400 font-semibold">Min Allowed Price:</span>
-                  <span className="font-bold text-amber-400 font-mono">
+                <div className="flex items-center justify-between pb-2 border-b border-hairline">
+                  <span className="text-ink-muted font-medium">Minimum allowed price</span>
+                  <span className="font-medium text-accent-ink font-mono tabular-nums">
                     {selectedProduct.minPriceBdt
                       ? formatBdt(selectedProduct.minPriceBdt)
                       : formatBdt(selectedProduct.retailPriceBdt)}
@@ -419,16 +419,16 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-neutral-400 font-semibold">Cost Price:</span>
+                  <span className="text-ink-muted font-medium">Cost price</span>
                   {hasCostPermission ? (
-                    <span className="font-bold text-neutral-300 font-mono">
+                    <span className="font-medium text-ink-secondary font-mono tabular-nums">
                       {selectedProduct.calculatedCostBdt
                         ? formatBdt(selectedProduct.calculatedCostBdt)
                         : '৳0.00'}
                     </span>
                   ) : (
-                    <span className="text-neutral-500 flex items-center gap-1 text-[11px]">
-                      <Lock className="w-3 h-3 text-brand-gold" /> Hidden (Admin)
+                    <span className="text-ink-muted flex items-center gap-1 text-xs">
+                      <Lock className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} /> Hidden (Admin)
                     </span>
                   )}
                 </div>
@@ -438,45 +438,45 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
               <button
                 type="button"
                 onClick={() => setActiveRoute('pos')}
-                className="w-full py-3 rounded-xl bg-brand-gold hover:bg-brand-gold/90 text-black font-bold text-xs transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-gold/10"
+                className="w-full py-2.5 px-4 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs transition-colors duration-150 ease-unslop flex items-center justify-center gap-2"
               >
-                <ShoppingCart className="w-4 h-4" />
+                <ShoppingCart className="w-4 h-4" strokeWidth={1.75} />
                 <span>Open POS Register to Sell</span>
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-4 h-4" strokeWidth={1.75} />
               </button>
             </div>
           ) : (
-            <div className="p-12 rounded-2xl bg-neutral-900 border border-brand-border text-center text-neutral-500 space-y-3">
-              <Package className="w-10 h-10 mx-auto text-neutral-600" />
-              <div className="text-sm font-semibold text-neutral-400">No Product Selected</div>
-              <p className="text-xs">Scan a barcode or click any product from the catalog list to view its price matrix.</p>
+            <div className="p-12 rounded-xl bg-surface border border-hairline text-center text-ink-muted space-y-3">
+              <Package className="w-10 h-10 mx-auto text-ink-muted" strokeWidth={1.5} />
+              <div className="text-sm font-medium text-ink-secondary">No product selected</div>
+              <p className="text-xs">Scan a barcode or select a product from the catalog list to view its price matrix</p>
             </div>
           )}
         </div>
 
         {/* Right Column (7 Cols): Product Catalog List */}
         <div className="lg:col-span-7 space-y-3">
-          <div className="flex items-center justify-between text-xs text-neutral-400 px-1">
-            <span>
-              Showing <strong>{filteredProducts.length}</strong> matching products
+          <div className="flex items-center justify-between text-xs text-ink-muted px-1">
+            <span className="tabular-nums">
+              Showing <strong className="font-medium text-ink">{filteredProducts.length}</strong> matching products
             </span>
             <span>Click any product to inspect prices</span>
           </div>
 
-          <div className="rounded-2xl bg-neutral-900 border border-brand-border overflow-hidden shadow-lg">
+          <div className="rounded-xl bg-surface border border-hairline overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-brand-border text-neutral-400 font-semibold uppercase tracking-wider text-[10px] bg-neutral-800/40">
-                    <th className="py-3 px-3.5">Product Name</th>
+                  <tr className="border-b border-hairline text-ink-muted font-medium bg-raised/70">
+                    <th className="py-3 px-3.5">Product name</th>
                     <th className="py-3 px-3.5">Category</th>
-                    <th className="py-3 px-3.5 text-right">Retail Rate</th>
+                    <th className="py-3 px-3.5 text-right">Retail rate</th>
                     <th className="py-3 px-3.5 text-right">Wholesale</th>
                     <th className="py-3 px-3.5 text-right">Stock</th>
                     <th className="py-3 px-3 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-brand-border/40">
+                <tbody className="divide-y divide-hairline">
                   {filteredProducts.map((prod) => {
                     const isSelected = selectedProduct?.id === prod.id;
                     const stock = prod.primaryStockQuantity ?? 0;
@@ -484,43 +484,43 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
                       <tr
                         key={prod.id}
                         onClick={() => setSelectedProduct(prod)}
-                        className={`cursor-pointer transition-colors ${
+                        className={`cursor-pointer transition-colors duration-150 ease-unslop ${
                           isSelected
-                            ? 'bg-brand-gold/15 hover:bg-brand-gold/20'
-                            : 'hover:bg-neutral-800/50'
+                            ? 'bg-accent/12 hover:bg-accent/15'
+                            : 'hover:bg-raised/60'
                         }`}
                       >
                         <td className="py-3 px-3.5">
                           <div
-                            className={`font-semibold ${
-                              isSelected ? 'text-brand-gold' : 'text-white'
+                            className={`font-medium ${
+                              isSelected ? 'text-accent-ink' : 'text-ink'
                             }`}
                           >
                             {prod.name}
                           </div>
-                          <div className="text-[10px] text-neutral-500 font-mono">
+                          <div className="text-[11px] text-ink-muted font-mono tabular-nums">
                             {prod.sku} {prod.barcode ? `· ${prod.barcode}` : ''}
                           </div>
                         </td>
-                        <td className="py-3 px-3.5 text-neutral-400">
-                          <span className="px-2 py-0.5 rounded text-[10px] bg-neutral-800 border border-brand-border text-neutral-300">
+                        <td className="py-3 px-3.5 text-ink-secondary">
+                          <span className="px-2 py-0.5 rounded-md text-[11px] bg-raised border border-hairline text-ink-secondary">
                             {prod.categoryName || 'General'}
                           </span>
                         </td>
-                        <td className="py-3 px-3.5 text-right font-bold text-white font-mono">
+                        <td className="py-3 px-3.5 text-right font-medium text-ink font-mono tabular-nums">
                           {formatBdt(prod.retailPriceBdt)}
                         </td>
-                        <td className="py-3 px-3.5 text-right font-medium text-blue-400 font-mono">
+                        <td className="py-3 px-3.5 text-right font-medium text-ink-secondary font-mono tabular-nums">
                           {prod.wholesalePriceBdt ? formatBdt(prod.wholesalePriceBdt) : '—'}
                         </td>
-                        <td className="py-3 px-3.5 text-right font-mono">
+                        <td className="py-3 px-3.5 text-right font-mono tabular-nums">
                           <span
                             className={
                               stock <= 0
-                                ? 'text-red-400 font-bold'
+                                ? 'text-negative font-medium'
                                 : stock <= 10
-                                ? 'text-amber-400 font-bold'
-                                : 'text-emerald-400'
+                                ? 'text-warning font-medium'
+                                : 'text-positive'
                             }
                           >
                             {stock} {prod.sellableType === 'loose_decant' ? 'ml' : 'pcs'}
@@ -533,10 +533,10 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
                               e.stopPropagation();
                               setSelectedProduct(prod);
                             }}
-                            className={`px-2 py-1 rounded text-[11px] font-semibold transition-colors ${
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors duration-150 ease-unslop ${
                               isSelected
-                                ? 'bg-brand-gold text-black'
-                                : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-brand-border'
+                                ? 'bg-accent text-accent-fg font-semibold'
+                                : 'bg-raised hover:border-hairline-strong text-ink-secondary border border-hairline'
                             }`}
                           >
                             Select
@@ -547,7 +547,7 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
                   })}
                   {filteredProducts.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-neutral-500">
+                      <td colSpan={6} className="py-12 text-center text-ink-muted">
                         No products match &ldquo;{searchTerm}&rdquo;. Try another name or clear search.
                       </td>
                     </tr>

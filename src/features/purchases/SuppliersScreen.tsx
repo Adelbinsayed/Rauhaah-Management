@@ -209,65 +209,64 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2.5">
-            <Truck className="w-5 h-5 text-brand-gold" />
-            <span>Fragrance & Bottle Suppliers</span>
+          <h2 className="text-xl font-medium text-ink flex items-center gap-2.5">
+            <Truck className="w-5 h-5 text-accent-ink" strokeWidth={1.5} />
+            <span>Fragrance &amp; bottle suppliers</span>
           </h2>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-            Directory of essential oil distilleries, perfume houses, bottle importers, and wholesale vendors.
-            Click any supplier to view their complete purchase history and dues.
+          <p className="text-xs text-ink-muted mt-1">
+            Directory of essential oil distilleries, perfume houses, bottle importers, and wholesale vendors. Select a supplier to view purchase history and dues.
           </p>
         </div>
 
         <button
           type="button"
           onClick={openAddModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-gold text-brand-black text-xs font-bold hover:bg-brand-gold-light transition-all shadow-md shadow-brand-gold/20 cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-accent-fg text-xs font-semibold hover:bg-accent-hover transition-colors duration-150 ease-unslop cursor-pointer"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4" strokeWidth={1.75} />
           <span>Add New Supplier</span>
         </button>
       </div>
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border shadow-sm flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold">
-            <Truck className="w-5 h-5" />
+        <div className="p-4 rounded-xl bg-surface border border-hairline flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-lg bg-raised border border-hairline flex items-center justify-center text-accent-ink">
+            <Truck className="w-4 h-4" strokeWidth={1.5} />
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-              Registered Suppliers
+            <div className="text-xs text-ink-muted">
+              Registered suppliers
             </div>
-            <div className="text-lg font-bold text-neutral-900 dark:text-white font-mono mt-0.5">
-              {suppliers.length} Vendors
+            <div className="text-lg font-medium text-ink font-mono tabular-nums mt-0.5">
+              {suppliers.length} vendors
             </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border shadow-sm flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-            <Building className="w-5 h-5" />
+        <div className="p-4 rounded-xl bg-surface border border-hairline flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-lg bg-positive/10 border border-positive/25 flex items-center justify-center text-positive">
+            <Building className="w-4 h-4" strokeWidth={1.5} />
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-              Total Purchases Value
+            <div className="text-xs text-ink-muted">
+              Total purchases value
             </div>
-            <div className="text-lg font-bold text-emerald-500 font-mono mt-0.5">
+            <div className="text-lg font-medium text-positive font-mono tabular-nums mt-0.5">
               ৳{suppliers.reduce((acc, s) => acc + (s.totalPurchasedBdt || 0), 0).toFixed(2)}
             </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border shadow-sm flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-            <CreditCard className="w-5 h-5" />
+        <div className="p-4 rounded-xl bg-surface border border-hairline flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-lg bg-warning/10 border border-warning/25 flex items-center justify-center text-warning">
+            <CreditCard className="w-4 h-4" strokeWidth={1.5} />
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-              Total Outstanding Due
+            <div className="text-xs text-ink-muted">
+              Total outstanding due
             </div>
-            <div className="text-lg font-bold text-amber-400 font-mono mt-0.5">
+            <div className="text-lg font-medium text-warning font-mono tabular-nums mt-0.5">
               ৳{suppliers.reduce((acc, s) => acc + (s.totalDueBdt || 0), 0).toFixed(2)}
             </div>
           </div>
@@ -276,27 +275,27 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
 
       {/* Search Bar */}
       <div className="relative max-w-md">
-        <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+        <Search className="w-4 h-4 text-ink-muted absolute left-3 top-2.5" strokeWidth={1.5} />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by supplier name, contact person, or phone..."
-          className="w-full pl-9 pr-4 py-2 bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-xl text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-brand-gold"
+          placeholder="Search supplier name, contact person, or phone"
+          className="w-full pl-9 pr-4 py-2 bg-surface border border-hairline rounded-lg text-xs text-ink placeholder-ink-muted focus:outline-none focus:border-accent"
         />
       </div>
 
       {/* Suppliers Grid / List */}
       {loading ? (
-        <div className="p-12 text-center text-xs text-neutral-400">Loading suppliers...</div>
+        <div className="p-12 text-center text-xs text-ink-muted">Loading suppliers…</div>
       ) : filteredSuppliers.length === 0 ? (
-        <div className="p-12 text-center border border-dashed border-neutral-300 dark:border-brand-border rounded-2xl bg-white/50 dark:bg-brand-surface/50">
-          <Truck className="w-10 h-10 mx-auto text-neutral-400 mb-2 opacity-40" />
-          <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+        <div className="p-12 text-center border border-dashed border-hairline rounded-xl bg-surface">
+          <Truck className="w-8 h-8 mx-auto text-ink-muted mb-2 opacity-50" strokeWidth={1.5} />
+          <h3 className="text-sm font-medium text-ink-secondary">
             No suppliers found
           </h3>
-          <p className="text-xs text-neutral-400 mt-1">
-            {search ? 'Try adjusting your search keywords.' : 'Add your first supplier to begin receiving stock.'}
+          <p className="text-xs text-ink-muted mt-1">
+            {search ? 'Try adjusting your search keywords' : 'Add your first supplier to begin receiving stock'}
           </p>
         </div>
       ) : (
@@ -305,20 +304,20 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
             <div
               key={s.id}
               onClick={() => handleViewSupplierPurchases(s)}
-              className="p-4 rounded-2xl bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border hover:border-brand-gold hover:shadow-lg transition-all shadow-sm flex flex-col justify-between cursor-pointer group"
+              className="p-4 rounded-xl bg-surface border border-hairline hover:border-hairline-strong transition-colors duration-150 ease-unslop flex flex-col justify-between cursor-pointer group"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold group-hover:scale-105 transition-transform">
-                      <Building className="w-4 h-4" />
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-raised border border-hairline flex items-center justify-center text-accent-ink">
+                      <Building className="w-4 h-4" strokeWidth={1.5} />
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm text-neutral-900 dark:text-white leading-tight group-hover:text-brand-gold transition-colors">
+                      <h4 className="font-medium text-sm text-ink leading-tight group-hover:text-accent-ink transition-colors duration-150 ease-unslop">
                         {s.name}
                       </h4>
                       {s.contactPerson && (
-                        <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                        <p className="text-xs text-ink-muted">
                           {s.contactPerson}
                         </p>
                       )}
@@ -326,10 +325,10 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
                   </div>
 
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                    className={`px-2 py-0.5 rounded-md text-[11px] font-medium border ${
                       s.isActive
-                        ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
-                        : 'bg-neutral-500/15 text-neutral-400 border border-neutral-500/30'
+                        ? 'bg-positive/10 text-positive border-positive/25'
+                        : 'bg-raised text-ink-muted border-hairline'
                     }`}
                   >
                     {s.isActive ? 'Active' : 'Inactive'}
@@ -337,53 +336,53 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
                 </div>
 
                 {/* Details */}
-                <div className="mt-4 space-y-1.5 text-xs text-neutral-600 dark:text-neutral-300">
+                <div className="mt-4 space-y-1.5 text-xs text-ink-secondary">
                   {s.phone && (
                     <div className="flex items-center gap-2">
-                      <Phone className="w-3.5 h-3.5 text-brand-gold shrink-0" />
-                      <span className="font-mono text-[11px]">{s.phone}</span>
+                      <Phone className="w-3.5 h-3.5 text-ink-muted shrink-0" strokeWidth={1.5} />
+                      <span className="font-mono tabular-nums text-xs">{s.phone}</span>
                     </div>
                   )}
                   {s.email && (
                     <div className="flex items-center gap-2">
-                      <Mail className="w-3.5 h-3.5 text-brand-gold shrink-0" />
+                      <Mail className="w-3.5 h-3.5 text-ink-muted shrink-0" strokeWidth={1.5} />
                       <span className="truncate">{s.email}</span>
                     </div>
                   )}
                   {s.address && (
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-brand-gold shrink-0" />
+                      <MapPin className="w-3.5 h-3.5 text-ink-muted shrink-0" strokeWidth={1.5} />
                       <span className="truncate">{s.address}</span>
                     </div>
                   )}
                   {s.notes && (
-                    <div className="pt-2 mt-2 border-t border-neutral-100 dark:border-brand-border/60 text-[11px] text-neutral-400 italic">
-                      "{s.notes}"
+                    <div className="pt-2 mt-2 border-t border-hairline text-xs text-ink-muted">
+                      &ldquo;{s.notes}&rdquo;
                     </div>
                   )}
                 </div>
 
                 {/* Orders & Dues Summary */}
-                <div className="mt-3 p-2.5 rounded-xl bg-neutral-50 dark:bg-brand-black/60 border border-neutral-200 dark:border-brand-border/60 flex items-center justify-between text-xs">
+                <div className="mt-3 p-2.5 rounded-lg bg-raised border border-hairline flex items-center justify-between text-xs">
                   <div>
-                    <div className="text-[9px] uppercase font-bold text-neutral-400">Total Sourced</div>
-                    <div className="font-mono font-bold text-neutral-900 dark:text-white text-xs mt-0.5">
+                    <div className="text-[11px] text-ink-muted">Total sourced</div>
+                    <div className="font-mono tabular-nums font-medium text-ink text-xs mt-0.5">
                       ৳{(s.totalPurchasedBdt || 0).toFixed(2)}
-                      <span className="text-[10px] text-neutral-400 font-normal ml-1">
+                      <span className="text-[11px] text-ink-muted font-normal ml-1">
                         ({s.totalOrders || 0} POs)
                       </span>
                     </div>
                   </div>
 
                   <div className="text-right">
-                    <div className="text-[9px] uppercase font-bold text-neutral-400">Due Balance</div>
+                    <div className="text-[11px] text-ink-muted">Due balance</div>
                     {(s.totalDueBdt || 0) > 0 ? (
-                      <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 font-mono mt-0.5">
+                      <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-warning/10 text-warning border border-warning/25 font-mono tabular-nums mt-0.5">
                         Due ৳{(s.totalDueBdt || 0).toFixed(2)}
                       </span>
                     ) : (
-                      <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 mt-0.5">
-                        All Paid
+                      <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-positive/10 text-positive border border-positive/25 mt-0.5">
+                        All paid
                       </span>
                     )}
                   </div>
@@ -391,10 +390,10 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
               </div>
 
               {/* Actions & Click to View hint */}
-              <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-brand-border/60 flex items-center justify-between">
-                <span className="text-[11px] font-bold text-brand-gold group-hover:underline flex items-center gap-1">
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>View Purchases & Ledger &rarr;</span>
+              <div className="mt-4 pt-3 border-t border-hairline flex items-center justify-between">
+                <span className="text-xs font-medium text-accent-ink group-hover:underline flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  <span>View purchases &amp; ledger →</span>
                 </span>
 
                 <div className="flex gap-1.5" onClick={(e) => e.stopPropagation()}>
@@ -404,10 +403,10 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
                       e.stopPropagation();
                       openEditModal(s);
                     }}
-                    className="p-1.5 rounded-lg border border-neutral-200 dark:border-brand-border text-neutral-500 hover:text-brand-gold hover:border-brand-gold transition-colors"
+                    className="p-1.5 rounded-lg border border-hairline bg-raised text-ink-muted hover:text-accent-ink hover:border-hairline-strong transition-colors duration-150 ease-unslop"
                     title="Edit supplier details"
                   >
-                    <Edit2 className="w-3.5 h-3.5" />
+                    <Edit2 className="w-3.5 h-3.5" strokeWidth={1.5} />
                   </button>
                   <button
                     type="button"
@@ -415,10 +414,10 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
                       e.stopPropagation();
                       handleDelete(s.id, s.name);
                     }}
-                    className="p-1.5 rounded-lg border border-neutral-200 dark:border-brand-border text-neutral-500 hover:text-red-400 hover:border-red-400/50 transition-colors"
+                    className="p-1.5 rounded-lg border border-hairline bg-raised text-ink-muted hover:text-negative hover:border-negative/40 transition-colors duration-150 ease-unslop"
                     title="Delete supplier"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
                   </button>
                 </div>
               </div>
@@ -427,39 +426,37 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
         </div>
       )}
 
-      {/* ==================================================== */}
-      {/* SUPPLIER PURCHASES & PROFILE MODAL                   */}
-      {/* ==================================================== */}
+      {/* SUPPLIER PURCHASES & PROFILE MODAL */}
       {viewingSupplier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-4xl bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-2xl shadow-2xl p-6 space-y-4 max-h-[92vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+          <div className="w-full max-w-4xl bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4 max-h-[92vh] flex flex-col">
             {/* Modal Header */}
-            <div className="flex justify-between items-start pb-3 border-b border-neutral-200 dark:border-brand-border shrink-0">
+            <div className="flex justify-between items-start pb-3 border-b border-hairline shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold">
-                  <Building className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-xl bg-accent/12 border border-accent/25 flex items-center justify-center text-accent-ink">
+                  <Building className="w-5 h-5" strokeWidth={1.5} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-bold text-neutral-900 dark:text-white">
+                    <h3 className="text-lg font-medium text-ink">
                       {viewingSupplier.name}
                     </h3>
                     <span
-                      className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                      className={`px-2 py-0.5 rounded-md text-[11px] font-medium border ${
                         viewingSupplier.isActive
-                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                          : 'bg-neutral-500/15 text-neutral-400 border border-neutral-500/30'
+                          ? 'bg-positive/10 text-positive border-positive/25'
+                          : 'bg-raised text-ink-muted border-hairline'
                       }`}
                     >
-                      {viewingSupplier.isActive ? 'Active Supplier' : 'Inactive'}
+                      {viewingSupplier.isActive ? 'Active supplier' : 'Inactive'}
                     </span>
                   </div>
-                  <div className="text-xs text-neutral-500 dark:text-neutral-400 flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                  <div className="text-xs text-ink-muted flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
                     {viewingSupplier.contactPerson && (
-                      <span>Contact: <strong>{viewingSupplier.contactPerson}</strong></span>
+                      <span>Contact: <strong className="text-ink-secondary font-medium">{viewingSupplier.contactPerson}</strong></span>
                     )}
                     {viewingSupplier.phone && (
-                      <span className="font-mono">Phone: {viewingSupplier.phone}</span>
+                      <span className="font-mono tabular-nums">Phone: {viewingSupplier.phone}</span>
                     )}
                     {viewingSupplier.address && (
                       <span>Origin: {viewingSupplier.address}</span>
@@ -471,38 +468,38 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
               <button
                 type="button"
                 onClick={() => setViewingSupplier(null)}
-                className="p-1 text-neutral-400 hover:text-white cursor-pointer"
+                className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" strokeWidth={1.5} />
               </button>
             </div>
 
             {/* Financial Overview Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0 text-xs">
-              <div className="p-3 rounded-xl bg-neutral-50 dark:bg-brand-black/60 border border-neutral-200 dark:border-brand-border">
-                <div className="text-[10px] uppercase font-bold text-neutral-400">Total Sourced</div>
-                <div className="text-base font-bold font-mono text-neutral-900 dark:text-white mt-0.5">
+              <div className="p-3 rounded-xl bg-raised border border-hairline">
+                <div className="text-xs text-ink-muted">Total sourced</div>
+                <div className="text-base font-medium font-mono tabular-nums text-ink mt-0.5">
                   ৳{(viewingSupplier.totalPurchasedBdt || 0).toFixed(2)}
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-neutral-50 dark:bg-brand-black/60 border border-neutral-200 dark:border-brand-border">
-                <div className="text-[10px] uppercase font-bold text-neutral-400">Total Paid</div>
-                <div className="text-base font-bold font-mono text-emerald-500 mt-0.5">
+              <div className="p-3 rounded-xl bg-raised border border-hairline">
+                <div className="text-xs text-ink-muted">Total paid</div>
+                <div className="text-base font-medium font-mono tabular-nums text-positive mt-0.5">
                   ৳{(viewingSupplier.totalPaidBdt || 0).toFixed(2)}
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-neutral-50 dark:bg-brand-black/60 border border-neutral-200 dark:border-brand-border">
-                <div className="text-[10px] uppercase font-bold text-neutral-400">Due Balance</div>
-                <div className="text-base font-bold font-mono text-amber-400 mt-0.5">
+              <div className="p-3 rounded-xl bg-raised border border-hairline">
+                <div className="text-xs text-ink-muted">Due balance</div>
+                <div className="text-base font-medium font-mono tabular-nums text-warning mt-0.5">
                   ৳{(viewingSupplier.totalDueBdt || 0).toFixed(2)}
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-neutral-50 dark:bg-brand-black/60 border border-neutral-200 dark:border-brand-border">
-                <div className="text-[10px] uppercase font-bold text-neutral-400">Purchase Orders</div>
-                <div className="text-base font-bold font-mono text-brand-gold mt-0.5">
+              <div className="p-3 rounded-xl bg-raised border border-hairline">
+                <div className="text-xs text-ink-muted">Purchase orders</div>
+                <div className="text-base font-medium font-mono tabular-nums text-accent-ink mt-0.5">
                   {viewingSupplier.totalOrders || 0} POs
                 </div>
               </div>
@@ -511,22 +508,22 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
             {/* Purchases History Table */}
             <div className="flex-1 overflow-y-auto space-y-3 pr-1">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5">
-                  <ShoppingBag className="w-3.5 h-3.5 text-brand-gold" />
-                  <span>Purchases & Shipment History ({supplierPurchases.length})</span>
+                <h4 className="text-xs font-medium text-ink-secondary flex items-center gap-1.5">
+                  <ShoppingBag className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
+                  <span>Purchases &amp; shipment history ({supplierPurchases.length})</span>
                 </h4>
               </div>
 
               {loadingPurchases ? (
-                <div className="py-12 text-center text-xs text-neutral-400">
-                  Loading purchase records...
+                <div className="py-12 text-center text-xs text-ink-muted">
+                  Loading purchase records…
                 </div>
               ) : supplierPurchases.length === 0 ? (
-                <div className="py-12 text-center text-xs text-neutral-500 border border-dashed border-neutral-300 dark:border-brand-border rounded-xl">
-                  <ShoppingBag className="w-8 h-8 mx-auto text-neutral-400 mb-2 opacity-50" />
-                  <p className="font-semibold text-neutral-300">No purchase records found</p>
-                  <p className="text-[11px] text-neutral-500 mt-0.5">
-                    No shipments have been recorded from {viewingSupplier.name} yet.
+                <div className="py-12 text-center text-xs text-ink-muted border border-dashed border-hairline rounded-xl">
+                  <ShoppingBag className="w-7 h-7 mx-auto text-ink-muted mb-2 opacity-50" strokeWidth={1.5} />
+                  <p className="font-medium text-ink-secondary">No purchase records found</p>
+                  <p className="text-xs text-ink-muted mt-0.5">
+                    No shipments have been recorded from {viewingSupplier.name} yet
                   </p>
                 </div>
               ) : (
@@ -539,38 +536,38 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
                     return (
                       <div
                         key={po.id}
-                        className="border border-neutral-200 dark:border-brand-border rounded-xl overflow-hidden bg-neutral-50/50 dark:bg-brand-black/40 transition-all"
+                        className="border border-hairline rounded-xl overflow-hidden bg-raised/50"
                       >
                         {/* PO Header Row */}
                         <div
                           onClick={() => handleToggleExpandPurchase(po.id)}
-                          className="p-3 flex flex-wrap items-center justify-between gap-3 cursor-pointer hover:bg-neutral-100/50 dark:hover:bg-neutral-800/40 text-xs"
+                          className="p-3 flex flex-wrap items-center justify-between gap-3 cursor-pointer hover:bg-raised text-xs"
                         >
                           <div className="flex items-center gap-2.5">
                             <button
                               type="button"
-                              className="text-neutral-400 group-hover:text-white"
+                              className="text-ink-muted hover:text-ink"
                             >
                               {isExpanded ? (
-                                <ChevronUp className="w-4 h-4 text-brand-gold" />
+                                <ChevronUp className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
                               ) : (
-                                <ChevronDown className="w-4 h-4" />
+                                <ChevronDown className="w-4 h-4" strokeWidth={1.5} />
                               )}
                             </button>
                             <div>
-                              <div className="font-mono font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                              <div className="font-mono tabular-nums font-medium text-ink flex items-center gap-2">
                                 <span>{po.purchaseNumber}</span>
                                 {po.referenceNumber && (
-                                  <span className="text-[10px] font-normal text-neutral-400 font-mono">
-                                    Ref: {po.referenceNumber}
+                                  <span className="text-[11px] font-normal text-ink-muted font-mono">
+                                    Ref {po.referenceNumber}
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[11px] text-neutral-400 flex items-center gap-1.5 mt-0.5">
-                                <Calendar className="w-3 h-3 text-brand-gold" />
+                              <div className="text-xs text-ink-muted flex items-center gap-1.5 mt-0.5 tabular-nums">
+                                <Calendar className="w-3 h-3 text-accent-ink" strokeWidth={1.5} />
                                 <span>{new Date(po.receivedAt).toLocaleDateString()}</span>
-                                <span>&bull;</span>
-                                <Clock className="w-3 h-3 text-neutral-500" />
+                                <span>·</span>
+                                <Clock className="w-3 h-3" strokeWidth={1.5} />
                                 <span>
                                   {new Date(po.receivedAt).toLocaleTimeString([], {
                                     hour: '2-digit',
@@ -583,24 +580,24 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
 
                           <div className="flex items-center gap-4 text-right">
                             <div>
-                              <div className="text-[10px] uppercase font-bold text-neutral-400">
-                                Total Cost
+                              <div className="text-[11px] text-ink-muted">
+                                Total cost
                               </div>
-                              <div className="font-mono font-bold text-brand-gold text-sm">
+                              <div className="font-mono tabular-nums font-medium text-accent-ink text-sm">
                                 ৳{po.totalAmountBdt.toFixed(2)}
                               </div>
                             </div>
 
                             <div>
-                              <div className="text-[10px] uppercase font-bold text-neutral-400">
+                              <div className="text-[11px] text-ink-muted capitalize">
                                 Payment ({po.paymentMethod})
                               </div>
                               {dueAmount > 0 ? (
-                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 font-mono">
+                                <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-warning/10 text-warning border border-warning/25 font-mono tabular-nums">
                                   Due ৳{dueAmount.toFixed(2)}
                                 </span>
                               ) : (
-                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400">
+                                <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-positive/10 text-positive border border-positive/25 font-mono tabular-nums">
                                   Paid (৳{po.paidAmountBdt.toFixed(2)})
                                 </span>
                               )}
@@ -610,48 +607,48 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
 
                         {/* Collapsible Line Items */}
                         {isExpanded && (
-                          <div className="px-3 pb-3 pt-1 border-t border-neutral-200 dark:border-brand-border/60 bg-white/40 dark:bg-brand-surface/40 animate-in fade-in duration-100">
-                            <div className="text-[10px] uppercase font-bold text-neutral-400 pb-1.5">
-                              Line Items Received:
+                          <div className="px-3 pb-3 pt-2 border-t border-hairline bg-surface">
+                            <div className="text-xs font-medium text-ink-muted pb-1.5">
+                              Line items received
                             </div>
 
                             {loadingPoId === po.id ? (
-                              <div className="py-3 text-center text-[11px] text-neutral-400">
-                                Loading item details...
+                              <div className="py-3 text-center text-xs text-ink-muted">
+                                Loading item details…
                               </div>
                             ) : cachedPo?.items && cachedPo.items.length > 0 ? (
-                              <div className="border border-neutral-200 dark:border-brand-border/40 rounded-lg overflow-hidden">
+                              <div className="border border-hairline rounded-lg overflow-hidden">
                                 <table className="w-full text-left text-xs">
-                                  <thead className="bg-neutral-100 dark:bg-brand-black/80 text-neutral-500 text-[10px] uppercase font-bold">
+                                  <thead className="bg-raised/70 text-ink-muted font-medium border-b border-hairline">
                                     <tr>
-                                      <th className="py-1.5 px-3">Product / SKU</th>
-                                      <th className="py-1.5 px-3">Purchased Qty</th>
-                                      <th className="py-1.5 px-3">Purchased Rate</th>
-                                      <th className="py-1.5 px-3">Stock Added</th>
-                                      <th className="py-1.5 px-3 text-right">Line Total</th>
+                                      <th className="py-2 px-3">Product / SKU</th>
+                                      <th className="py-2 px-3">Purchased qty</th>
+                                      <th className="py-2 px-3">Purchased rate</th>
+                                      <th className="py-2 px-3">Stock added</th>
+                                      <th className="py-2 px-3 text-right">Line total</th>
                                     </tr>
                                   </thead>
-                                  <tbody className="divide-y divide-neutral-200 dark:divide-brand-border/40 text-neutral-700 dark:text-neutral-200 text-[11px]">
+                                  <tbody className="divide-y divide-hairline text-ink-secondary text-xs">
                                     {cachedPo.items.map((it) => (
                                       <tr key={it.id}>
-                                        <td className="py-1.5 px-3">
-                                          <div className="font-semibold text-neutral-900 dark:text-white">
+                                        <td className="py-2 px-3">
+                                          <div className="font-medium text-ink">
                                             {it.productName}
                                           </div>
-                                          <div className="text-[10px] text-neutral-400 font-mono">
+                                          <div className="text-[11px] text-ink-muted font-mono">
                                             {it.sku}
                                           </div>
                                         </td>
-                                        <td className="py-1.5 px-3 font-mono font-medium">
+                                        <td className="py-2 px-3 font-mono tabular-nums font-medium">
                                           {it.purchasedQuantity} {it.purchasedUnit}
                                         </td>
-                                        <td className="py-1.5 px-3 font-mono text-neutral-400">
+                                        <td className="py-2 px-3 font-mono tabular-nums text-ink-muted">
                                           ৳{it.unitRateBdt.toFixed(2)}/{it.purchasedUnit}
                                         </td>
-                                        <td className="py-1.5 px-3 font-mono text-emerald-400">
+                                        <td className="py-2 px-3 font-mono tabular-nums text-positive">
                                           +{it.convertedQuantityBase.toFixed(2)} {it.baseUnitCode}
                                         </td>
-                                        <td className="py-1.5 px-3 text-right font-mono font-bold text-brand-gold">
+                                        <td className="py-2 px-3 text-right font-mono tabular-nums font-medium text-accent-ink">
                                           ৳{it.totalCostBdt.toFixed(2)}
                                         </td>
                                       </tr>
@@ -660,8 +657,8 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
                                 </table>
                               </div>
                             ) : (
-                              <div className="text-[11px] text-neutral-400 italic">
-                                No individual line items recorded.
+                              <div className="text-xs text-ink-muted">
+                                No individual line items recorded
                               </div>
                             )}
                           </div>
@@ -674,7 +671,7 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
             </div>
 
             {/* Modal Actions */}
-            <div className="pt-3 border-t border-neutral-200 dark:border-brand-border flex justify-between items-center shrink-0">
+            <div className="pt-3 border-t border-hairline flex justify-between items-center shrink-0">
               <button
                 type="button"
                 onClick={() => {
@@ -682,16 +679,16 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
                   setViewingSupplier(null);
                   openEditModal(s);
                 }}
-                className="px-4 py-2 rounded-xl border border-neutral-200 dark:border-brand-border text-xs text-neutral-600 dark:text-neutral-400 hover:text-white font-medium flex items-center gap-1.5"
+                className="px-4 py-2 rounded-lg border border-hairline bg-raised text-xs text-ink-secondary hover:text-ink font-medium flex items-center gap-1.5"
               >
-                <Edit2 className="w-3.5 h-3.5 text-brand-gold" />
+                <Edit2 className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
                 <span>Edit Supplier Info</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setViewingSupplier(null)}
-                className="px-5 py-2 rounded-xl bg-brand-gold text-brand-black font-extrabold text-xs hover:bg-brand-gold-light transition-all shadow-md shadow-brand-gold/20 cursor-pointer"
+                className="px-5 py-2 rounded-lg bg-accent text-accent-fg font-semibold text-xs hover:bg-accent-hover transition-colors duration-150 ease-unslop cursor-pointer"
               >
                 Close
               </button>
@@ -700,111 +697,109 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
         </div>
       )}
 
-      {/* ==================================================== */}
-      {/* ADD / EDIT SUPPLIER MODAL                            */}
-      {/* ==================================================== */}
+      {/* ADD / EDIT SUPPLIER MODAL */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-2xl shadow-2xl p-6 space-y-4">
-            <div className="flex justify-between items-center pb-3 border-b border-neutral-200 dark:border-brand-border">
-              <h3 className="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                <Building className="w-4 h-4 text-brand-gold" />
-                <span>{editingSupplier ? 'Edit Supplier' : 'Add New Supplier'}</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+          <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-hairline">
+              <h3 className="text-base font-medium text-ink flex items-center gap-2">
+                <Building className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
+                <span>{editingSupplier ? 'Edit supplier' : 'Add new supplier'}</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="p-1 text-neutral-400 hover:text-white cursor-pointer"
+                className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" strokeWidth={1.5} />
               </button>
             </div>
 
             {error && (
-              <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs">
+              <div className="p-2.5 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleSave} className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                  Supplier / Company Name <span className="text-red-400">*</span>
+                <label className="block font-medium text-ink-secondary mb-1">
+                  Supplier / company name <span className="text-negative">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Surrati Perfumes Makkah"
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs"
+                  placeholder="Surrati Perfumes Makkah"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                    Contact Person
+                  <label className="block font-medium text-ink-secondary mb-1">
+                    Contact person
                   </label>
                   <input
                     type="text"
                     value={contactPerson}
                     onChange={(e) => setContactPerson(e.target.value)}
-                    placeholder="e.g. Haji Rafiq"
-                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs"
+                    placeholder="Haji Rafiq"
+                    className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
+                  <label className="block font-medium text-ink-secondary mb-1">
                     Phone / WhatsApp
                   </label>
                   <input
                     type="text"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="017... / +966..."
-                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs font-mono"
+                    placeholder="017..."
+                    className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                  Email Address
+                <label className="block font-medium text-ink-secondary mb-1">
+                  Email address
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="orders@supplier.com"
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                  Address / Origin
+                <label className="block font-medium text-ink-secondary mb-1">
+                  Address / origin
                 </label>
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="e.g. Chawkbazar, Dhaka / Makkah, KSA"
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs"
+                  placeholder="Chawkbazar, Dhaka"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                  Notes & Specialities
+                <label className="block font-medium text-ink-secondary mb-1">
+                  Notes &amp; specialities
                 </label>
                 <textarea
                   rows={2}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="e.g. Supplies crystal 12ml bottles, delivery within 48h"
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs"
+                  placeholder="Supplies 12ml crystal bottles, delivery within 48h"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs"
                 />
               </div>
 
@@ -814,28 +809,28 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
                     type="checkbox"
                     checked={isActive}
                     onChange={(e) => setIsActive(e.target.checked)}
-                    className="rounded text-brand-gold focus:ring-brand-gold"
+                    className="rounded accent-accent"
                   />
-                  <span className="text-xs text-neutral-700 dark:text-neutral-300">
-                    Active Supplier
+                  <span className="text-xs text-ink-secondary">
+                    Active supplier
                   </span>
                 </label>
               )}
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-neutral-200 dark:border-brand-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-hairline">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-neutral-200 dark:border-brand-border text-xs text-neutral-600 dark:text-neutral-400 hover:text-white font-medium"
+                  className="px-4 py-2 rounded-lg border border-hairline bg-raised text-xs text-ink-secondary hover:text-ink font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-5 py-2 rounded-xl bg-brand-gold text-brand-black font-bold text-xs hover:bg-brand-gold-light transition-all shadow-md shadow-brand-gold/20 disabled:opacity-50 cursor-pointer"
+                  className="px-5 py-2 rounded-lg bg-accent text-accent-fg font-semibold text-xs hover:bg-accent-hover transition-colors duration-150 ease-unslop disabled:opacity-50 cursor-pointer"
                 >
-                  {saving ? 'Saving...' : editingSupplier ? 'Update Supplier' : 'Save Supplier'}
+                  {saving ? 'Saving…' : editingSupplier ? 'Update Supplier' : 'Save Supplier'}
                 </button>
               </div>
             </form>

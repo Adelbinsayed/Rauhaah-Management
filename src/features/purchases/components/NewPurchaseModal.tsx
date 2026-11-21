@@ -319,31 +319,31 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
     switch (type) {
       case 'raw_oil':
         return (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-            <Droplets className="w-2.5 h-2.5" /> Oil / Decant
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-accent/12 text-accent-ink border border-accent/25">
+            <Droplets className="w-3 h-3" strokeWidth={1.5} /> Oil / Decant
           </span>
         );
       case 'empty_bottle':
         return (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
-            <Package className="w-2.5 h-2.5" /> Bottle
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-raised text-ink-secondary border border-hairline">
+            <Package className="w-3 h-3" strokeWidth={1.5} /> Bottle
           </span>
         );
       case 'sealed_product':
         return (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30">
-            <Tag className="w-2.5 h-2.5" /> Sealed Perfume
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-raised text-ink-secondary border border-hairline">
+            <Tag className="w-3 h-3" strokeWidth={1.5} /> Sealed Perfume
           </span>
         );
       case 'accessory':
         return (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-            <CheckCircle2 className="w-2.5 h-2.5" /> Accessory
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-positive/10 text-positive border border-positive/25">
+            <CheckCircle2 className="w-3 h-3" strokeWidth={1.5} /> Accessory
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-500/15 text-neutral-400 border border-neutral-500/30">
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-raised text-ink-muted border border-hairline">
             {type}
           </span>
         );
@@ -354,20 +354,20 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-        <div className="w-full max-w-4xl bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-2xl shadow-2xl p-6 space-y-4 max-h-[94vh] flex flex-col">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+        <div className="w-full max-w-4xl bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4 max-h-[94vh] flex flex-col">
           {/* Modal Header */}
-          <div className="flex justify-between items-center pb-3 border-b border-neutral-200 dark:border-brand-border shrink-0">
+          <div className="flex justify-between items-center pb-3 border-b border-hairline shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold">
-                <ShoppingBag className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-lg bg-accent/12 border border-accent/25 flex items-center justify-center text-accent-ink">
+                <ShoppingBag className="w-4 h-4" strokeWidth={1.5} />
               </div>
               <div>
-                <h3 className="text-base font-bold text-neutral-900 dark:text-white">
-                  Receive Stock Shipment &bull; {purchaseNumber}
+                <h3 className="text-base font-medium text-ink">
+                  Receive stock shipment · {purchaseNumber}
                 </h3>
-                <p className="text-[11px] text-neutral-400">
-                  Record delivered raw oils, bottles, and accessories to increase live inventory.
+                <p className="text-xs text-ink-muted">
+                  Record delivered raw oils, bottles, and accessories to update live inventory
                 </p>
               </div>
             </div>
@@ -375,22 +375,22 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1 text-neutral-400 hover:text-white cursor-pointer"
+              className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" strokeWidth={1.5} />
             </button>
           </div>
 
           {formError && (
-            <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs flex items-center gap-2 shrink-0">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="p-2.5 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs flex items-center gap-2 shrink-0">
+              <AlertCircle className="w-4 h-4 shrink-0" strokeWidth={1.5} />
               <span>{formError}</span>
             </div>
           )}
 
           {newProductSuccessToast && (
-            <div className="p-2.5 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs flex items-center gap-2 shrink-0">
-              <Check className="w-4 h-4 shrink-0" />
+            <div className="p-2.5 rounded-lg bg-positive/10 border border-positive/25 text-positive text-xs flex items-center gap-2 shrink-0">
+              <Check className="w-4 h-4 shrink-0" strokeWidth={1.5} />
               <span>{newProductSuccessToast}</span>
             </div>
           )}
@@ -398,19 +398,19 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
           {/* Modal Body: Scrollable */}
           <div className="flex-1 overflow-y-auto space-y-4 pr-1">
             {/* Supplier & Header Info Card */}
-            <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-brand-black/60 border border-neutral-200 dark:border-brand-border grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div className="p-3.5 rounded-xl bg-raised/60 border border-hairline grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
               {/* Supplier Picker */}
               <div className="md:col-span-2">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1 flex justify-between items-center">
+                <label className="text-xs font-medium text-ink-secondary mb-1 flex justify-between items-center">
                   <span>
-                    Supplier / Vendor <span className="text-red-400">*</span>
+                    Supplier / vendor <span className="text-negative">*</span>
                   </span>
                   <button
                     type="button"
                     onClick={() => setShowQuickSupplier(!showQuickSupplier)}
-                    className="text-brand-gold text-[10px] font-semibold hover:underline cursor-pointer"
+                    className="text-accent-ink text-xs font-medium hover:underline cursor-pointer"
                   >
-                    + Quick Add Supplier
+                    + Quick add supplier
                   </button>
                 </label>
                 <select
@@ -420,7 +420,7 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                     const s = suppliers.find((x) => x.id === e.target.value);
                     if (s) setSupplierNameInput(s.name);
                   }}
-                  className="w-full px-2.5 py-1.5 bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white font-medium focus:outline-none focus:border-brand-gold text-xs"
+                  className="w-full px-2.5 py-1.5 bg-surface border border-hairline rounded-lg text-ink font-medium focus:outline-none focus:border-accent text-xs"
                 >
                   {suppliers.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -431,25 +431,25 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
 
                 {/* Inline quick supplier add */}
                 {showQuickSupplier && (
-                  <div className="mt-2 p-2 rounded-lg bg-neutral-100 dark:bg-brand-surface border border-brand-gold/40 flex items-center gap-2">
+                  <div className="mt-2 p-2 rounded-lg bg-surface border border-accent/30 flex items-center gap-2">
                     <input
                       type="text"
                       value={quickSupplierName}
                       onChange={(e) => setQuickSupplierName(e.target.value)}
                       placeholder="Supplier name"
-                      className="flex-1 px-2 py-1 bg-white dark:bg-brand-black border border-brand-border rounded text-[11px] text-white"
+                      className="flex-1 px-2 py-1 bg-raised border border-hairline rounded text-xs text-ink"
                     />
                     <input
                       type="text"
                       value={quickSupplierPhone}
                       onChange={(e) => setQuickSupplierPhone(e.target.value)}
                       placeholder="Phone (optional)"
-                      className="w-28 px-2 py-1 bg-white dark:bg-brand-black border border-brand-border rounded text-[11px] text-white font-mono"
+                      className="w-28 px-2 py-1 bg-raised border border-hairline rounded text-xs text-ink font-mono"
                     />
                     <button
                       type="button"
                       onClick={handleQuickAddSupplier}
-                      className="px-2.5 py-1 rounded bg-brand-gold text-brand-black font-bold text-[10px] cursor-pointer"
+                      className="px-2.5 py-1 rounded bg-accent text-accent-fg font-semibold text-xs cursor-pointer"
                     >
                       Add
                     </button>
@@ -459,25 +459,25 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
 
               {/* Reference Number */}
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1">
-                  Bill / Challan Ref #
+                <label className="block text-xs font-medium text-ink-secondary mb-1">
+                  Bill / challan ref
                 </label>
                 <input
                   type="text"
                   value={referenceNumber}
                   onChange={(e) => setReferenceNumber(e.target.value)}
-                  placeholder="e.g. INV-9842"
-                  className="w-full px-2.5 py-1.5 bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs font-mono"
+                  placeholder="INV-9842"
+                  className="w-full px-2.5 py-1.5 bg-surface border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs font-mono"
                 />
               </div>
             </div>
 
             {/* ADD LINE ITEM BOX */}
-            <div className="p-4 rounded-xl border border-brand-gold/40 bg-brand-gold/5 space-y-3">
+            <div className="p-4 rounded-xl border border-accent/30 bg-accent/5 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-bold text-neutral-900 dark:text-white flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
-                  <Plus className="w-3.5 h-3.5 text-brand-gold" />
-                  <span>Select & Add Stock Item</span>
+                <span className="text-xs font-medium text-ink flex items-center gap-1.5">
+                  <Plus className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.75} />
+                  <span>Select &amp; add stock item</span>
                 </span>
 
                 <button
@@ -486,9 +486,9 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                     setQuickProductInitialName(itemSearchQuery || '');
                     setIsNewProductModalOpen(true);
                   }}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-gold/20 hover:bg-brand-gold text-brand-gold hover:text-brand-black border border-brand-gold/40 font-bold text-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface hover:bg-accent hover:text-accent-fg text-accent-ink border border-accent/30 font-medium text-xs transition-colors duration-150 ease-unslop cursor-pointer"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-3.5 h-3.5" strokeWidth={1.75} />
                   <span>+ New Product to Catalog</span>
                 </button>
               </div>
@@ -497,12 +497,12 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
                 {/* Combobox Search Input (6 cols) */}
                 <div className="md:col-span-6 relative" ref={searchContainerRef}>
-                  <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">
-                    Search Stock Item (Name, SKU, or Type)
+                  <label className="block text-xs font-medium text-ink-secondary mb-1">
+                    Search stock item (name, SKU, or type)
                   </label>
 
                   <div className="relative">
-                    <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-2.5" />
+                    <Search className="w-3.5 h-3.5 text-ink-muted absolute left-3 top-2.5" strokeWidth={1.5} />
                     <input
                       type="text"
                       value={itemSearchQuery}
@@ -511,26 +511,26 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                         setItemSearchQuery(e.target.value);
                         setIsItemSearchOpen(true);
                       }}
-                      placeholder="Type to search e.g. Amber, Oudh, STK-044, Bottle..."
-                      className="w-full pl-8 pr-8 py-1.5 bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white font-medium focus:outline-none focus:border-brand-gold text-xs"
+                      placeholder="Amber, Oudh, STK-044, Bottle"
+                      className="w-full pl-8 pr-8 py-1.5 bg-surface border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs"
                     />
                     {itemSearchQuery && (
                       <button
                         type="button"
                         onClick={() => setItemSearchQuery('')}
-                        className="absolute right-2.5 top-2 text-neutral-400 hover:text-white cursor-pointer"
+                        className="absolute right-2.5 top-2 text-ink-muted hover:text-ink cursor-pointer"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <X className="w-3.5 h-3.5" strokeWidth={1.5} />
                       </button>
                     )}
                   </div>
 
                   {/* Combobox Dropdown Results */}
                   {isItemSearchOpen && (
-                    <div className="absolute z-20 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-xl shadow-2xl py-1 text-xs">
+                    <div className="absolute z-20 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-surface border border-hairline-strong rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.45)] py-1 text-xs">
                       {filteredStockItems.length === 0 ? (
-                        <div className="p-3 text-center text-neutral-400">
-                          <p className="text-xs">No matching products found.</p>
+                        <div className="p-3 text-center text-ink-muted">
+                          <p className="text-xs">No matching products found</p>
                           <button
                             type="button"
                             onClick={() => {
@@ -538,9 +538,9 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                               setQuickProductInitialName(itemSearchQuery);
                               setIsNewProductModalOpen(true);
                             }}
-                            className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-brand-gold text-brand-black rounded-lg font-bold text-[11px] cursor-pointer"
+                            className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-accent text-accent-fg rounded-lg font-semibold text-xs cursor-pointer"
                           >
-                            <Plus className="w-3 h-3" />
+                            <Plus className="w-3 h-3" strokeWidth={1.75} />
                             <span>Create &ldquo;{itemSearchQuery}&rdquo; as New Product</span>
                           </button>
                         </div>
@@ -549,31 +549,31 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                           <div
                             key={s.id}
                             onClick={() => selectStockItem(s)}
-                            className={`p-2.5 hover:bg-brand-gold/15 cursor-pointer border-b border-neutral-100 dark:border-brand-border/40 last:border-0 transition-colors flex items-center justify-between ${
-                              s.id === rowStockItemId ? 'bg-brand-gold/10 font-bold' : ''
+                            className={`p-2.5 hover:bg-raised cursor-pointer border-b border-hairline last:border-0 transition-colors duration-150 ease-unslop flex items-center justify-between ${
+                              s.id === rowStockItemId ? 'bg-accent/10 font-medium' : ''
                             }`}
                           >
                             <div className="space-y-0.5">
-                              <div className="text-neutral-900 dark:text-white flex items-center gap-1.5 font-medium">
+                              <div className="text-ink flex items-center gap-1.5 font-medium">
                                 <span>{s.name}</span>
-                                <span className="font-mono text-[10px] text-neutral-400">
+                                <span className="font-mono text-[11px] text-ink-muted">
                                   ({s.sku})
                                 </span>
                               </div>
                               <div className="flex items-center gap-2">
                                 {renderItemTypeBadge(s.itemType)}
-                                <span className="text-[10px] text-neutral-400 font-mono">
-                                  Base Unit: <strong>{s.unitCode}</strong>
+                                <span className="text-[11px] text-ink-muted font-mono">
+                                  Base unit <strong className="text-ink-secondary">{s.unitCode}</strong>
                                 </span>
                               </div>
                             </div>
 
-                            <div className="text-right font-mono text-[11px]">
-                              <div className="text-neutral-300">
-                                Stock: <strong>{s.currentQuantity}</strong> {s.unitCode}
+                            <div className="text-right font-mono tabular-nums text-[11px]">
+                              <div className="text-ink-secondary">
+                                Stock <strong className="text-ink">{s.currentQuantity}</strong> {s.unitCode}
                               </div>
-                              <div className="text-brand-gold text-[10px]">
-                                Cost: ৳{s.costPriceBdt.toFixed(2)}/{s.unitCode}
+                              <div className="text-accent-ink">
+                                Cost ৳{s.costPriceBdt.toFixed(2)}/{s.unitCode}
                               </div>
                             </div>
                           </div>
@@ -586,22 +586,22 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                 {/* Active Selected Item Card (6 cols) */}
                 <div className="md:col-span-6 flex flex-col justify-end">
                   {selectedRowStockItem ? (
-                    <div className="p-2 rounded-lg bg-neutral-100 dark:bg-brand-black/80 border border-brand-gold/30 flex items-center justify-between">
+                    <div className="p-2.5 rounded-lg bg-surface border border-accent/30 flex items-center justify-between">
                       <div className="truncate pr-2">
-                        <div className="text-[10px] uppercase font-bold text-neutral-400 flex items-center gap-1.5">
-                          <span>Selected Item:</span>
+                        <div className="text-[11px] font-medium text-ink-muted flex items-center gap-1.5">
+                          <span>Selected item</span>
                           {renderItemTypeBadge(selectedRowStockItem.itemType)}
                         </div>
-                        <div className="text-xs font-bold text-white truncate mt-0.5">
+                        <div className="text-xs font-medium text-ink truncate mt-0.5">
                           {selectedRowStockItem.name}
                         </div>
-                        <div className="text-[10px] text-neutral-400 font-mono">
-                          SKU: {selectedRowStockItem.sku} &bull; In Stock:{' '}
-                          <strong className="text-emerald-400">
+                        <div className="text-[11px] text-ink-muted font-mono tabular-nums">
+                          SKU {selectedRowStockItem.sku} · In stock{' '}
+                          <strong className="text-positive font-medium">
                             {selectedRowStockItem.currentQuantity} {selectedRowStockItem.unitCode}
                           </strong>{' '}
-                          &bull; Avg Cost:{' '}
-                          <strong className="text-brand-gold">
+                          · Avg cost{' '}
+                          <strong className="text-accent-ink font-medium">
                             ৳{selectedRowStockItem.costPriceBdt.toFixed(2)}
                           </strong>
                         </div>
@@ -613,29 +613,29 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                           setIsItemSearchOpen(true);
                           setItemSearchQuery('');
                         }}
-                        className="shrink-0 px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-[10px] font-semibold border border-neutral-700 cursor-pointer"
+                        className="shrink-0 px-2.5 py-1 rounded-md bg-raised hover:border-hairline-strong text-ink-secondary hover:text-ink text-[11px] font-medium border border-hairline cursor-pointer"
                       >
                         Change
                       </button>
                     </div>
                   ) : (
-                    <div className="p-2 text-center text-neutral-500 border border-dashed border-neutral-700 rounded-lg text-[11px]">
-                      Please search and pick a stock item above.
+                    <div className="p-2.5 text-center text-ink-muted border border-dashed border-hairline rounded-lg text-xs">
+                      Search and pick a stock item above
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Row Quantity & Unit inputs */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 text-xs pt-1 border-t border-brand-gold/15">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 text-xs pt-2 border-t border-hairline">
                 <div>
-                  <label className="block text-[9px] font-bold uppercase text-neutral-500 mb-1">
-                    Received Unit
+                  <label className="block text-[11px] font-medium text-ink-muted mb-1">
+                    Received unit
                   </label>
                   <select
                     value={rowUnit}
                     onChange={(e) => setRowUnit(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white font-bold focus:outline-none focus:border-brand-gold text-xs"
+                    className="w-full px-2.5 py-1.5 bg-surface border border-hairline rounded-lg text-ink font-medium focus:outline-none focus:border-accent text-xs"
                   >
                     {selectedRowStockItem?.unitCode === 'ml' ? (
                       <>
@@ -659,7 +659,7 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-[9px] font-bold uppercase text-neutral-500 mb-1">
+                  <label className="block text-[11px] font-medium text-ink-muted mb-1">
                     Quantity
                   </label>
                   <input
@@ -668,12 +668,12 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                     step="any"
                     value={rowQuantity || ''}
                     onChange={(e) => setRowQuantity(Number(e.target.value))}
-                    className="w-full px-2.5 py-1.5 bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white font-mono font-bold focus:outline-none focus:border-brand-gold text-xs"
+                    className="w-full px-2.5 py-1.5 bg-surface border border-hairline rounded-lg text-ink font-mono tabular-nums font-medium focus:outline-none focus:border-accent text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[9px] font-bold uppercase text-neutral-500 mb-1">
+                  <label className="block text-[11px] font-medium text-ink-muted mb-1">
                     Rate / {rowUnit} (৳)
                   </label>
                   <input
@@ -683,7 +683,7 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                     value={rowRate || ''}
                     onChange={(e) => setRowRate(Number(e.target.value))}
                     placeholder="Cost rate"
-                    className="w-full px-2.5 py-1.5 bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white font-mono font-bold focus:outline-none focus:border-brand-gold text-xs text-brand-gold"
+                    className="w-full px-2.5 py-1.5 bg-surface border border-hairline rounded-lg text-accent-ink font-mono tabular-nums font-medium focus:outline-none focus:border-accent text-xs"
                   />
                 </div>
 
@@ -691,29 +691,29 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                   <button
                     type="button"
                     onClick={handleAddItem}
-                    className="w-full py-1.5 rounded-lg bg-brand-gold text-brand-black font-extrabold text-xs hover:bg-brand-gold-light transition-all shadow cursor-pointer flex items-center justify-center gap-1.5"
+                    className="w-full py-1.5 px-3 rounded-lg bg-accent text-accent-fg font-semibold text-xs hover:bg-accent-hover transition-colors duration-150 ease-unslop cursor-pointer flex items-center justify-center gap-1.5 tabular-nums"
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>+ Add Item (৳{rowCalculation.totalCost.toFixed(2)})</span>
+                    <Plus className="w-3.5 h-3.5" strokeWidth={1.75} />
+                    <span>Add Item (৳{rowCalculation.totalCost.toFixed(2)})</span>
                   </button>
                 </div>
               </div>
 
               {/* Conversion Preview */}
-              <div className="pt-2 border-t border-brand-gold/20 flex flex-wrap items-center justify-between gap-2 text-[11px] text-neutral-300 font-mono">
+              <div className="pt-2 border-t border-hairline flex flex-wrap items-center justify-between gap-2 text-xs text-ink-secondary font-mono tabular-nums">
                 <div className="flex items-center gap-2">
-                  <span className="text-brand-gold font-bold">Conversion:</span>
+                  <span className="text-accent-ink font-medium">Conversion</span>
                   <span>
                     {rowQuantity} {rowUnit} ={' '}
-                    <strong className="text-white">
+                    <strong className="text-ink font-medium">
                       {rowCalculation.convertedQty.toFixed(2)}{' '}
                       {selectedRowStockItem?.unitCode || 'unit'}
                     </strong>
                   </span>
-                  <span className="text-neutral-500">&bull;</span>
+                  <span className="text-ink-muted">·</span>
                   <span>
-                    Effective Base Cost:{' '}
-                    <strong className="text-emerald-400">
+                    Base cost{' '}
+                    <strong className="text-positive font-medium">
                       ৳{rowCalculation.baseCostPerUnit.toFixed(2)}/
                       {selectedRowStockItem?.unitCode || 'unit'}
                     </strong>
@@ -724,59 +724,59 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
 
             {/* Added Line Items Table */}
             <div className="space-y-2">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
-                Received Line Items ({items.length})
+              <div className="text-xs font-medium text-ink-secondary">
+                Received line items ({items.length})
               </div>
 
               {items.length === 0 ? (
-                <div className="py-6 text-center text-xs text-neutral-500 border border-dashed border-neutral-300 dark:border-brand-border rounded-xl">
+                <div className="py-6 text-center text-xs text-ink-muted border border-dashed border-hairline rounded-xl">
                   No items added yet. Search and add received oils, bottles, or supplies above.
                 </div>
               ) : (
-                <div className="border border-neutral-200 dark:border-brand-border rounded-xl overflow-hidden bg-neutral-50/50 dark:bg-brand-black/40">
+                <div className="border border-hairline rounded-xl overflow-hidden bg-surface">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-neutral-100 dark:bg-brand-black/80 border-b border-neutral-200 dark:border-brand-border text-neutral-500 text-[10px] uppercase font-bold">
+                    <thead className="bg-raised/70 border-b border-hairline text-ink-muted font-medium">
                       <tr>
                         <th className="py-2 px-3">Product / SKU</th>
-                        <th className="py-2 px-3">Received Qty</th>
-                        <th className="py-2 px-3">Purchased Rate</th>
-                        <th className="py-2 px-3">Converted Stock Qty</th>
-                        <th className="py-2 px-3">New Base Cost</th>
-                        <th className="py-2 px-3 text-right">Line Total (৳)</th>
+                        <th className="py-2 px-3">Received qty</th>
+                        <th className="py-2 px-3">Purchased rate</th>
+                        <th className="py-2 px-3">Converted stock</th>
+                        <th className="py-2 px-3">New base cost</th>
+                        <th className="py-2 px-3 text-right">Line total (৳)</th>
                         <th className="py-2 px-2 text-center"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-neutral-200 dark:divide-brand-border/40">
+                    <tbody className="divide-y divide-hairline">
                       {items.map((it, idx) => (
-                        <tr key={idx} className="hover:bg-neutral-100/50 dark:hover:bg-neutral-800/20">
+                        <tr key={idx} className="hover:bg-raised/40">
                           <td className="py-2 px-3">
-                            <div className="font-semibold text-neutral-900 dark:text-white">
+                            <div className="font-medium text-ink">
                               {it.productName}
                             </div>
-                            <div className="text-[10px] text-neutral-400 font-mono">
+                            <div className="text-[11px] text-ink-muted font-mono">
                               {it.sku}
                             </div>
                           </td>
-                          <td className="py-2 px-3 font-mono font-medium">
+                          <td className="py-2 px-3 font-mono tabular-nums font-medium text-ink">
                             {it.purchasedQuantity} {it.purchasedUnit}
                           </td>
-                          <td className="py-2 px-3 font-mono text-neutral-300">
+                          <td className="py-2 px-3 font-mono tabular-nums text-ink-secondary">
                             ৳{it.unitRateBdt.toFixed(2)}/{it.purchasedUnit}
                           </td>
-                          <td className="py-2 px-3 font-mono text-emerald-400">
+                          <td className="py-2 px-3 font-mono tabular-nums text-positive">
                             +{it.convertedQuantityBase.toFixed(2)} {it.baseUnitCode}
                           </td>
-                          <td className="py-2 px-3 font-mono text-neutral-300">
+                          <td className="py-2 px-3 font-mono tabular-nums text-ink-secondary">
                             ৳{it.baseCostPerUnitBdt.toFixed(2)}/{it.baseUnitCode}
                           </td>
-                          <td className="py-2 px-3 text-right font-mono font-bold text-brand-gold">
+                          <td className="py-2 px-3 text-right font-mono tabular-nums font-medium text-accent-ink">
                             ৳{it.totalCostBdt.toFixed(2)}
                           </td>
                           <td className="py-2 px-2 text-center">
                             <button
                               type="button"
                               onClick={() => handleRemoveItem(idx)}
-                              className="text-neutral-500 hover:text-red-400 p-1 cursor-pointer font-bold"
+                              className="text-ink-muted hover:text-negative p-1 cursor-pointer font-medium"
                             >
                               &times;
                             </button>
@@ -790,26 +790,26 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
             </div>
 
             {/* PAYMENT & PARTIAL PAYMENT SECTION */}
-            <div className="p-4 rounded-xl bg-neutral-900 text-white border border-brand-border space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-neutral-800">
+            <div className="p-4 rounded-xl bg-raised border border-hairline space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-hairline">
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-neutral-400">
-                    Grand Total Payable
+                  <div className="text-xs text-ink-muted">
+                    Grand total payable
                   </div>
-                  <div className="text-2xl font-bold font-mono text-brand-gold">
+                  <div className="text-2xl font-medium font-mono tabular-nums text-accent-ink">
                     ৳{totalOrderAmount.toFixed(2)}
                   </div>
                 </div>
 
                 {/* Payment Mode Pills */}
-                <div className="flex items-center gap-1.5 bg-brand-black p-1 rounded-xl border border-neutral-800">
+                <div className="flex items-center gap-1 bg-surface p-1 rounded-lg border border-hairline">
                   <button
                     type="button"
                     onClick={() => setPaymentMode('full')}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    className={`px-3 py-1 rounded-md text-xs font-medium transition-colors duration-150 ease-unslop cursor-pointer ${
                       paymentMode === 'full'
-                        ? 'bg-emerald-500 text-white shadow'
-                        : 'text-neutral-400 hover:text-white'
+                        ? 'bg-positive text-white font-semibold'
+                        : 'text-ink-muted hover:text-ink'
                     }`}
                   >
                     Full Payment (100%)
@@ -822,10 +822,10 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                         setPaidAmountBdt(Math.round(totalOrderAmount * 0.5));
                       }
                     }}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    className={`px-3 py-1 rounded-md text-xs font-medium transition-colors duration-150 ease-unslop cursor-pointer ${
                       paymentMode === 'partial'
-                        ? 'bg-amber-500 text-black shadow'
-                        : 'text-neutral-400 hover:text-white'
+                        ? 'bg-accent text-accent-fg font-semibold'
+                        : 'text-ink-muted hover:text-ink'
                     }`}
                   >
                     Partial Payment
@@ -833,10 +833,10 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setPaymentMode('due')}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    className={`px-3 py-1 rounded-md text-xs font-medium transition-colors duration-150 ease-unslop cursor-pointer ${
                       paymentMode === 'due'
-                        ? 'bg-red-500 text-white shadow'
-                        : 'text-neutral-400 hover:text-white'
+                        ? 'bg-negative text-white font-semibold'
+                        : 'text-ink-muted hover:text-ink'
                     }`}
                   >
                     Full Credit / Due
@@ -847,8 +847,8 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
               {/* Payment Detail Row */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs items-center">
                 <div>
-                  <label className="block text-[10px] uppercase font-bold text-neutral-400 mb-1">
-                    Amount Paid Now (৳)
+                  <label className="block text-xs font-medium text-ink-secondary mb-1">
+                    Amount paid now (৳)
                   </label>
                   <div className="relative">
                     <input
@@ -865,18 +865,18 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                         else if (val === 0) setPaymentMode('due');
                         else setPaymentMode('partial');
                       }}
-                      className="w-full px-3 py-1.5 bg-brand-black border border-brand-border rounded-lg text-white font-mono font-bold focus:outline-none focus:border-brand-gold text-xs"
+                      className="w-full px-3 py-1.5 bg-surface border border-hairline rounded-lg text-ink font-mono tabular-nums font-medium focus:outline-none focus:border-accent text-xs"
                     />
                   </div>
 
                   {paymentMode === 'partial' && totalOrderAmount > 0 && (
-                    <div className="flex gap-1 mt-1 text-[10px]">
+                    <div className="flex gap-1 mt-1.5 text-[11px]">
                       {[0.25, 0.5, 0.75].map((pct) => (
                         <button
                           key={pct}
                           type="button"
                           onClick={() => setPaidAmountBdt(Math.round(totalOrderAmount * pct))}
-                          className="px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 cursor-pointer"
+                          className="px-2 py-0.5 rounded bg-surface border border-hairline hover:border-hairline-strong text-ink-secondary cursor-pointer tabular-nums"
                         >
                           {pct * 100}% (৳{Math.round(totalOrderAmount * pct)})
                         </button>
@@ -886,14 +886,14 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] uppercase font-bold text-neutral-400 mb-1">
-                    Payment Method {paidAmountBdt > 0 ? '(for Paid Portion)' : ''}
+                  <label className="block text-xs font-medium text-ink-secondary mb-1">
+                    Payment method {paidAmountBdt > 0 ? '(paid portion)' : ''}
                   </label>
                   <select
                     disabled={paymentMode === 'due'}
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-brand-black border border-brand-border rounded-lg text-white font-semibold uppercase text-xs focus:outline-none focus:border-brand-gold disabled:opacity-50"
+                    className="w-full px-2.5 py-1.5 bg-surface border border-hairline rounded-lg text-ink font-medium text-xs focus:outline-none focus:border-accent disabled:opacity-50"
                   >
                     <option value="cash">Cash in Hand</option>
                     <option value="bank">Bank Transfer</option>
@@ -902,16 +902,16 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                   </select>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-neutral-800/80 border border-neutral-700">
-                  <div className="text-[10px] uppercase font-bold text-neutral-400">
-                    Remaining Supplier Due
+                <div className="p-2.5 rounded-lg bg-surface border border-hairline">
+                  <div className="text-[11px] text-ink-muted">
+                    Remaining supplier due
                   </div>
-                  <div className="text-lg font-bold font-mono text-amber-400 mt-0.5">
+                  <div className="text-lg font-medium font-mono tabular-nums text-warning mt-0.5">
                     ৳{Math.max(0, totalOrderAmount - paidAmountBdt).toFixed(2)}
                   </div>
                   {totalOrderAmount > paidAmountBdt && (
-                    <div className="text-[10px] text-amber-300/80 mt-0.5">
-                      Will be tracked in {supplierNameInput || 'Supplier'}&apos;s balance
+                    <div className="text-[11px] text-ink-muted mt-0.5">
+                      Tracked in {supplierNameInput || 'Supplier'}&apos;s balance
                     </div>
                   )}
                 </div>
@@ -920,11 +920,11 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
           </div>
 
           {/* Modal Actions */}
-          <div className="pt-3 border-t border-neutral-200 dark:border-brand-border flex justify-end gap-2.5 shrink-0">
+          <div className="pt-3 border-t border-hairline flex justify-end gap-2.5 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-neutral-200 dark:border-brand-border text-xs text-neutral-600 dark:text-neutral-400 hover:text-white font-medium cursor-pointer"
+              className="px-4 py-2 rounded-lg border border-hairline bg-raised text-xs text-ink-secondary hover:text-ink font-medium cursor-pointer"
             >
               Cancel
             </button>
@@ -932,10 +932,10 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
               type="button"
               disabled={submitting || items.length === 0}
               onClick={handleExecutePurchase}
-              className="px-6 py-2 rounded-xl bg-brand-gold text-brand-black font-extrabold text-xs hover:bg-brand-gold-light transition-all shadow-md shadow-brand-gold/20 disabled:opacity-50 cursor-pointer flex items-center gap-2"
+              className="px-5 py-2 rounded-lg bg-accent text-accent-fg font-semibold text-xs hover:bg-accent-hover transition-colors duration-150 ease-unslop disabled:opacity-50 cursor-pointer flex items-center gap-2"
             >
-              <span>{submitting ? 'Updating Inventory...' : 'Confirm & Stock In'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>{submitting ? 'Updating Inventory…' : 'Confirm & Stock In'}</span>
+              <ArrowRight className="w-4 h-4" strokeWidth={1.75} />
             </button>
           </div>
         </div>

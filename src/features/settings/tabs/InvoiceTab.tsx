@@ -67,10 +67,10 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
+            <h3 className="text-sm font-semibold text-ink">
               Receipt Template &amp; Thermal Printer Settings
             </h3>
-            <p className="text-xs text-neutral-400 mt-0.5">
+            <p className="text-xs text-ink-secondary mt-0.5">
               Configure direct ESC/POS high-speed thermal printing, paper width, and footer policies.
             </p>
           </div>
@@ -78,19 +78,19 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
       </div>
 
       {/* Direct ESC/POS Thermal Printing Hardware Controls */}
-      <div className="p-4 rounded-xl border border-brand-gold/30 bg-brand-black/40 space-y-4">
+      <div className="p-4 rounded-xl border border-accent/25 bg-canvas space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-brand-gold text-xs font-bold uppercase tracking-wider">
-            <Zap className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-accent-ink text-xs font-semibold">
+            <Zap className="w-4 h-4" strokeWidth={1.5} />
             <span>Printing Engine &amp; Hardware Bypass</span>
           </div>
           <button
             type="button"
             onClick={onTestPrintSlip}
             disabled={testingPrinter}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-gold/50 bg-brand-surface hover:border-brand-gold text-xs font-bold text-brand-gold hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-accent/40 bg-surface hover:border-accent text-xs font-medium text-accent-ink hover:text-ink transition-colors cursor-pointer disabled:opacity-50"
           >
-            <Printer className="w-3.5 h-3.5" />
+            <Printer className="w-3.5 h-3.5" strokeWidth={1.5} />
             <span>{testingPrinter ? 'Printing Slip…' : 'Test Direct Thermal Print'}</span>
           </button>
         </div>
@@ -99,8 +99,8 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
           <div
             className={`p-2.5 rounded-lg text-xs border ${
               testSlipMsg.success
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                : 'bg-red-500/10 border-red-500/30 text-red-400'
+                ? 'bg-positive/10 border-positive/25 text-positive'
+                : 'bg-negative/10 border-negative/25 text-negative'
             }`}
           >
             {testSlipMsg.text}
@@ -112,8 +112,8 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
           <label
             className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
               printerEngine === 'direct_escpos'
-                ? 'bg-brand-gold/10 border-brand-gold text-white'
-                : 'bg-brand-surface/40 border-brand-border text-neutral-400 hover:text-white'
+                ? 'bg-accent/10 border-accent text-ink'
+                : 'bg-surface border-hairline text-ink-secondary hover:text-ink'
             }`}
           >
             <input
@@ -122,16 +122,16 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
               value="direct_escpos"
               checked={printerEngine === 'direct_escpos'}
               onChange={() => onPrinterEngineChange('direct_escpos')}
-              className="text-brand-gold focus:ring-brand-gold mt-1"
+              className="accent-accent mt-1"
             />
             <div>
-              <div className="font-bold text-xs text-white flex items-center gap-1.5">
+              <div className="font-semibold text-xs text-ink flex items-center gap-1.5">
                 <span>Direct ESC/POS Thermal (Recommended)</span>
-                <span className="px-1.5 py-0.2 rounded text-[9px] bg-brand-gold/20 text-brand-gold font-mono">
+                <span className="px-1.5 py-0.5 rounded text-[10px] bg-accent/15 text-accent-ink font-mono">
                   FAST
                 </span>
               </div>
-              <div className="text-[11px] text-neutral-400 mt-0.5">
+              <div className="text-[11px] text-ink-secondary mt-0.5">
                 Bypasses the Windows print preview dialog for 1-click silent receipt print and instant auto-cut.
               </div>
             </div>
@@ -140,8 +140,8 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
           <label
             className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
               printerEngine === 'browser'
-                ? 'bg-brand-gold/10 border-brand-gold text-white'
-                : 'bg-brand-surface/40 border-brand-border text-neutral-400 hover:text-white'
+                ? 'bg-accent/10 border-accent text-ink'
+                : 'bg-surface border-hairline text-ink-secondary hover:text-ink'
             }`}
           >
             <input
@@ -150,11 +150,11 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
               value="browser"
               checked={printerEngine === 'browser'}
               onChange={() => onPrinterEngineChange('browser')}
-              className="text-brand-gold focus:ring-brand-gold mt-1"
+              className="accent-accent mt-1"
             />
             <div>
-              <div className="font-bold text-xs text-white">System Print Dialog (Preview)</div>
-              <div className="text-[11px] text-neutral-400 mt-0.5">
+              <div className="font-semibold text-xs text-ink">System Print Dialog (Preview)</div>
+              <div className="text-[11px] text-ink-secondary mt-0.5">
                 Opens the standard Windows print preview dialog (best for sheet paper or PDF exports).
               </div>
             </div>
@@ -162,17 +162,17 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
         </div>
 
         {/* Printer Select */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-brand-border/40">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-hairline">
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+              <label className="text-xs font-medium text-ink-secondary">
                 Target Thermal Printer
               </label>
               <button
                 type="button"
                 onClick={onRefreshPrinters}
                 disabled={loadingPrinters}
-                className="text-[11px] text-brand-gold hover:underline flex items-center gap-1 cursor-pointer"
+                className="text-[11px] text-accent-ink hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <RefreshCw className={`w-3 h-3 ${loadingPrinters ? 'animate-spin' : ''}`} />
                 <span>Scan Printers</span>
@@ -181,7 +181,7 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
             <select
               value={selectedPrinter}
               onChange={(e) => onSelectedPrinterChange(e.target.value)}
-              className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold"
+              className="w-full px-3 py-2 bg-surface border border-hairline rounded-lg text-xs text-ink focus:outline-none focus:border-accent"
             >
               <option value="">
                 {defaultPrinter ? `Default: ${defaultPrinter}` : '-- Select Printer --'}
@@ -192,7 +192,7 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
                 </option>
               ))}
             </select>
-            <p className="text-[10px] text-neutral-400 mt-1">
+            <p className="text-[11px] text-ink-muted mt-1">
               Detected via Windows raw spooler. Select your 80mm/58mm USB or Network thermal POS printer.
             </p>
           </div>
@@ -204,10 +204,10 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
                 type="checkbox"
                 checked={autoCutReceipt}
                 onChange={(e) => onAutoCutReceiptChange(e.target.checked)}
-                className="rounded text-brand-gold focus:ring-brand-gold h-4 w-4 bg-brand-surface border-brand-border"
+                className="rounded accent-accent h-4 w-4"
               />
-              <Scissors className="w-3.5 h-3.5 text-brand-gold" />
-              <span className="text-neutral-200 font-semibold">Auto-Cut Paper after printing (GS V)</span>
+              <Scissors className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
+              <span className="text-ink font-medium">Auto-Cut Paper after printing (GS V)</span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer text-xs">
@@ -215,10 +215,10 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
                 type="checkbox"
                 checked={kickCashDrawer}
                 onChange={(e) => onKickCashDrawerChange(e.target.checked)}
-                className="rounded text-brand-gold focus:ring-brand-gold h-4 w-4 bg-brand-surface border-brand-border"
+                className="rounded accent-accent h-4 w-4"
               />
-              <Zap className="w-3.5 h-3.5 text-brand-gold" />
-              <span className="text-neutral-200 font-semibold">Kick Cash Drawer on Cash Sale (ESC p)</span>
+              <Zap className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
+              <span className="text-ink font-medium">Kick Cash Drawer on Cash Sale (ESC p)</span>
             </label>
           </div>
         </div>
@@ -228,7 +228,7 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
         {/* Left Column: Form Controls */}
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-ink-secondary mb-1.5">
               Receipt Subtitle / Tagline
             </label>
             <input
@@ -236,15 +236,15 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
               value={invoiceSubtitle}
               onChange={(e) => onInvoiceSubtitleChange(e.target.value)}
               placeholder="Live Peaceful • Luxury Fragrances & Lifestyle"
-              className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold"
+              className="w-full px-3.5 py-2.5 bg-canvas border border-hairline rounded-lg text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent"
             />
-            <p className="text-[10px] text-neutral-400 mt-1">
+            <p className="text-[11px] text-ink-muted mt-1">
               Printed directly under the Rauhaah logo header.
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-ink-secondary mb-1.5">
               Thermal Paper Width &amp; Format
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -253,14 +253,14 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
                   key={width}
                   type="button"
                   onClick={() => onInvoicePaperWidthChange(width)}
-                  className={`p-2.5 rounded-lg border text-xs font-bold transition-colors text-left cursor-pointer ${
+                  className={`p-2.5 rounded-lg border text-xs font-semibold transition-colors text-left cursor-pointer ${
                     invoicePaperWidth === width
-                      ? 'bg-brand-gold/15 border-brand-gold text-brand-gold'
-                      : 'bg-neutral-50 dark:bg-brand-black border-neutral-200 dark:border-brand-border text-neutral-400 hover:text-white'
+                      ? 'bg-accent/15 border-accent text-accent-ink'
+                      : 'bg-canvas border-hairline text-ink-secondary hover:text-ink'
                   }`}
                 >
                   <div>{width === '80mm' ? '80mm Standard' : width === '58mm' ? '58mm Compact' : 'A4 Page'}</div>
-                  <div className="text-[9px] font-normal text-neutral-500 mt-0.5">
+                  <div className="text-[10px] font-normal text-ink-muted mt-0.5">
                     {width === '80mm' ? 'Standard 3" POS roll' : width === '58mm' ? 'Portable 2" roll' : 'Sheet paper'}
                   </div>
                 </button>
@@ -269,7 +269,7 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-ink-secondary mb-1.5">
               Exchange Policy &amp; Footer Note
             </label>
             <textarea
@@ -277,43 +277,43 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
               value={invoiceFooterNote}
               onChange={(e) => onInvoiceFooterNoteChange(e.target.value)}
               placeholder="Items can be exchanged within 7 days with original invoice & intact seal. Poured oils are non-exchangeable."
-              className="w-full px-3.5 py-2.5 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold"
+              className="w-full px-3.5 py-2.5 bg-canvas border border-hairline rounded-lg text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent"
             />
-            <p className="text-[10px] text-neutral-400 mt-1">
+            <p className="text-[11px] text-ink-muted mt-1">
               Custom policy note displayed at the bottom of the receipt.
             </p>
           </div>
 
-          <div className="pt-2 border-t border-neutral-200 dark:border-brand-border/60 space-y-3">
-            <label className="flex items-center gap-3 p-2.5 rounded-lg border border-neutral-200 dark:border-brand-border bg-neutral-50/50 dark:bg-brand-black/40 cursor-pointer">
+          <div className="pt-2 border-t border-hairline space-y-3">
+            <label className="flex items-center gap-3 p-2.5 rounded-lg border border-hairline bg-canvas cursor-pointer">
               <input
                 type="checkbox"
                 checked={showLogoOnInvoice}
                 onChange={(e) => onShowLogoOnInvoiceChange(e.target.checked)}
-                className="rounded text-brand-gold focus:ring-brand-gold h-4 w-4 bg-brand-surface border-brand-border"
+                className="rounded accent-accent h-4 w-4"
               />
               <div>
-                <div className="font-semibold text-xs text-neutral-900 dark:text-white">
+                <div className="font-medium text-xs text-ink">
                   Show Brand Logo on Receipt
                 </div>
-                <div className="text-[10px] text-neutral-400">
+                <div className="text-[11px] text-ink-secondary">
                   Prints the clean monochrome vector Rauhaah logo at the top of the invoice.
                 </div>
               </div>
             </label>
 
-            <label className="flex items-center gap-3 p-2.5 rounded-lg border border-neutral-200 dark:border-brand-border bg-neutral-50/50 dark:bg-brand-black/40 cursor-pointer">
+            <label className="flex items-center gap-3 p-2.5 rounded-lg border border-hairline bg-canvas cursor-pointer">
               <input
                 type="checkbox"
                 checked={showCashierOnInvoice}
                 onChange={(e) => onShowCashierOnInvoiceChange(e.target.checked)}
-                className="rounded text-brand-gold focus:ring-brand-gold h-4 w-4 bg-brand-surface border-brand-border"
+                className="rounded accent-accent h-4 w-4"
               />
               <div>
-                <div className="font-semibold text-xs text-neutral-900 dark:text-white">
+                <div className="font-medium text-xs text-ink">
                   Show Cashier Name on Receipt
                 </div>
-                <div className="text-[10px] text-neutral-400">
+                <div className="text-[11px] text-ink-secondary">
                   Includes &ldquo;Served by: [Cashier Name]&rdquo; on the receipt header.
                 </div>
               </div>
@@ -322,17 +322,17 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
         </div>
 
         {/* Right Column: Live Receipt Preview */}
-        <div className="bg-neutral-100 dark:bg-neutral-950 p-4 rounded-xl border border-neutral-300 dark:border-brand-border/80 flex flex-col items-center">
-          <div className="w-full flex justify-between items-center pb-2 mb-2 border-b border-neutral-200 dark:border-neutral-800">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-500">
+        <div className="bg-subtle p-4 rounded-xl border border-hairline flex flex-col items-center">
+          <div className="w-full flex justify-between items-center pb-2 mb-2 border-b border-hairline">
+            <span className="text-[11px] font-medium text-ink-secondary">
               Live Preview ({invoicePaperWidth})
             </span>
-            <span className="text-[10px] text-neutral-400 font-mono">
+            <span className="text-[11px] text-ink-muted font-mono">
               Real-time update
             </span>
           </div>
 
-          <div className="bg-white text-black p-3 shadow-xl border border-neutral-300 rounded font-mono text-[11px] leading-tight w-full max-w-[320px] max-h-[480px] overflow-y-auto">
+          <div className="bg-white text-black p-3 shadow-md border border-neutral-300 rounded font-mono text-[11px] leading-tight w-full max-w-[320px] max-h-[480px] overflow-y-auto">
             <PrintableReceipt
               invoiceNumber="INV-202611-00042"
               createdAt={new Date().toISOString()}

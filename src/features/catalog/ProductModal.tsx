@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Sparkles, AlertCircle, Droplet, Box, Tag, RefreshCw } from 'lucide-react';
+import { X, PackagePlus, AlertCircle, Droplet, Box, Tag, RefreshCw } from 'lucide-react';
 import type {
   Brand,
   Category,
@@ -155,45 +155,45 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-      <div className="w-full max-w-xl bg-brand-surface border border-brand-border rounded-xl shadow-2xl p-6 my-8 space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px] overflow-y-auto">
+      <div className="w-full max-w-xl bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 my-8 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-brand-border">
+        <div className="flex items-center justify-between pb-4 border-b border-hairline">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold">
-              <Sparkles className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-lg bg-accent/12 border border-accent/25 flex items-center justify-center text-accent-ink">
+              <PackagePlus className="w-4 h-4" strokeWidth={1.5} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Add New Product</h2>
-              <p className="text-xs text-neutral-400">
-                Automatic +15% true cost &amp; +25% live benchmark pricing.
+              <h2 className="text-base font-medium text-ink">Add new product</h2>
+              <p className="text-xs text-ink-muted">
+                Automatic +15% true cost &amp; +25% live benchmark pricing
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+            className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised transition-colors duration-150 ease-unslop"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" strokeWidth={1.5} />
           </button>
         </div>
 
         {/* Product Type Selector */}
-        <div className="grid grid-cols-2 gap-2 p-1 bg-brand-black border border-brand-border rounded-lg">
+        <div className="grid grid-cols-2 gap-2 p-1 bg-raised border border-hairline rounded-lg">
           <button
             type="button"
             onClick={() => {
               setProductKind('oil');
               handleQuantityChange('100');
             }}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-md text-xs font-semibold transition-all ${
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs font-medium transition-colors duration-150 ease-unslop ${
               productKind === 'oil'
-                ? 'bg-brand-gold text-brand-black shadow-sm'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-accent text-accent-fg font-semibold'
+                : 'text-ink-muted hover:text-ink'
             }`}
           >
-            <Droplet className="w-4 h-4" />
-            <span>Attar / Perfume Oil (in ml)</span>
+            <Droplet className="w-4 h-4" strokeWidth={1.5} />
+            <span>Attar / Perfume Oil (ml)</span>
           </button>
 
           <button
@@ -202,20 +202,20 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               setProductKind('packaged');
               handleQuantityChange('20');
             }}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-md text-xs font-semibold transition-all ${
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs font-medium transition-colors duration-150 ease-unslop ${
               productKind === 'packaged'
-                ? 'bg-brand-gold text-brand-black shadow-sm'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-accent text-accent-fg font-semibold'
+                : 'text-ink-muted hover:text-ink'
             }`}
           >
-            <Box className="w-4 h-4" />
-            <span>Packaged Perfume / Accessory (in pieces)</span>
+            <Box className="w-4 h-4" strokeWidth={1.5} />
+            <span>Packaged / Accessory (pcs)</span>
           </button>
         </div>
 
         {error && (
-          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={1.5} />
             <span>{error}</span>
           </div>
         )}
@@ -224,27 +224,27 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {/* Basic Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1">
-                Product Name *
+              <label className="block text-xs font-medium text-ink-secondary mb-1">
+                Product name *
               </label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder={productKind === 'oil' ? 'e.g. Black Oud / Cambodian Dehn Al Oudh' : 'e.g. Baccarat Rouge EDP 50ml'}
-                className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold"
+                placeholder={productKind === 'oil' ? 'Black Oud / Cambodian Dehn Al Oudh' : 'Baccarat Rouge EDP 50ml'}
+                className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-accent"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-medium text-ink-secondary mb-1">
                 Category
               </label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-lg text-sm text-white focus:outline-none focus:border-brand-gold"
+                className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-sm text-ink focus:outline-none focus:border-accent"
               >
                 <option value="">Select Category</option>
                 {categories.map((c) => (
@@ -256,13 +256,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1">
-                Brand / Fragrance House
+              <label className="block text-xs font-medium text-ink-secondary mb-1">
+                Brand / fragrance house
               </label>
               <select
                 value={brandId}
                 onChange={(e) => setBrandId(e.target.value)}
-                className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-lg text-sm text-white focus:outline-none focus:border-brand-gold"
+                className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-sm text-ink focus:outline-none focus:border-accent"
               >
                 <option value="">Select Brand</option>
                 {brands.map((b) => (
@@ -274,46 +274,46 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1">
-                SKU (Optional)
+              <label className="block text-xs font-medium text-ink-secondary mb-1">
+                SKU (optional)
               </label>
               <input
                 type="text"
                 value={sku}
                 onChange={(e) => setSku(e.target.value)}
                 placeholder="Auto-generated if blank"
-                className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold font-mono"
+                className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-accent font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1">
-                Barcode (Optional USB Scan)
+              <label className="block text-xs font-medium text-ink-secondary mb-1">
+                Barcode (optional USB scan)
               </label>
               <input
                 type="text"
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
                 placeholder="Scan or type barcode"
-                className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold font-mono"
+                className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-accent font-mono"
               />
             </div>
           </div>
 
           {/* Initial Purchase & Costing Card */}
-          <div className="p-4 rounded-xl bg-brand-black/60 border border-brand-border space-y-4">
+          <div className="p-4 rounded-xl bg-raised/60 border border-hairline space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-brand-gold uppercase tracking-wider flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5" />
-                <span>Purchase Volume &amp; Cost</span>
+              <h3 className="text-xs font-medium text-accent-ink flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5" strokeWidth={1.5} />
+                <span>Purchase volume &amp; cost</span>
               </h3>
-              <span className="text-[11px] text-neutral-400">Unit: <strong>{unitCode}</strong></span>
+              <span className="text-xs text-ink-muted">Unit: <strong className="text-ink font-medium">{unitCode}</strong></span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-neutral-300 mb-1">
-                  Quantity / Volume Bought ({unitCode}) *
+                <label className="block text-xs font-medium text-ink-secondary mb-1">
+                  Quantity / volume bought ({unitCode}) *
                 </label>
                 <input
                   type="number"
@@ -323,14 +323,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   value={quantityBought}
                   onChange={(e) => handleQuantityChange(e.target.value)}
                   placeholder="100"
-                  className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-lg text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
+                  className="w-full px-3 py-2 bg-surface border border-hairline rounded-lg text-sm text-ink font-mono tabular-nums focus:outline-none focus:border-accent"
                 />
-                <span className="text-[10px] text-neutral-500 mt-0.5">Quantity added to inventory</span>
+                <span className="text-[11px] text-ink-muted mt-0.5 block">Quantity added to inventory</span>
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-neutral-300 mb-1">
-                  Total Purchase Cost Paid (৳) *
+                <label className="block text-xs font-medium text-ink-secondary mb-1">
+                  Total purchase cost paid (৳) *
                 </label>
                 <input
                   type="number"
@@ -340,50 +340,50 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   value={purchaseCostTotal}
                   onChange={(e) => handleCostChange(e.target.value)}
                   placeholder="10000"
-                  className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-lg text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
+                  className="w-full px-3 py-2 bg-surface border border-hairline rounded-lg text-sm text-ink font-mono tabular-nums focus:outline-none focus:border-accent"
                 />
-                <span className="text-[10px] text-neutral-500 mt-0.5">Total amount paid to supplier</span>
+                <span className="text-[11px] text-ink-muted mt-0.5 block">Total paid to supplier</span>
               </div>
             </div>
 
             {/* Live Automatic Math Cards (Protected: Owner/Manager only) */}
             {canViewCost && (
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-brand-border/60">
-                <div className="p-2.5 rounded-lg bg-neutral-900 border border-neutral-800 text-center">
-                  <div className="text-[10px] text-neutral-400">Base Purchase Rate</div>
-                  <div className="text-xs font-mono font-bold text-neutral-200 mt-0.5">
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-hairline">
+                <div className="p-2.5 rounded-lg bg-surface border border-hairline text-center">
+                  <div className="text-[11px] text-ink-muted">Base purchase rate</div>
+                  <div className="text-xs font-mono tabular-nums font-medium text-ink mt-0.5">
                     ৳{baseRate.toFixed(2)} / {unitCode}
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-center">
-                  <div className="flex items-center justify-center gap-1 text-[10px] text-amber-300 font-semibold">
+                <div className="p-2.5 rounded-lg bg-warning/10 border border-warning/25 text-center">
+                  <div className="flex items-center justify-center gap-1 text-[11px] text-warning font-medium">
                     <span>+</span>
                     <input
                       type="number"
                       value={overheadPercent}
                       onChange={(e) => handleOverheadChange(e.target.value)}
-                      className="w-7 text-center bg-transparent border-b border-amber-400 font-bold text-amber-300 text-[10px] focus:outline-none"
+                      className="w-7 text-center bg-transparent border-b border-warning font-medium text-warning text-[11px] focus:outline-none tabular-nums"
                     />
-                    <span>% True Cost</span>
+                    <span>% true cost</span>
                   </div>
-                  <div className="text-xs font-mono font-bold text-amber-400 mt-0.5">
+                  <div className="text-xs font-mono tabular-nums font-medium text-warning mt-0.5">
                     ৳{trueCostRate.toFixed(2)} / {unitCode}
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
-                  <div className="flex items-center justify-center gap-1 text-[10px] text-emerald-300 font-semibold">
+                <div className="p-2.5 rounded-lg bg-positive/10 border border-positive/25 text-center">
+                  <div className="flex items-center justify-center gap-1 text-[11px] text-positive font-medium">
                     <span>+</span>
                     <input
                       type="number"
                       value={marginPercent}
                       onChange={(e) => handleMarginChange(e.target.value)}
-                      className="w-7 text-center bg-transparent border-b border-emerald-400 font-bold text-emerald-300 text-[10px] focus:outline-none"
+                      className="w-7 text-center bg-transparent border-b border-positive font-medium text-positive text-[11px] focus:outline-none tabular-nums"
                     />
-                    <span>% Ideal Sell</span>
+                    <span>% ideal sell</span>
                   </div>
-                  <div className="text-xs font-mono font-bold text-emerald-400 mt-0.5">
+                  <div className="text-xs font-mono tabular-nums font-medium text-positive mt-0.5">
                     ৳{autoIdealSellRate} / {unitCode}
                   </div>
                 </div>
@@ -392,13 +392,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           </div>
 
           {/* Benchmark Selling Prices */}
-          <div className="p-4 rounded-xl bg-brand-black/60 border border-brand-border space-y-3">
+          <div className="p-4 rounded-xl bg-raised/60 border border-hairline space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-brand-gold uppercase tracking-wider flex items-center gap-2">
-                <span>Benchmark Selling Prices (৳ / {unitCode})</span>
+              <h3 className="text-xs font-medium text-accent-ink flex items-center gap-2">
+                <span>Benchmark selling prices (৳ / {unitCode})</span>
                 {customRetailPrice === null && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-semibold lowercase">
-                    auto-updating live
+                  <span className="text-[11px] px-1.5 py-0.5 rounded bg-positive/10 text-positive font-medium">
+                    auto-updating
                   </span>
                 )}
               </h3>
@@ -409,18 +409,18 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                     setCustomRetailPrice(null);
                     setCustomWholesalePrice(null);
                   }}
-                  className="inline-flex items-center gap-1 text-[10px] text-brand-gold hover:underline"
+                  className="inline-flex items-center gap-1 text-xs text-accent-ink hover:underline"
                 >
-                  <RefreshCw className="w-3 h-3" />
-                  Reset to Auto-Formula
+                  <RefreshCw className="w-3 h-3" strokeWidth={1.5} />
+                  Reset to auto-formula
                 </button>
               )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-neutral-300 mb-1">
-                  Ideal Retail Price (৳ / {unitCode}) *
+                <label className="block text-xs font-medium text-ink-secondary mb-1">
+                  Ideal retail price (৳ / {unitCode}) *
                 </label>
                 <input
                   type="number"
@@ -430,13 +430,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   value={displayRetail}
                   onChange={(e) => setCustomRetailPrice(e.target.value)}
                   placeholder={String(autoIdealSellRate)}
-                  className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-lg text-sm text-brand-gold font-mono font-bold focus:outline-none focus:border-brand-gold"
+                  className="w-full px-3 py-2 bg-surface border border-hairline rounded-lg text-sm text-accent-ink font-mono tabular-nums font-medium focus:outline-none focus:border-accent"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-neutral-300 mb-1">
-                  Wholesale Price (৳ / {unitCode})
+                <label className="block text-xs font-medium text-ink-secondary mb-1">
+                  Wholesale price (৳ / {unitCode})
                 </label>
                 <input
                   type="number"
@@ -445,31 +445,31 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   value={displayWholesale}
                   onChange={(e) => setCustomWholesalePrice(e.target.value)}
                   placeholder={String(autoWholesaleRate)}
-                  className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-lg text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
+                  className="w-full px-3 py-2 bg-surface border border-hairline rounded-lg text-sm text-ink font-mono tabular-nums focus:outline-none focus:border-accent"
                 />
               </div>
             </div>
-            <p className="text-[10px] text-neutral-400 italic">
-              Benchmark reference price. At the sales counter/POS, you can increase or discount freely during sales negotiation.
+            <p className="text-xs text-ink-muted">
+              Benchmark reference price. At the POS counter you can adjust or discount freely during sales negotiation.
             </p>
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-brand-border">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-hairline">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 rounded-lg border border-brand-border text-neutral-300 hover:text-white hover:bg-neutral-800 text-xs font-semibold transition-colors"
+              className="px-4 py-2 rounded-lg border border-hairline bg-raised text-ink-secondary hover:text-ink text-xs font-medium transition-colors duration-150 ease-unslop"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-lg bg-brand-gold hover:bg-brand-gold-light text-brand-black font-semibold text-xs transition-colors shadow-lg shadow-brand-gold/20 disabled:opacity-50"
+              className="px-5 py-2 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs transition-colors duration-150 ease-unslop disabled:opacity-50"
             >
-              {loading ? 'Saving...' : 'Save Product'}
+              {loading ? 'Saving…' : 'Save Product'}
             </button>
           </div>
         </form>

@@ -228,50 +228,50 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold">
-              <FileSpreadsheet className="w-4 h-4" />
+          <h1 className="text-xl font-semibold text-ink flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-accent/15 border border-accent/25 flex items-center justify-center text-accent-ink">
+              <FileSpreadsheet className="w-4 h-4" strokeWidth={1.5} />
             </div>
             <span>CSV Import &amp; Bulk Data</span>
           </h1>
-          <p className="text-xs text-neutral-400 mt-1">
+          <p className="text-xs text-ink-secondary mt-1">
             Import new products, bulk update price lists, and adjust physical stock counts using Excel or CSV.
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center p-1 bg-brand-surface border border-brand-border rounded-xl text-xs font-semibold">
+        <div className="flex items-center p-1 bg-surface border border-hairline rounded-lg text-xs font-medium">
           <button
             onClick={() => setActiveTab('wizard')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-colors ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md transition-colors ${
               activeTab === 'wizard'
-                ? 'bg-brand-gold text-brand-black shadow'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-accent text-accent-fg font-semibold'
+                : 'text-ink-secondary hover:text-ink'
             }`}
           >
-            <UploadCloud className="w-3.5 h-3.5" />
+            <UploadCloud className="w-3.5 h-3.5" strokeWidth={1.5} />
             <span>Import Wizard</span>
           </button>
           <button
             onClick={() => setActiveTab('folder')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-colors ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md transition-colors ${
               activeTab === 'folder'
-                ? 'bg-brand-gold text-brand-black shadow'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-accent text-accent-fg font-semibold'
+                : 'text-ink-secondary hover:text-ink'
             }`}
           >
-            <FolderSync className="w-3.5 h-3.5" />
+            <FolderSync className="w-3.5 h-3.5" strokeWidth={1.5} />
             <span>Drop-in Folder</span>
           </button>
           <button
             onClick={() => setActiveTab('logs')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-colors ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md transition-colors ${
               activeTab === 'logs'
-                ? 'bg-brand-gold text-brand-black shadow'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-accent text-accent-fg font-semibold'
+                : 'text-ink-secondary hover:text-ink'
             }`}
           >
-            <History className="w-3.5 h-3.5" />
+            <History className="w-3.5 h-3.5" strokeWidth={1.5} />
             <span>Audit History</span>
           </button>
         </div>
@@ -281,13 +281,13 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
       {activeTab === 'wizard' && (
         <div className="space-y-6">
           {/* Step 1: Mode & Templates Card */}
-          <div className="p-5 rounded-2xl bg-brand-surface border border-brand-border space-y-4">
+          <div className="p-5 rounded-xl bg-surface border border-hairline space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-brand-gold text-brand-black text-xs font-bold flex items-center justify-center">
+                <span className="w-6 h-6 rounded-full bg-accent text-accent-fg text-xs font-semibold flex items-center justify-center">
                   1
                 </span>
-                <h3 className="text-sm font-bold text-white">Select Import Type &amp; Download Templates</h3>
+                <h3 className="text-sm font-semibold text-ink">Select Import Type &amp; Download Templates</h3>
               </div>
             </div>
 
@@ -299,21 +299,21 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
                   <div
                     key={type}
                     onClick={() => setSelectedType(type)}
-                    className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
+                    className={`p-4 rounded-xl border transition-colors cursor-pointer flex flex-col justify-between space-y-3 ${
                       isSelected
-                        ? 'bg-brand-gold/10 border-brand-gold text-white shadow-md shadow-brand-gold/5'
-                        : 'bg-brand-black/50 border-brand-border text-neutral-300 hover:border-neutral-700'
+                        ? 'bg-accent/10 border-accent/50 text-ink'
+                        : 'bg-canvas border-hairline text-ink-secondary hover:border-hairline-strong'
                     }`}
                   >
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold uppercase tracking-wider text-brand-gold">
+                        <span className="text-xs font-medium text-accent-ink">
                           {type === 'products' ? 'New & Existing Products' : type === 'prices' ? 'Price List Update' : 'Stock Count / Audit'}
                         </span>
-                        {isSelected && <CheckCircle2 className="w-4 h-4 text-brand-gold" />}
+                        {isSelected && <CheckCircle2 className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />}
                       </div>
-                      <h4 className="text-sm font-bold text-white mt-1">{tmpl.title}</h4>
-                      <p className="text-[11px] text-neutral-400 mt-1 leading-relaxed">
+                      <h4 className="text-sm font-semibold text-ink mt-1">{tmpl.title}</h4>
+                      <p className="text-[11px] text-ink-secondary mt-1 leading-relaxed">
                         {tmpl.description}
                       </p>
                     </div>
@@ -324,9 +324,9 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
                         e.stopPropagation();
                         downloadCsvFile(tmpl.fileName, tmpl.content);
                       }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold transition-colors self-start border border-neutral-700"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-subtle hover:bg-raised text-ink text-xs font-medium transition-colors self-start border border-hairline"
                     >
-                      <Download className="w-3.5 h-3.5 text-brand-gold" />
+                      <Download className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
                       <span>Download Sample CSV</span>
                     </button>
                   </div>
@@ -337,7 +337,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
 
           {/* Step 2: Upload Dropzone */}
           {!validationResult && (
-            <div className="p-8 rounded-2xl bg-brand-surface border-2 border-dashed border-brand-border hover:border-brand-gold/50 transition-colors text-center space-y-4">
+            <div className="p-8 rounded-xl bg-surface border-2 border-dashed border-hairline hover:border-accent/50 transition-colors text-center space-y-4">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -348,13 +348,13 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
                 className="hidden"
               />
 
-              <div className="w-14 h-14 rounded-2xl bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold mx-auto">
-                <UploadCloud className="w-7 h-7" />
+              <div className="w-14 h-14 rounded-xl bg-accent/15 border border-accent/25 flex items-center justify-center text-accent-ink mx-auto">
+                <UploadCloud className="w-7 h-7" strokeWidth={1.5} />
               </div>
 
               <div>
-                <h3 className="text-base font-bold text-white">Choose or Drag &amp; Drop CSV File</h3>
-                <p className="text-xs text-neutral-400 mt-1">
+                <h3 className="text-base font-semibold text-ink">Choose or Drag &amp; Drop CSV File</h3>
+                <p className="text-xs text-ink-secondary mt-1">
                   Supports UTF-8, Excel CSV with BOM, comma, or semicolon delimited files.
                 </p>
               </div>
@@ -363,7 +363,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-5 py-2.5 rounded-xl bg-brand-gold hover:bg-brand-gold-light text-brand-black text-xs font-bold transition-all shadow-lg shadow-brand-gold/15 cursor-pointer"
+                  className="px-5 py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-xs font-semibold transition-colors cursor-pointer"
                 >
                   Browse Computer File (.csv)
                 </button>
@@ -376,11 +376,11 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
             <div className="space-y-4">
               {/* Duplicate File Warning Banner */}
               {duplicateWarning && (
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs">
-                  <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-amber-400" />
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-warning/10 border border-warning/25 text-ink text-xs">
+                  <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-warning" strokeWidth={1.5} />
                   <div>
-                    <h4 className="font-bold">Duplicate File Warning</h4>
-                    <p className="text-neutral-300 mt-0.5">
+                    <h4 className="font-semibold text-warning">Duplicate File Warning</h4>
+                    <p className="text-ink-secondary mt-0.5">
                       An identical file (<strong>{duplicateWarning.fileName}</strong>) was already imported on{' '}
                       {new Date(duplicateWarning.createdAt).toLocaleString()} by{' '}
                       <strong>{duplicateWarning.userName || 'Admin'}</strong>. Re-importing may re-apply the same numbers.
@@ -391,54 +391,54 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
 
               {/* Summary KPIs */}
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                <div className="p-3.5 rounded-xl bg-brand-surface border border-brand-border">
-                  <div className="text-[10px] text-neutral-400 font-semibold uppercase">Total Rows</div>
-                  <div className="text-lg font-bold text-white font-mono mt-0.5">
+                <div className="p-3.5 rounded-xl bg-surface border border-hairline">
+                  <div className="text-[11px] text-ink-secondary font-medium">Total Rows</div>
+                  <div className="text-lg font-bold text-ink font-mono tabular-nums mt-0.5">
                     {validationResult.summary.totalRows}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                  <div className="text-[10px] text-emerald-300 font-semibold uppercase">New Records</div>
-                  <div className="text-lg font-bold text-emerald-400 font-mono mt-0.5">
+                <div className="p-3.5 rounded-xl bg-positive/10 border border-positive/25">
+                  <div className="text-[11px] text-positive font-medium">New Records</div>
+                  <div className="text-lg font-bold text-positive font-mono tabular-nums mt-0.5">
                     +{validationResult.summary.newRows}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-sky-500/10 border border-sky-500/20">
-                  <div className="text-[10px] text-sky-300 font-semibold uppercase">Updates</div>
-                  <div className="text-lg font-bold text-sky-400 font-mono mt-0.5">
+                <div className="p-3.5 rounded-xl bg-accent/10 border border-accent/25">
+                  <div className="text-[11px] text-accent-ink font-medium">Updates</div>
+                  <div className="text-lg font-bold text-accent-ink font-mono tabular-nums mt-0.5">
                     {validationResult.summary.updateRows}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-neutral-900 border border-neutral-800">
-                  <div className="text-[10px] text-neutral-400 font-semibold uppercase">Unchanged</div>
-                  <div className="text-lg font-bold text-neutral-400 font-mono mt-0.5">
+                <div className="p-3.5 rounded-xl bg-surface border border-hairline">
+                  <div className="text-[11px] text-ink-secondary font-medium">Unchanged</div>
+                  <div className="text-lg font-bold text-ink-muted font-mono tabular-nums mt-0.5">
                     {validationResult.summary.unchangedRows}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20">
-                  <div className="text-[10px] text-red-300 font-semibold uppercase">Row Errors</div>
-                  <div className="text-lg font-bold text-red-400 font-mono mt-0.5">
+                <div className="p-3.5 rounded-xl bg-negative/10 border border-negative/25">
+                  <div className="text-[11px] text-negative font-medium">Row Errors</div>
+                  <div className="text-lg font-bold text-negative font-mono tabular-nums mt-0.5">
                     {validationResult.summary.errorRows}
                   </div>
                 </div>
               </div>
 
               {/* Table Controls */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-brand-surface p-3.5 rounded-xl border border-brand-border">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-surface p-3.5 rounded-xl border border-hairline">
                 <div className="flex flex-wrap items-center gap-1.5">
                   {(['all', 'new', 'update', 'unchanged', 'error'] as const).map((filter) => (
                     <button
                       key={filter}
                       type="button"
                       onClick={() => setPreviewFilter(filter)}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition-colors ${
+                      className={`px-3 py-1 rounded-md text-xs font-medium capitalize transition-colors ${
                         previewFilter === filter
-                          ? 'bg-brand-gold text-brand-black shadow-sm'
-                          : 'bg-brand-black text-neutral-400 hover:text-white'
+                          ? 'bg-accent text-accent-fg font-semibold'
+                          : 'bg-canvas text-ink-secondary hover:text-ink border border-hairline'
                       }`}
                     >
                       {filter} (
@@ -462,13 +462,13 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
                     value={previewSearch}
                     onChange={(e) => setPreviewSearch(e.target.value)}
                     placeholder="Filter preview rows..."
-                    className="px-3 py-1.5 bg-brand-black border border-brand-border rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold w-48"
+                    className="px-3 py-1.5 bg-canvas border border-hairline rounded-lg text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent w-48"
                   />
                   {validationResult.hasErrors && (
                     <button
                       type="button"
                       onClick={handleDownloadErrorReport}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-semibold border border-red-500/40 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-negative/15 hover:bg-negative/25 text-negative text-xs font-medium border border-negative/30 transition-colors"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Error CSV</span>
@@ -478,9 +478,9 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
               </div>
 
               {/* Live Preview Table */}
-              <div className="overflow-x-auto rounded-xl border border-brand-border bg-brand-surface max-h-96">
+              <div className="overflow-x-auto rounded-xl border border-hairline bg-surface max-h-96">
                 <table className="w-full text-left border-collapse text-xs">
-                  <thead className="sticky top-0 z-10 bg-brand-black text-neutral-400 uppercase tracking-wider font-semibold border-b border-brand-border">
+                  <thead className="sticky top-0 z-10 bg-subtle text-ink-secondary font-medium border-b border-hairline">
                     <tr>
                       <th className="py-2.5 px-3 text-center w-12">#</th>
                       <th className="py-2.5 px-3 w-28">Status</th>
@@ -489,55 +489,55 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
                       <th className="py-2.5 px-3">Validation &amp; Diagnostics</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-brand-border/40 text-neutral-300">
+                  <tbody className="divide-y divide-hairline text-ink-secondary">
                     {filteredPreviewRows.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="py-8 text-center text-neutral-500 italic">
+                        <td colSpan={5} className="py-8 text-center text-ink-muted">
                           No rows match the selected filter.
                         </td>
                       </tr>
                     ) : (
                       filteredPreviewRows.map((row) => (
-                        <tr key={row.rowNumber} className="hover:bg-neutral-800/40 transition-colors">
-                          <td className="py-2.5 px-3 text-center text-neutral-500 font-mono">
+                        <tr key={row.rowNumber} className="hover:bg-subtle/60 transition-colors">
+                          <td className="py-2.5 px-3 text-center text-ink-muted font-mono tabular-nums">
                             {row.rowNumber}
                           </td>
                           <td className="py-2.5 px-3">
                             <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                              className={`px-2 py-0.5 rounded-full text-[11px] font-medium capitalize ${
                                 row.status === 'new'
-                                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                                  ? 'bg-positive/15 text-positive border border-positive/25'
                                   : row.status === 'update'
-                                  ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
+                                  ? 'bg-accent/15 text-accent-ink border border-accent/25'
                                   : row.status === 'error'
-                                  ? 'bg-red-500/15 text-red-400 border border-red-500/30'
-                                  : 'bg-neutral-800 text-neutral-400'
+                                  ? 'bg-negative/15 text-negative border border-negative/25'
+                                  : 'bg-subtle text-ink-secondary border border-hairline'
                               }`}
                             >
                               {row.status}
                             </span>
                           </td>
                           <td className="py-2.5 px-3">
-                            <div className="font-semibold text-white">{row.name || '—'}</div>
-                            <div className="text-[10px] text-neutral-400 font-mono">SKU: {row.sku}</div>
+                            <div className="font-medium text-ink">{row.name || '—'}</div>
+                            <div className="text-[11px] text-ink-muted font-mono">SKU: {row.sku}</div>
                           </td>
                           <td className="py-2.5 px-3">
                             {row.changes.length === 0 ? (
-                              <span className="text-neutral-500 italic">No values altered</span>
+                              <span className="text-ink-muted">No values altered</span>
                             ) : (
                               <div className="flex flex-wrap gap-2">
                                 {row.changes.map((c, i) => (
                                   <div
                                     key={i}
-                                    className="p-1 px-2 rounded bg-brand-black/70 border border-brand-border text-[11px]"
+                                    className="p-1 px-2 rounded bg-canvas border border-hairline text-[11px]"
                                   >
-                                    <span className="text-neutral-400">{c.label}: </span>
+                                    <span className="text-ink-secondary">{c.label}: </span>
                                     {c.oldValue !== null && (
-                                      <span className="text-neutral-500 line-through mr-1 font-mono">
+                                      <span className="text-ink-muted line-through mr-1 font-mono tabular-nums">
                                         {c.oldValue}
                                       </span>
                                     )}
-                                    <span className="text-emerald-400 font-bold font-mono">
+                                    <span className="text-positive font-semibold font-mono tabular-nums">
                                       {c.newValue}
                                     </span>
                                   </div>
@@ -547,7 +547,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
                           </td>
                           <td className="py-2.5 px-3">
                             {row.errors.length > 0 ? (
-                              <div className="text-red-400 space-y-0.5 font-medium">
+                              <div className="text-negative space-y-0.5 font-medium">
                                 {row.errors.map((e, idx) => (
                                   <div key={idx} className="flex items-center gap-1">
                                     <XCircle className="w-3.5 h-3.5 shrink-0" />
@@ -556,7 +556,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
                                 ))}
                               </div>
                             ) : (
-                              <div className="flex items-center gap-1 text-emerald-400 text-[11px]">
+                              <div className="flex items-center gap-1 text-positive text-[11px]">
                                 <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                                 <span>Passed Validation</span>
                               </div>
@@ -570,13 +570,13 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
               </div>
 
               {/* Action Bar */}
-              <div className="flex items-center justify-between p-4 rounded-xl bg-brand-surface border border-brand-border">
-                <div className="flex items-center gap-2 text-xs text-neutral-400">
-                  <FileText className="w-4 h-4 text-brand-gold" />
-                  <span>File: <strong className="text-white">{validationResult.fileName}</strong></span>
+              <div className="flex items-center justify-between p-4 rounded-xl bg-surface border border-hairline">
+                <div className="flex items-center gap-2 text-xs text-ink-secondary">
+                  <FileText className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
+                  <span>File: <strong className="text-ink">{validationResult.fileName}</strong></span>
                   <span>&bull;</span>
                   <span>
-                    Valid rows to apply: <strong className="text-emerald-400">{validationResult.summary.newRows + validationResult.summary.updateRows}</strong>
+                    Valid rows to apply: <strong className="text-positive">{validationResult.summary.newRows + validationResult.summary.updateRows}</strong>
                   </span>
                 </div>
 
@@ -589,7 +589,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
                       setFileName('');
                       setDuplicateWarning(null);
                     }}
-                    className="px-4 py-2 rounded-lg border border-brand-border text-neutral-300 hover:text-white text-xs font-semibold transition-colors"
+                    className="px-4 py-2 rounded-lg border border-hairline text-ink-secondary hover:text-ink hover:bg-subtle text-xs font-medium transition-colors"
                   >
                     Cancel / Choose Another File
                   </button>
@@ -598,7 +598,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
                     type="button"
                     disabled={isExecuting || validationResult.summary.newRows + validationResult.summary.updateRows === 0}
                     onClick={handleExecuteImport}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 disabled:opacity-50 transition-all cursor-pointer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs disabled:opacity-50 transition-colors cursor-pointer"
                   >
                     <span>{isExecuting ? 'Applying to Database...' : 'Confirm & Apply Import'}</span>
                     <ArrowRight className="w-4 h-4" />
@@ -612,58 +612,58 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
 
       {/* TAB 2: DROP-IN FOLDER */}
       {activeTab === 'folder' && (
-        <div className="p-6 rounded-2xl bg-brand-surface border border-brand-border space-y-6">
+        <div className="p-6 rounded-xl bg-surface border border-hairline space-y-6">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold shrink-0">
-              <FolderSync className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-lg bg-accent/15 border border-accent/25 flex items-center justify-center text-accent-ink shrink-0">
+              <FolderSync className="w-5 h-5" strokeWidth={1.5} />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Automated Drop-In Folder Import</h3>
-              <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                You can drop files directly into your portable <code className="text-brand-gold bg-brand-black px-1.5 py-0.5 rounded font-mono">Import/</code> folder from your file explorer.
+              <h3 className="text-base font-semibold text-ink">Automated Drop-In Folder Import</h3>
+              <p className="text-xs text-ink-secondary mt-1 leading-relaxed">
+                You can drop files directly into your portable <code className="text-accent-ink bg-canvas border border-hairline px-1.5 py-0.5 rounded font-mono">Import/</code> folder from your file explorer.
                 The app automatically processes files matching the naming patterns below.
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="p-4 rounded-xl bg-brand-black/60 border border-brand-border space-y-2">
-              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+            <div className="p-4 rounded-xl bg-canvas border border-hairline space-y-2">
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-positive/15 text-positive border border-positive/25 inline-block">
                 prices_*.csv
               </span>
-              <h4 className="text-xs font-bold text-white">Price Updates</h4>
-              <p className="text-[11px] text-neutral-400">
-                Any file named like <code className="text-neutral-300">prices_nov26.csv</code> updates retail, wholesale, and cost prices.
+              <h4 className="text-xs font-semibold text-ink">Price Updates</h4>
+              <p className="text-[11px] text-ink-secondary">
+                Any file named like <code className="text-ink font-mono">prices_nov26.csv</code> updates retail, wholesale, and cost prices.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-brand-black/60 border border-brand-border space-y-2">
-              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-sky-500/15 text-sky-400 border border-sky-500/30">
+            <div className="p-4 rounded-xl bg-canvas border border-hairline space-y-2">
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-accent/15 text-accent-ink border border-accent/25 inline-block">
                 products_*.csv
               </span>
-              <h4 className="text-xs font-bold text-white">Catalog Products</h4>
-              <p className="text-[11px] text-neutral-400">
-                Files like <code className="text-neutral-300">products_new_batch.csv</code> add products, categories, brands, and opening stock.
+              <h4 className="text-xs font-semibold text-ink">Catalog Products</h4>
+              <p className="text-[11px] text-ink-secondary">
+                Files like <code className="text-ink font-mono">products_new_batch.csv</code> add products, categories, brands, and opening stock.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-brand-black/60 border border-brand-border space-y-2">
-              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
+            <div className="p-4 rounded-xl bg-canvas border border-hairline space-y-2">
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-warning/15 text-warning border border-warning/25 inline-block">
                 stock_*.csv
               </span>
-              <h4 className="text-xs font-bold text-white">Inventory Counts</h4>
-              <p className="text-[11px] text-neutral-400">
-                Files like <code className="text-neutral-300">stock_audit.csv</code> adjust and sync active inventory quantities.
+              <h4 className="text-xs font-semibold text-ink">Inventory Counts</h4>
+              <p className="text-[11px] text-ink-secondary">
+                Files like <code className="text-ink font-mono">stock_audit.csv</code> adjust and sync active inventory quantities.
               </p>
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-brand-black/80 border border-brand-border flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-canvas border border-hairline flex items-center justify-between">
             <div>
-              <div className="text-xs font-semibold text-white">Folder Destination Pipeline</div>
-              <div className="text-[11px] text-neutral-400 mt-0.5">
-                Processed files automatically move to <code className="text-emerald-400 font-mono">Import/Processed/</code>.
-                Any failed files move to <code className="text-red-400 font-mono">Import/Failed/</code> with an error report.
+              <div className="text-xs font-semibold text-ink">Folder Destination Pipeline</div>
+              <div className="text-[11px] text-ink-secondary mt-0.5">
+                Processed files automatically move to <code className="text-positive font-mono">Import/Processed/</code>.
+                Any failed files move to <code className="text-negative font-mono">Import/Failed/</code> with an error report.
               </div>
             </div>
 
@@ -672,7 +672,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
               onClick={() => {
                 alert('Scan Folder executed: checked Import/ directory for queued batch files.');
               }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-gold hover:bg-brand-gold-light text-brand-black text-xs font-bold transition-all shadow-md shadow-brand-gold/10"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-xs font-semibold transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Scan Folder Now</span>
@@ -685,20 +685,20 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
       {activeTab === 'logs' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white">Past CSV Import Audit Logs</h3>
+            <h3 className="text-sm font-semibold text-ink">Past CSV Import Audit Logs</h3>
             <button
               type="button"
               onClick={loadLogs}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-brand-border bg-brand-surface text-xs text-neutral-300 hover:text-white"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-hairline bg-surface text-xs text-ink-secondary hover:text-ink transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Refresh</span>
             </button>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-brand-border bg-brand-surface">
+          <div className="overflow-x-auto rounded-xl border border-hairline bg-surface">
             <table className="w-full text-left border-collapse text-xs">
-              <thead className="border-b border-brand-border bg-brand-black text-neutral-400 uppercase tracking-wider font-semibold">
+              <thead className="border-b border-hairline bg-subtle text-ink-secondary font-medium">
                 <tr>
                   <th className="py-3 px-4">Date &amp; Time</th>
                   <th className="py-3 px-3">File Name</th>
@@ -709,41 +709,41 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
                   <th className="py-3 px-3">Imported By</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-brand-border/40 text-neutral-300">
+              <tbody className="divide-y divide-hairline text-ink-secondary">
                 {loadingLogs ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-neutral-500">
+                    <td colSpan={7} className="py-8 text-center text-ink-muted">
                       Loading audit history...
                     </td>
                   </tr>
                 ) : logs.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-neutral-500 italic">
+                    <td colSpan={7} className="py-8 text-center text-ink-muted">
                       No import history found yet. Upload a CSV to view audit entries.
                     </td>
                   </tr>
                 ) : (
                   logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-neutral-800/40 transition-colors">
-                      <td className="py-3 px-4 font-mono text-neutral-400">
+                    <tr key={log.id} className="hover:bg-subtle/60 transition-colors">
+                      <td className="py-3 px-4 font-mono text-ink-secondary">
                         {new Date(log.createdAt).toLocaleString()}
                       </td>
-                      <td className="py-3 px-3 font-semibold text-white">{log.fileName}</td>
+                      <td className="py-3 px-3 font-medium text-ink">{log.fileName}</td>
                       <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-neutral-800 text-neutral-300">
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-medium capitalize bg-subtle border border-hairline text-ink-secondary">
                           {log.importType}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-right font-mono font-bold text-white">
+                      <td className="py-3 px-3 text-right font-mono tabular-nums font-semibold text-ink">
                         {log.totalRows}
                       </td>
-                      <td className="py-3 px-3 text-right font-mono font-bold text-emerald-400">
+                      <td className="py-3 px-3 text-right font-mono tabular-nums font-semibold text-positive">
                         {log.successRows}
                       </td>
-                      <td className="py-3 px-3 text-right font-mono font-bold text-red-400">
+                      <td className="py-3 px-3 text-right font-mono tabular-nums font-semibold text-negative">
                         {log.errorRows}
                       </td>
-                      <td className="py-3 px-3 text-neutral-400">{log.userName || 'Owner'}</td>
+                      <td className="py-3 px-3 text-ink-secondary">{log.userName || 'Owner'}</td>
                     </tr>
                   ))
                 )}
@@ -755,34 +755,34 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
 
       {/* Flashing Success Modal */}
       {successModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-sm bg-brand-surface border border-emerald-500/50 rounded-2xl shadow-2xl p-6 text-center space-y-4">
-            <div className="mx-auto w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
-              <CheckCircle2 className="w-8 h-8" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-surface border border-positive/40 rounded-2xl shadow-lg p-6 text-center space-y-4">
+            <div className="mx-auto w-14 h-14 rounded-full bg-positive/15 border border-positive/30 flex items-center justify-center text-positive">
+              <CheckCircle2 className="w-8 h-8" strokeWidth={1.5} />
             </div>
             <div>
-              <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 mb-1.5">
+              <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-positive/15 text-positive border border-positive/25 mb-1.5">
                 Bulk Import Executed
               </span>
-              <h3 className="text-base font-bold text-white">{successModal.title}</h3>
-              <p className="text-xs text-neutral-400 mt-1">{successModal.message}</p>
+              <h3 className="text-base font-semibold text-ink">{successModal.title.replace(/!$/, '')}</h3>
+              <p className="text-xs text-ink-secondary mt-1">{successModal.message}</p>
             </div>
 
-            <div className="bg-brand-black/70 border border-brand-border rounded-xl p-3.5 space-y-2 text-left text-xs">
-              <div className="flex justify-between items-center text-neutral-300">
-                <span className="text-neutral-400">Import Mode</span>
-                <span className="font-semibold text-brand-gold uppercase">{successModal.type}</span>
+            <div className="bg-canvas border border-hairline rounded-xl p-3.5 space-y-2 text-left text-xs">
+              <div className="flex justify-between items-center text-ink-secondary">
+                <span>Import Mode</span>
+                <span className="font-semibold text-accent-ink uppercase">{successModal.type}</span>
               </div>
-              <div className="flex justify-between items-center text-neutral-300">
-                <span className="text-neutral-400">Successfully Applied</span>
-                <span className="font-semibold text-emerald-400 font-mono">
+              <div className="flex justify-between items-center text-ink-secondary">
+                <span>Successfully Applied</span>
+                <span className="font-semibold text-positive font-mono tabular-nums">
                   {successModal.successCount} rows
                 </span>
               </div>
               {successModal.errorCount > 0 && (
-                <div className="flex justify-between items-center text-neutral-300">
-                  <span className="text-neutral-400">Skipped (Errors)</span>
-                  <span className="font-semibold text-red-400 font-mono">
+                <div className="flex justify-between items-center text-ink-secondary">
+                  <span>Skipped (Errors)</span>
+                  <span className="font-semibold text-negative font-mono tabular-nums">
                     {successModal.errorCount} rows
                   </span>
                 </div>
@@ -792,7 +792,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
             <button
               onClick={() => setSuccessModal(null)}
               autoFocus
-              className="w-full py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs transition-colors cursor-pointer"
             >
               OK (Close)
             </button>

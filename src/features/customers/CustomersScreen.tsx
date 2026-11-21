@@ -285,12 +285,12 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2.5">
-            <UserCheck className="w-5 h-5 text-brand-gold" />
-            <span>Customers & Credit Ledger</span>
+          <h2 className="text-xl font-medium text-ink flex items-center gap-2.5">
+            <UserCheck className="w-5 h-5 text-accent-ink" strokeWidth={1.5} />
+            <span>Customers &amp; credit ledger</span>
           </h2>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-            Directory of registered retail and wholesale customers, order histories, and outstanding credit receivables.
+          <p className="text-xs text-ink-muted mt-1">
+            Directory of registered retail and wholesale customers, order histories, and outstanding credit receivables
           </p>
         </div>
 
@@ -299,19 +299,19 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
             type="button"
             onClick={handleExportCustomers}
             disabled={exporting}
-            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-brand-border bg-white dark:bg-brand-surface text-neutral-800 dark:text-neutral-200 text-xs font-semibold hover:border-brand-gold/50 hover:text-brand-gold transition-colors cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-hairline bg-surface text-ink-secondary text-xs font-medium hover:border-hairline-strong hover:text-ink transition-colors duration-150 ease-unslop cursor-pointer disabled:opacity-50"
             title="Download full customer database as CSV"
           >
-            <Download className="w-4 h-4 text-brand-gold" />
-            <span>{exporting ? 'Exporting...' : 'Export Customers (CSV)'}</span>
+            <Download className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
+            <span>{exporting ? 'Exporting…' : 'Export Customers (CSV)'}</span>
           </button>
 
           <button
             type="button"
             onClick={openAddModal}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-gold text-brand-black text-xs font-bold hover:bg-brand-gold-light transition-all shadow-md shadow-brand-gold/20 cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-accent-fg text-xs font-semibold hover:bg-accent-hover transition-colors duration-150 ease-unslop cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4" strokeWidth={1.75} />
             <span>Add New Customer</span>
           </button>
         </div>
@@ -320,51 +320,51 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
       {/* KPI Metric Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <MetricCard
-          label="Total Customers"
-          value={`${metrics.count} Profiles`}
-          icon={<UserCheck className="w-4 h-4" />}
-          subtitle="Registered customer database"
+          label="Total customers"
+          value={`${metrics.count} profiles`}
+          icon={<UserCheck className="w-4 h-4" strokeWidth={1.5} />}
+          subtitle="Registered customer directory"
         />
 
         <MetricCard
-          label="Customer Lifetime Sales"
+          label="Customer lifetime sales"
           value={formatBdtAmount(metrics.totalSpent)}
-          icon={<ShoppingBag className="w-4 h-4" />}
+          icon={<ShoppingBag className="w-4 h-4" strokeWidth={1.5} />}
           subtitle="Accumulated billed revenue"
         />
 
         <MetricCard
-          label="Outstanding Receivables (Dues)"
+          label="Outstanding receivables"
           value={formatBdtAmount(metrics.totalDue)}
-          icon={<CreditCard className="w-4 h-4" />}
+          icon={<CreditCard className="w-4 h-4" strokeWidth={1.5} />}
           subtitle={`${metrics.withDueCount} accounts with pending balance`}
           highlight={metrics.totalDue > 0}
         />
       </div>
 
       {/* Filters Bar */}
-      <div className="p-3 bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="p-3 bg-surface border border-hairline rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-ink-muted absolute left-3 top-2.5" strokeWidth={1.5} />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by customer name, phone, or email..."
-            className="w-full pl-9 pr-3 py-1.5 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold"
+            placeholder="Search customer name, phone, email"
+            className="w-full pl-9 pr-3 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink placeholder-ink-muted focus:outline-none focus:border-accent"
           />
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-1 bg-neutral-100 dark:bg-brand-black/80 p-1 rounded-xl border border-neutral-200 dark:border-brand-border">
+        <div className="flex items-center gap-1 bg-raised p-1 rounded-lg border border-hairline">
           <button
             type="button"
             onClick={() => setFilterDueOnly(false)}
-            className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors duration-150 ease-unslop cursor-pointer ${
               !filterDueOnly
-                ? 'bg-brand-gold text-brand-black shadow-sm'
-                : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+                ? 'bg-accent text-accent-fg font-semibold'
+                : 'text-ink-muted hover:text-ink'
             }`}
           >
             All Customers ({customers.length})
@@ -372,10 +372,10 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
           <button
             type="button"
             onClick={() => setFilterDueOnly(true)}
-            className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors duration-150 ease-unslop cursor-pointer ${
               filterDueOnly
-                ? 'bg-amber-500 text-black shadow-sm'
-                : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+                ? 'bg-accent text-accent-fg font-semibold'
+                : 'text-ink-muted hover:text-ink'
             }`}
           >
             Has Due Balance
@@ -384,34 +384,34 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
       </div>
 
       {/* Customers Table */}
-      <div className="bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-surface border border-hairline rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-neutral-50 dark:bg-brand-black/60 border-b border-neutral-200 dark:border-brand-border text-neutral-500 uppercase tracking-wider font-semibold">
+            <thead className="bg-raised/70 border-b border-hairline text-ink-muted font-medium">
               <tr>
-                <th className="py-3 px-4">Customer Name</th>
-                <th className="py-3 px-4">Phone Number</th>
-                <th className="py-3 px-4">Address / Info</th>
+                <th className="py-3 px-4">Customer name</th>
+                <th className="py-3 px-4">Phone number</th>
+                <th className="py-3 px-4">Address / info</th>
                 <th className="py-3 px-4 text-center">Orders</th>
-                <th className="py-3 px-4 text-right">Lifetime Spent</th>
-                <th className="py-3 px-4 text-right">Due Balance</th>
+                <th className="py-3 px-4 text-right">Lifetime spent</th>
+                <th className="py-3 px-4 text-right">Due balance</th>
                 <th className="py-3 px-4 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-200 dark:divide-brand-border text-neutral-700 dark:text-neutral-200">
+            <tbody className="divide-y divide-hairline text-ink-secondary">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-neutral-400">
-                    Loading customers...
+                  <td colSpan={7} className="py-8 text-center text-ink-muted">
+                    Loading customers…
                   </td>
                 </tr>
               ) : customers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-neutral-400">
-                    <UserCheck className="w-8 h-8 mx-auto text-neutral-500 mb-2 opacity-50" />
-                    <p className="font-semibold text-neutral-300">No customers found</p>
-                    <p className="text-[11px] text-neutral-500 mt-0.5">
-                      {search ? 'Try different search keywords.' : 'Add a customer or complete a sale at POS to record one.'}
+                  <td colSpan={7} className="py-12 text-center text-ink-muted">
+                    <UserCheck className="w-7 h-7 mx-auto text-ink-muted mb-2 opacity-60" strokeWidth={1.5} />
+                    <p className="font-medium text-ink-secondary">No customers found</p>
+                    <p className="text-xs text-ink-muted mt-0.5">
+                      {search ? 'Try different search keywords' : 'Add a customer or complete a sale at POS to record one'}
                     </p>
                   </td>
                 </tr>
@@ -420,42 +420,42 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
                   <tr
                     key={c.id}
                     onClick={() => handleOpenDetails(c)}
-                    className="hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 cursor-pointer transition-colors"
+                    className="hover:bg-raised/50 cursor-pointer transition-colors duration-150 ease-unslop"
                   >
-                    <td className="py-3 px-4 font-bold text-neutral-900 dark:text-white">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold font-bold text-xs shrink-0">
+                    <td className="py-3 px-4 font-medium text-ink">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-accent/12 border border-accent/25 flex items-center justify-center text-accent-ink font-medium text-xs shrink-0">
                           {c.name.charAt(0).toUpperCase()}
                         </div>
                         <span className="truncate">{c.name}</span>
                       </div>
                     </td>
 
-                    <td className="py-3 px-4 font-mono font-medium text-neutral-900 dark:text-white">
+                    <td className="py-3 px-4 font-mono tabular-nums text-ink">
                       {c.phone}
                     </td>
 
-                    <td className="py-3 px-4 text-neutral-400 text-[11px] max-w-xs truncate">
+                    <td className="py-3 px-4 text-ink-muted text-xs max-w-xs truncate">
                       {c.address || c.email || (
-                        <span className="italic text-neutral-500">None specified</span>
+                        <span className="text-ink-muted/70">None specified</span>
                       )}
                     </td>
 
-                    <td className="py-3 px-4 text-center font-mono font-bold text-neutral-300">
+                    <td className="py-3 px-4 text-center font-mono tabular-nums text-ink-secondary">
                       {c.totalOrders}
                     </td>
 
-                    <td className="py-3 px-4 text-right font-mono font-bold text-neutral-900 dark:text-white">
+                    <td className="py-3 px-4 text-right font-mono tabular-nums font-medium text-ink">
                       ৳{c.totalSpentBdt.toFixed(2)}
                     </td>
 
                     <td className="py-3 px-4 text-right">
                       {c.dueBalanceBdt > 0.01 ? (
-                        <span className="inline-block px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 font-mono">
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-medium bg-warning/10 text-warning border border-warning/25 font-mono tabular-nums">
                           Due ৳{c.dueBalanceBdt.toFixed(2)}
                         </span>
                       ) : (
-                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400">
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-medium bg-positive/10 text-positive border border-positive/25">
                           Clear
                         </span>
                       )}
@@ -467,7 +467,7 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
                           <button
                             type="button"
                             onClick={() => openPayDueModal(c)}
-                            className="px-2 py-1 rounded bg-amber-500 hover:bg-amber-400 text-black font-bold text-[10px] shadow transition-colors"
+                            className="px-2.5 py-1 rounded-md bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-[11px] transition-colors duration-150 ease-unslop"
                             title="Collect Due Payment"
                           >
                             Collect Due
@@ -477,28 +477,28 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
                         <button
                           type="button"
                           onClick={() => handleOpenDetails(c)}
-                          className="p-1.5 rounded-lg border border-neutral-200 dark:border-brand-border text-neutral-400 hover:text-white hover:border-brand-gold transition-colors"
+                          className="p-1.5 rounded-lg border border-hairline bg-raised text-ink-muted hover:text-ink hover:border-hairline-strong transition-colors duration-150 ease-unslop"
                           title="View History & Invoices"
                         >
-                          <Eye className="w-3.5 h-3.5" />
+                          <Eye className="w-3.5 h-3.5" strokeWidth={1.5} />
                         </button>
 
                         <button
                           type="button"
                           onClick={() => openEditModal(c)}
-                          className="p-1.5 rounded-lg border border-neutral-200 dark:border-brand-border text-neutral-400 hover:text-brand-gold hover:border-brand-gold transition-colors"
+                          className="p-1.5 rounded-lg border border-hairline bg-raised text-ink-muted hover:text-accent-ink hover:border-hairline-strong transition-colors duration-150 ease-unslop"
                           title="Edit Customer"
                         >
-                          <Edit2 className="w-3.5 h-3.5" />
+                          <Edit2 className="w-3.5 h-3.5" strokeWidth={1.5} />
                         </button>
 
                         <button
                           type="button"
                           onClick={() => handleDeleteCustomer(c.id, c.name)}
-                          className="p-1.5 rounded-lg border border-neutral-200 dark:border-brand-border text-neutral-400 hover:text-red-400 hover:border-red-400/40 transition-colors"
+                          className="p-1.5 rounded-lg border border-hairline bg-raised text-ink-muted hover:text-negative hover:border-negative/40 transition-colors duration-150 ease-unslop"
                           title="Delete Customer"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
                         </button>
                       </div>
                     </td>
@@ -510,36 +510,34 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
         </div>
       </div>
 
-      {/* ==================================================== */}
-      {/* CUSTOMER PROFILE & HISTORY MODAL                     */}
-      {/* ==================================================== */}
+      {/* CUSTOMER PROFILE & HISTORY MODAL */}
       {selectedCustomerId && customerDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-4xl bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-2xl shadow-2xl p-6 space-y-4 max-h-[92vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+          <div className="w-full max-w-4xl bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4 max-h-[92vh] flex flex-col">
             {/* Header */}
-            <div className="flex justify-between items-start pb-3 border-b border-neutral-200 dark:border-brand-border shrink-0">
+            <div className="flex justify-between items-start pb-3 border-b border-hairline shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold font-bold text-base">
+                <div className="w-10 h-10 rounded-xl bg-accent/12 border border-accent/25 flex items-center justify-center text-accent-ink font-medium text-base">
                   {customerDetails.customer.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-neutral-900 dark:text-white">
+                  <h3 className="text-lg font-medium text-ink">
                     {customerDetails.customer.name}
                   </h3>
-                  <div className="text-xs text-neutral-400 flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
-                    <span className="font-mono flex items-center gap-1">
-                      <Phone className="w-3 h-3 text-brand-gold" />
+                  <div className="text-xs text-ink-muted flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                    <span className="font-mono tabular-nums flex items-center gap-1">
+                      <Phone className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
                       {customerDetails.customer.phone}
                     </span>
                     {customerDetails.customer.email && (
                       <span className="flex items-center gap-1">
-                        <Mail className="w-3 h-3 text-brand-gold" />
+                        <Mail className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
                         {customerDetails.customer.email}
                       </span>
                     )}
                     {customerDetails.customer.address && (
                       <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-brand-gold" />
+                        <MapPin className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
                         {customerDetails.customer.address}
                       </span>
                     )}
@@ -550,32 +548,32 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
               <button
                 type="button"
                 onClick={() => setSelectedCustomerId(null)}
-                className="p-1 text-neutral-400 hover:text-white cursor-pointer"
+                className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" strokeWidth={1.5} />
               </button>
             </div>
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 shrink-0 text-xs">
-              <div className="p-3 rounded-xl bg-neutral-50 dark:bg-brand-black/60 border border-neutral-200 dark:border-brand-border">
-                <div className="text-[10px] uppercase font-bold text-neutral-400">Total Orders</div>
-                <div className="text-base font-bold font-mono text-neutral-900 dark:text-white mt-0.5">
-                  {customerDetails.customer.totalOrders} Invoices
+              <div className="p-3.5 rounded-xl bg-raised border border-hairline">
+                <div className="text-xs text-ink-muted">Total orders</div>
+                <div className="text-base font-medium font-mono tabular-nums text-ink mt-0.5">
+                  {customerDetails.customer.totalOrders} invoices
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-neutral-50 dark:bg-brand-black/60 border border-neutral-200 dark:border-brand-border">
-                <div className="text-[10px] uppercase font-bold text-neutral-400">Lifetime Purchased</div>
-                <div className="text-base font-bold font-mono text-emerald-500 mt-0.5">
+              <div className="p-3.5 rounded-xl bg-raised border border-hairline">
+                <div className="text-xs text-ink-muted">Lifetime purchased</div>
+                <div className="text-base font-medium font-mono tabular-nums text-positive mt-0.5">
                   ৳{customerDetails.customer.totalSpentBdt.toFixed(2)}
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-neutral-50 dark:bg-brand-black/60 border border-neutral-200 dark:border-brand-border flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-raised border border-hairline flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-neutral-400">Due Balance</div>
-                  <div className="text-base font-bold font-mono text-amber-400 mt-0.5">
+                  <div className="text-xs text-ink-muted">Due balance</div>
+                  <div className="text-base font-medium font-mono tabular-nums text-warning mt-0.5">
                     ৳{customerDetails.customer.dueBalanceBdt.toFixed(2)}
                   </div>
                 </div>
@@ -583,7 +581,7 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
                   <button
                     type="button"
                     onClick={() => openPayDueModal(customerDetails.customer)}
-                    className="px-3 py-1.5 rounded-lg bg-amber-500 text-black font-extrabold text-[11px] shadow hover:bg-amber-400 transition-colors"
+                    className="px-3 py-1.5 rounded-lg bg-accent text-accent-fg font-semibold text-xs hover:bg-accent-hover transition-colors duration-150 ease-unslop"
                   >
                     Collect Due
                   </button>
@@ -595,49 +593,49 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
             <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-xs">
               {/* Invoices List */}
               <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
-                  <Receipt className="w-3.5 h-3.5 text-brand-gold" />
-                  <span>Purchase Invoices ({customerDetails.sales.length})</span>
+                <h4 className="text-xs font-medium text-ink-secondary flex items-center gap-1.5">
+                  <Receipt className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
+                  <span>Purchase invoices ({customerDetails.sales.length})</span>
                 </h4>
 
                 {customerDetails.sales.length === 0 ? (
-                  <div className="p-4 text-center text-neutral-500 border border-dashed border-neutral-300 dark:border-brand-border rounded-xl">
-                    No sales recorded for this customer yet.
+                  <div className="p-4 text-center text-ink-muted border border-dashed border-hairline rounded-xl">
+                    No sales recorded for this customer yet
                   </div>
                 ) : (
-                  <div className="border border-neutral-200 dark:border-brand-border rounded-xl overflow-hidden">
+                  <div className="border border-hairline rounded-xl overflow-hidden">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-neutral-100 dark:bg-brand-black/80 text-neutral-500 text-[10px] uppercase font-bold">
+                      <thead className="bg-raised/70 text-ink-muted font-medium border-b border-hairline">
                         <tr>
-                          <th className="py-2 px-3">Invoice #</th>
+                          <th className="py-2 px-3">Invoice</th>
                           <th className="py-2 px-3">Date</th>
                           <th className="py-2 px-3">Payment</th>
                           <th className="py-2 px-3 text-right">Total</th>
                           <th className="py-2 px-3 text-right">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-neutral-200 dark:divide-brand-border/40 text-[11px]">
+                      <tbody className="divide-y divide-hairline text-xs">
                         {customerDetails.sales.map((s) => (
                           <tr key={s.id}>
-                            <td className="py-2 px-3 font-mono font-bold text-neutral-900 dark:text-white">
+                            <td className="py-2 px-3 font-mono font-medium text-ink tabular-nums">
                               {s.invoiceNumber}
                             </td>
-                            <td className="py-2 px-3 text-neutral-400">
+                            <td className="py-2 px-3 text-ink-muted tabular-nums">
                               {new Date(s.createdAt).toLocaleDateString()}
                             </td>
-                            <td className="py-2 px-3 uppercase text-neutral-300">
+                            <td className="py-2 px-3 capitalize text-ink-secondary">
                               {s.paymentMethod}
                             </td>
-                            <td className="py-2 px-3 text-right font-mono font-bold text-brand-gold">
+                            <td className="py-2 px-3 text-right font-mono tabular-nums font-medium text-accent-ink">
                               ৳{s.totalAmountBdt.toFixed(2)}
                             </td>
-                            <td className="py-2 px-3 text-right">
+                            <td className="py-2 px-3 text-right font-mono tabular-nums">
                               {s.dueAmountBdt > 0.01 ? (
-                                <span className="text-amber-400 font-bold">
+                                <span className="text-warning font-medium">
                                   Due ৳{s.dueAmountBdt.toFixed(2)}
                                 </span>
                               ) : (
-                                <span className="text-emerald-400 font-bold">Paid</span>
+                                <span className="text-positive font-medium">Paid</span>
                               )}
                             </td>
                           </tr>
@@ -650,43 +648,43 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
 
               {/* Payments History */}
               <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
-                  <CreditCard className="w-3.5 h-3.5 text-brand-gold" />
-                  <span>Due Settlements & Payments Received ({customerDetails.payments.length})</span>
+                <h4 className="text-xs font-medium text-ink-secondary flex items-center gap-1.5">
+                  <CreditCard className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
+                  <span>Due settlements &amp; payments received ({customerDetails.payments.length})</span>
                 </h4>
 
                 {customerDetails.payments.length === 0 ? (
-                  <div className="p-4 text-center text-neutral-500 border border-dashed border-neutral-300 dark:border-brand-border rounded-xl">
-                    No separate due settlements recorded yet.
+                  <div className="p-4 text-center text-ink-muted border border-dashed border-hairline rounded-xl">
+                    No separate due settlements recorded yet
                   </div>
                 ) : (
-                  <div className="border border-neutral-200 dark:border-brand-border rounded-xl overflow-hidden">
+                  <div className="border border-hairline rounded-xl overflow-hidden">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-neutral-100 dark:bg-brand-black/80 text-neutral-500 text-[10px] uppercase font-bold">
+                      <thead className="bg-raised/70 text-ink-muted font-medium border-b border-hairline">
                         <tr>
                           <th className="py-2 px-3">Date</th>
                           <th className="py-2 px-3">Method</th>
-                          <th className="py-2 px-3">Received By</th>
-                          <th className="py-2 px-3">Ref / Notes</th>
-                          <th className="py-2 px-3 text-right">Amount Collected</th>
+                          <th className="py-2 px-3">Received by</th>
+                          <th className="py-2 px-3">Ref / notes</th>
+                          <th className="py-2 px-3 text-right">Amount collected</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-neutral-200 dark:divide-brand-border/40 text-[11px]">
+                      <tbody className="divide-y divide-hairline text-xs">
                         {customerDetails.payments.map((p) => (
                           <tr key={p.id}>
-                            <td className="py-2 px-3 text-neutral-400">
+                            <td className="py-2 px-3 text-ink-muted tabular-nums">
                               {new Date(p.createdAt).toLocaleString()}
                             </td>
-                            <td className="py-2 px-3 uppercase text-white font-semibold">
+                            <td className="py-2 px-3 capitalize text-ink font-medium">
                               {p.paymentMethod}
                             </td>
-                            <td className="py-2 px-3 text-neutral-300">
+                            <td className="py-2 px-3 text-ink-secondary">
                               {p.receivedByUsername || 'Cashier'}
                             </td>
-                            <td className="py-2 px-3 text-neutral-400 italic">
-                              {p.referenceNumber ? `Ref: ${p.referenceNumber}` : p.notes || '-'}
+                            <td className="py-2 px-3 text-ink-muted">
+                              {p.referenceNumber ? `Ref: ${p.referenceNumber}` : p.notes || '—'}
                             </td>
-                            <td className="py-2 px-3 text-right font-mono font-bold text-emerald-400">
+                            <td className="py-2 px-3 text-right font-mono tabular-nums font-medium text-positive">
                               ৳{p.amountBdt.toFixed(2)}
                             </td>
                           </tr>
@@ -699,11 +697,11 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
             </div>
 
             {/* Footer */}
-            <div className="pt-3 border-t border-neutral-200 dark:border-brand-border flex justify-end shrink-0">
+            <div className="pt-3 border-t border-hairline flex justify-end shrink-0">
               <button
                 type="button"
                 onClick={() => setSelectedCustomerId(null)}
-                className="px-5 py-2 rounded-xl bg-brand-gold text-brand-black font-extrabold text-xs hover:bg-brand-gold-light transition-all shadow cursor-pointer"
+                className="px-5 py-2 rounded-lg bg-accent text-accent-fg font-semibold text-xs hover:bg-accent-hover transition-colors duration-150 ease-unslop cursor-pointer"
               >
                 Close
               </button>
@@ -712,48 +710,46 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
         </div>
       )}
 
-      {/* ==================================================== */}
-      {/* COLLECT DUE PAYMENT MODAL                            */}
-      {/* ==================================================== */}
+      {/* COLLECT DUE PAYMENT MODAL */}
       {payingCustomer && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-brand-surface border border-brand-gold/40 rounded-2xl shadow-2xl p-6 space-y-4">
-            <div className="flex justify-between items-center pb-3 border-b border-brand-border">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                  <CreditCard className="w-4 h-4" />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+          <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-hairline">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-warning/10 border border-warning/25 flex items-center justify-center text-warning">
+                  <CreditCard className="w-4 h-4" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">Collect Customer Due</h3>
-                  <p className="text-[11px] text-neutral-400">For {payingCustomer.name}</p>
+                  <h3 className="text-base font-medium text-ink">Collect customer due</h3>
+                  <p className="text-xs text-ink-muted">For {payingCustomer.name}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setPayingCustomer(null)}
-                className="p-1 text-neutral-400 hover:text-white"
+                className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" strokeWidth={1.5} />
               </button>
             </div>
 
             {payError && (
-              <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs">
+              <div className="p-2.5 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
                 {payError}
               </div>
             )}
 
             <div className="space-y-3.5 text-xs">
-              <div className="p-3 rounded-xl bg-brand-black/60 border border-brand-border flex justify-between items-center">
-                <span className="text-neutral-400">Outstanding Due Balance</span>
-                <span className="font-mono text-base font-bold text-amber-400">
+              <div className="p-3 rounded-lg bg-raised border border-hairline flex justify-between items-center">
+                <span className="text-ink-muted">Outstanding due balance</span>
+                <span className="font-mono tabular-nums text-base font-medium text-warning">
                   ৳{payingCustomer.dueBalanceBdt.toFixed(2)}
                 </span>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-neutral-400 mb-1">
-                  Amount Paying Now (৳) <span className="text-red-400">*</span>
+                <label className="block text-xs font-medium text-ink-secondary mb-1">
+                  Amount paying now (৳) <span className="text-negative">*</span>
                 </label>
                 <input
                   type="number"
@@ -762,18 +758,18 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
                   step="any"
                   value={payAmount}
                   onChange={(e) => setPayAmount(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-white font-mono font-bold text-base text-emerald-400 focus:outline-none focus:border-brand-gold"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg font-mono tabular-nums font-medium text-base text-positive focus:outline-none focus:border-accent"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-neutral-400 mb-1">
-                  Payment Method
+                <label className="block text-xs font-medium text-ink-secondary mb-1">
+                  Payment method
                 </label>
                 <select
                   value={payMethod}
                   onChange={(e) => setPayMethod(e.target.value)}
-                  className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-white font-semibold uppercase text-xs focus:outline-none focus:border-brand-gold"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink text-xs focus:outline-none focus:border-accent"
                 >
                   <option value="cash">Cash in Hand</option>
                   <option value="bkash">bKash</option>
@@ -784,37 +780,37 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-neutral-400 mb-1">
-                  Reference # (e.g. bKash TrxID / Bank Slip)
+                <label className="block text-xs font-medium text-ink-secondary mb-1">
+                  Reference (bKash TrxID / bank slip)
                 </label>
                 <input
                   type="text"
                   value={payReference}
                   onChange={(e) => setPayReference(e.target.value)}
                   placeholder="Optional reference"
-                  className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-white text-xs font-mono focus:outline-none focus:border-brand-gold"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted text-xs font-mono focus:outline-none focus:border-accent"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-neutral-400 mb-1">
+                <label className="block text-xs font-medium text-ink-secondary mb-1">
                   Notes
                 </label>
                 <input
                   type="text"
                   value={payNotes}
                   onChange={(e) => setPayNotes(e.target.value)}
-                  placeholder="e.g. Partial cash payment at shop"
-                  className="w-full px-3 py-2 bg-brand-black border border-brand-border rounded-xl text-white text-xs focus:outline-none focus:border-brand-gold"
+                  placeholder="Partial cash payment at counter"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted text-xs focus:outline-none focus:border-accent"
                 />
               </div>
             </div>
 
-            <div className="pt-3 border-t border-brand-border flex justify-end gap-2">
+            <div className="pt-3 border-t border-hairline flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setPayingCustomer(null)}
-                className="px-4 py-2 rounded-xl border border-brand-border text-xs text-neutral-400 hover:text-white"
+                className="px-4 py-2 rounded-lg border border-hairline bg-raised text-xs text-ink-secondary hover:text-ink"
               >
                 Cancel
               </button>
@@ -822,123 +818,121 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
                 type="button"
                 disabled={paySubmitting || payAmount <= 0}
                 onClick={handleExecutePayment}
-                className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold text-xs transition-colors shadow disabled:opacity-50 cursor-pointer"
+                className="px-5 py-2 rounded-lg bg-positive hover:opacity-90 text-white font-semibold text-xs transition-opacity duration-150 ease-unslop disabled:opacity-50 cursor-pointer tabular-nums"
               >
-                {paySubmitting ? 'Recording...' : `Confirm Payment (৳${payAmount})`}
+                {paySubmitting ? 'Recording…' : `Confirm Payment (৳${payAmount})`}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ==================================================== */}
-      {/* ADD / EDIT CUSTOMER MODAL                            */}
-      {/* ==================================================== */}
+      {/* ADD / EDIT CUSTOMER MODAL */}
       {isFormModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-2xl shadow-2xl p-6 space-y-4">
-            <div className="flex justify-between items-center pb-3 border-b border-neutral-200 dark:border-brand-border">
-              <h3 className="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                <UserCheck className="w-4 h-4 text-brand-gold" />
-                <span>{editingCustomer ? 'Edit Customer' : 'Add New Customer'}</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+          <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-hairline">
+              <h3 className="text-base font-medium text-ink flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
+                <span>{editingCustomer ? 'Edit customer' : 'Add new customer'}</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setIsFormModalOpen(false)}
-                className="p-1 text-neutral-400 hover:text-white cursor-pointer"
+                className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" strokeWidth={1.5} />
               </button>
             </div>
 
             {formError && (
-              <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs">
+              <div className="p-2.5 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
                 {formError}
               </div>
             )}
 
             <form onSubmit={handleSaveCustomer} className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                  Customer Name <span className="text-red-400">*</span>
+                <label className="block font-medium text-ink-secondary mb-1">
+                  Customer name <span className="text-negative">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  placeholder="e.g. Tanvir Ahmed"
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs"
+                  placeholder="Tanvir Ahmed"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                  Phone Number <span className="text-red-400">*</span>
+                <label className="block font-medium text-ink-secondary mb-1">
+                  Phone number <span className="text-negative">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={formPhone}
                   onChange={(e) => setFormPhone(e.target.value)}
-                  placeholder="017... / 018..."
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs font-mono"
+                  placeholder="017..."
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs font-mono"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                  Email Address (Optional)
+                <label className="block font-medium text-ink-secondary mb-1">
+                  Email address (optional)
                 </label>
                 <input
                   type="email"
                   value={formEmail}
                   onChange={(e) => setFormEmail(e.target.value)}
                   placeholder="tanvir@example.com"
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                  Address / City (Optional)
+                <label className="block font-medium text-ink-secondary mb-1">
+                  Address / city (optional)
                 </label>
                 <input
                   type="text"
                   value={formAddress}
                   onChange={(e) => setFormAddress(e.target.value)}
-                  placeholder="e.g. Dhanmondi, Dhaka"
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs"
+                  placeholder="Dhanmondi, Dhaka"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-[10px] mb-1">
-                  Notes / Fragrance Preferences
+                <label className="block font-medium text-ink-secondary mb-1">
+                  Notes / fragrance preferences
                 </label>
                 <textarea
                   rows={2}
                   value={formNotes}
                   onChange={(e) => setFormNotes(e.target.value)}
-                  placeholder="e.g. Prefers white musk & fresh oudh, regular wholesale buyer"
-                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold text-xs"
+                  placeholder="Prefers white musk & oudh"
+                  className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-ink placeholder-ink-muted focus:outline-none focus:border-accent text-xs"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-neutral-200 dark:border-brand-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-hairline">
                 <button
                   type="button"
                   onClick={() => setIsFormModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-neutral-200 dark:border-brand-border text-xs text-neutral-600 dark:text-neutral-400 hover:text-white font-medium"
+                  className="px-4 py-2 rounded-lg border border-hairline bg-raised text-xs text-ink-secondary hover:text-ink font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={formSaving}
-                  className="px-5 py-2 rounded-xl bg-brand-gold text-brand-black font-bold text-xs hover:bg-brand-gold-light transition-all shadow-md shadow-brand-gold/20 disabled:opacity-50 cursor-pointer"
+                  className="px-5 py-2 rounded-lg bg-accent text-accent-fg font-semibold text-xs hover:bg-accent-hover transition-colors duration-150 ease-unslop disabled:opacity-50 cursor-pointer"
                 >
-                  {formSaving ? 'Saving...' : editingCustomer ? 'Update Customer' : 'Save Customer'}
+                  {formSaving ? 'Saving…' : editingCustomer ? 'Update Customer' : 'Save Customer'}
                 </button>
               </div>
             </form>

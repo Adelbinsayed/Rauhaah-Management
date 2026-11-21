@@ -125,30 +125,35 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-brand-black text-white flex flex-col justify-center items-center p-6 selection:bg-brand-gold selection:text-brand-black">
-      <div className="w-full max-w-sm bg-brand-surface border border-brand-border rounded-xl shadow-2xl p-7 space-y-6">
+    <div className="min-h-screen bg-canvas text-ink flex flex-col justify-center items-center p-6 selection:bg-accent selection:text-accent-fg">
+      <div className="w-full max-w-sm bg-surface border border-hairline-strong rounded-2xl shadow-[0_8px_28px_rgba(0,0,0,0.06)] dark:shadow-none p-7 space-y-6">
         {/* Logo / Branding */}
         <div className="flex flex-col items-center text-center space-y-2">
           <img
             src="/assets/rauhaah-logo-white.png"
             alt="Rauhaah"
-            className="h-12 w-auto object-contain mb-1"
+            className="hidden dark:block h-11 w-auto object-contain mb-1"
           />
-          <p className="text-xs text-neutral-400">Sign in to access your shop terminal</p>
+          <img
+            src="/assets/rauhaah-logo-dark.png"
+            alt="Rauhaah"
+            className="block dark:hidden h-11 w-auto object-contain mb-1"
+          />
+          <p className="text-xs text-ink-muted">Sign in to access your shop terminal</p>
         </div>
 
         {/* Mode switcher tabs (Password vs PIN) */}
-        <div className="grid grid-cols-2 p-1 bg-brand-black border border-brand-border rounded-lg text-xs font-semibold">
+        <div className="grid grid-cols-2 p-1 bg-raised border border-hairline rounded-lg text-xs font-medium">
           <button
             type="button"
             onClick={() => {
               setMode('password');
               setError(null);
             }}
-            className={`py-1.5 rounded transition-colors ${
+            className={`py-1.5 rounded-md transition-colors duration-150 ease-unslop ${
               mode === 'password'
-                ? 'bg-brand-surface text-brand-gold shadow-sm'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-surface text-accent-ink border border-hairline shadow-[0_1px_2px_rgba(0,0,0,0.04)]'
+                : 'text-ink-muted hover:text-ink'
             }`}
           >
             Password
@@ -159,10 +164,10 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
               setMode('pin');
               setError(null);
             }}
-            className={`py-1.5 rounded transition-colors ${
+            className={`py-1.5 rounded-md transition-colors duration-150 ease-unslop ${
               mode === 'pin'
-                ? 'bg-brand-surface text-brand-gold shadow-sm'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-surface text-accent-ink border border-hairline shadow-[0_1px_2px_rgba(0,0,0,0.04)]'
+                : 'text-ink-muted hover:text-ink'
             }`}
           >
             Quick PIN
@@ -170,8 +175,8 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
         </div>
 
         {error && (
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={1.5} />
             <span>{error}</span>
           </div>
         )}
@@ -179,7 +184,7 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+              <label className="block text-xs font-medium text-ink-secondary">
                 Username
               </label>
               {savedUser && username === savedUser && (
@@ -191,9 +196,9 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
                       localStorage.removeItem('rauhaah_remembered_username');
                     } catch {}
                   }}
-                  className="text-[10px] text-neutral-400 hover:text-brand-gold transition-colors"
+                  className="text-xs text-ink-muted hover:text-accent-ink transition-colors duration-150 ease-unslop"
                 >
-                  Switch User
+                  Switch user
                 </button>
               )}
             </div>
@@ -204,20 +209,20 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
                 autoFocus={!savedUser}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="e.g. cashier or owner"
-                className="w-full pl-9 pr-3.5 py-2.5 bg-brand-black border border-brand-border rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold"
+                placeholder="Username"
+                className="w-full pl-9 pr-3.5 py-2.5 bg-raised border border-hairline rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-accent"
               />
-              <UserIcon className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
+              <UserIcon className="w-4 h-4 text-ink-muted absolute left-3 top-3" strokeWidth={1.5} />
             </div>
-            <div className="flex items-center gap-1.5 mt-1.5">
+            <div className="flex items-center gap-2 mt-2">
               <input
                 type="checkbox"
                 id="rememberUsername"
                 checked={rememberUsername}
                 onChange={(e) => setRememberUsername(e.target.checked)}
-                className="rounded border-brand-border text-brand-gold focus:ring-brand-gold bg-brand-surface w-3.5 h-3.5 cursor-pointer"
+                className="rounded border-hairline-strong accent-accent w-3.5 h-3.5 cursor-pointer"
               />
-              <label htmlFor="rememberUsername" className="text-[11px] text-neutral-400 cursor-pointer select-none">
+              <label htmlFor="rememberUsername" className="text-xs text-ink-muted cursor-pointer select-none">
                 Remember username on this device
               </label>
             </div>
@@ -225,7 +230,7 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
 
           {mode === 'password' ? (
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-ink-secondary mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -236,22 +241,22 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-10 py-2.5 bg-brand-black border border-brand-border rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold"
+                  className="w-full pl-9 pr-10 py-2.5 bg-raised border border-hairline rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-accent"
                 />
-                <Lock className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
+                <Lock className="w-4 h-4 text-ink-muted absolute left-3 top-3" strokeWidth={1.5} />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-neutral-400 hover:text-white"
+                  className="absolute right-3 top-3 text-ink-muted hover:text-ink"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-4 h-4" strokeWidth={1.5} /> : <Eye className="w-4 h-4" strokeWidth={1.5} />}
                 </button>
               </div>
             </div>
           ) : (
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
-                Quick 4–6 Digit PIN
+              <label className="block text-xs font-medium text-ink-secondary mb-1.5">
+                Quick 4–6 digit PIN
               </label>
               <div className="relative">
                 <input
@@ -263,9 +268,9 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
                   value={pin}
                   onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                   placeholder="••••"
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-brand-black border border-brand-border rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold font-mono tracking-widest text-center"
+                  className="w-full pl-9 pr-3.5 py-2.5 bg-raised border border-hairline rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-accent font-mono tracking-widest text-center"
                 />
-                <KeyRound className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
+                <KeyRound className="w-4 h-4 text-ink-muted absolute left-3 top-3" strokeWidth={1.5} />
               </div>
             </div>
           )}
@@ -273,21 +278,21 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 px-4 rounded-lg bg-brand-gold text-brand-black font-bold text-sm hover:bg-brand-gold-hover transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-gold/10 disabled:opacity-40"
+            className="w-full py-2.5 px-4 rounded-lg bg-accent text-accent-fg font-semibold text-sm hover:bg-accent-hover transition-colors duration-150 ease-unslop flex items-center justify-center gap-2 disabled:opacity-40"
           >
-            <LogIn className="w-4 h-4" />
+            <LogIn className="w-4 h-4" strokeWidth={1.75} />
             <span>{loading ? 'Authenticating…' : 'Sign In'}</span>
           </button>
         </form>
 
-        <div className="text-center pt-1 border-t border-brand-border">
+        <div className="text-center pt-3 border-t border-hairline">
           <button
             type="button"
             onClick={() => setShowRecovery(true)}
-            className="text-xs text-neutral-400 hover:text-brand-gold transition-colors inline-flex items-center gap-1.5"
+            className="text-xs text-ink-muted hover:text-accent-ink transition-colors duration-150 ease-unslop inline-flex items-center gap-1.5"
           >
-            <KeyRound className="w-3.5 h-3.5" />
-            <span>Forgot Owner Password? (Recovery Code)</span>
+            <KeyRound className="w-3.5 h-3.5" strokeWidth={1.5} />
+            <span>Forgot owner password? (Recovery code)</span>
           </button>
         </div>
       </div>

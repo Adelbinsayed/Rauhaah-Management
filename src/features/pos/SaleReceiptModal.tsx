@@ -105,42 +105,42 @@ export const SaleReceiptModal: React.FC<SaleReceiptModalProps> = ({
   return (
     <>
       {/* On-screen Modal View */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
-        <div className="w-full max-w-md bg-brand-surface border border-emerald-500/50 rounded-2xl shadow-2xl p-6 text-center space-y-4">
-          {/* Animated Success Badge */}
-          <div className="mx-auto w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
-            <CheckCircle2 className="w-8 h-8" />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+        <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 text-center space-y-4">
+          {/* Success Badge */}
+          <div className="mx-auto w-12 h-12 rounded-xl bg-positive/10 border border-positive/25 flex items-center justify-center text-positive">
+            <CheckCircle2 className="w-6 h-6" strokeWidth={1.5} />
           </div>
 
           <div>
-            <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 mb-1">
-              Sale Completed &amp; Stock Deducted
+            <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-medium bg-positive/10 text-positive border border-positive/25 mb-1.5">
+              Sale completed &amp; stock updated
             </span>
-            <h3 className="text-xl font-bold text-white font-mono">{invoiceNumber}</h3>
-            <p className="text-xs text-neutral-400 mt-0.5">
-              {new Date().toLocaleString()} &bull;{' '}
-              {customer ? `${customer.name} (${customer.phone})` : 'Walk-in Customer'}
+            <h3 className="text-xl font-medium text-ink font-mono tabular-nums">{invoiceNumber}</h3>
+            <p className="text-xs text-ink-muted mt-0.5 tabular-nums">
+              {new Date().toLocaleString()} ·{' '}
+              {customer ? `${customer.name} (${customer.phone})` : 'Walk-in customer'}
             </p>
           </div>
 
           {/* Line Items Summary */}
-          <div className="bg-brand-black/70 border border-brand-border rounded-xl p-3.5 space-y-2 text-left text-xs max-h-48 overflow-y-auto">
+          <div className="bg-raised border border-hairline rounded-xl p-3.5 space-y-2 text-left text-xs max-h-48 overflow-y-auto">
             {items.map((item) => (
               <div
                 key={item.id}
-                className="flex justify-between items-center text-neutral-300 py-0.5 border-b border-brand-border/30 last:border-0"
+                className="flex justify-between items-center text-ink-secondary py-1 border-b border-hairline last:border-0"
               >
                 <div>
-                  <div className="font-semibold text-white">
+                  <div className="font-medium text-ink">
                     {item.productName}
                     {item.bottleSizeMl ? ` (${item.bottleSizeMl}ml)` : ''}
                   </div>
-                  <div className="text-[10px] text-neutral-400 font-mono">
+                  <div className="text-[11px] text-ink-muted font-mono tabular-nums">
                     {item.quantity} {item.unitCode}{' '}
                     {item.unitPriceBdt ? `@ ৳${item.unitPriceBdt}/${item.unitCode}` : ''}
                   </div>
                 </div>
-                <div className="font-bold text-brand-gold font-mono">
+                <div className="font-medium text-accent-ink font-mono tabular-nums">
                   ৳{item.lineTotalBdt.toFixed(2)}
                 </div>
               </div>
@@ -148,42 +148,42 @@ export const SaleReceiptModal: React.FC<SaleReceiptModalProps> = ({
           </div>
 
           {/* Totals Breakdown */}
-          <div className="bg-brand-black/90 border border-brand-gold/30 rounded-xl p-3 space-y-1.5 text-xs text-left">
-            <div className="flex justify-between text-neutral-400">
-              <span>Subtotal:</span>
-              <span className="font-mono text-neutral-200">৳{totals.subtotalBdt.toFixed(2)}</span>
+          <div className="bg-raised border border-accent/25 rounded-xl p-3.5 space-y-1.5 text-xs text-left">
+            <div className="flex justify-between text-ink-muted">
+              <span>Subtotal</span>
+              <span className="font-mono tabular-nums text-ink-secondary">৳{totals.subtotalBdt.toFixed(2)}</span>
             </div>
 
             {(totals.itemDiscountBdt > 0 || totals.cartDiscountBdt > 0) && (
-              <div className="flex justify-between text-emerald-400">
-                <span>Discounts Applied:</span>
-                <span className="font-mono font-bold">
+              <div className="flex justify-between text-positive">
+                <span>Discounts applied</span>
+                <span className="font-mono tabular-nums font-medium">
                   -৳{(totals.itemDiscountBdt + totals.cartDiscountBdt).toFixed(2)}
                 </span>
               </div>
             )}
 
-            <div className="flex justify-between text-base font-bold text-white pt-1 border-t border-brand-border">
-              <span>Net Total:</span>
-              <span className="font-mono text-brand-gold">৳{totals.totalAmountBdt.toFixed(2)}</span>
+            <div className="flex justify-between text-base font-medium text-ink pt-1.5 border-t border-hairline">
+              <span>Net total</span>
+              <span className="font-mono tabular-nums text-accent-ink">৳{totals.totalAmountBdt.toFixed(2)}</span>
             </div>
 
-            <div className="flex justify-between text-xs text-neutral-300 pt-1 border-t border-brand-border/40">
-              <span>Paid ({payments.map((p) => p.method.toUpperCase()).join(' + ')}):</span>
-              <span className="font-mono font-semibold">৳{totals.paidAmountBdt.toFixed(2)}</span>
+            <div className="flex justify-between text-xs text-ink-secondary pt-1.5 border-t border-hairline">
+              <span>Paid ({payments.map((p) => p.method.toUpperCase()).join(' + ')})</span>
+              <span className="font-mono tabular-nums font-medium">৳{totals.paidAmountBdt.toFixed(2)}</span>
             </div>
 
             {totals.changeAmountBdt > 0 && (
-              <div className="flex justify-between text-emerald-400 font-bold">
-                <span>Change Returned:</span>
-                <span className="font-mono">৳{totals.changeAmountBdt.toFixed(2)}</span>
+              <div className="flex justify-between text-positive font-medium">
+                <span>Change returned</span>
+                <span className="font-mono tabular-nums">৳{totals.changeAmountBdt.toFixed(2)}</span>
               </div>
             )}
 
             {totals.dueAmountBdt > 0 && (
-              <div className="flex justify-between text-amber-400 font-bold">
-                <span>Due Balance Added:</span>
-                <span className="font-mono">৳{totals.dueAmountBdt.toFixed(2)}</span>
+              <div className="flex justify-between text-warning font-medium">
+                <span>Due balance added</span>
+                <span className="font-mono tabular-nums">৳{totals.dueAmountBdt.toFixed(2)}</span>
               </div>
             )}
           </div>
@@ -192,8 +192,8 @@ export const SaleReceiptModal: React.FC<SaleReceiptModalProps> = ({
             <div
               className={`p-2 rounded-lg text-xs border ${
                 printStatus.success
-                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-                  : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
+                  ? 'bg-positive/10 border-positive/25 text-positive'
+                  : 'bg-warning/10 border-warning/25 text-warning'
               }`}
             >
               {printStatus.message}
@@ -207,16 +207,16 @@ export const SaleReceiptModal: React.FC<SaleReceiptModalProps> = ({
                 type="button"
                 onClick={() => handlePrint(false)}
                 disabled={isPrinting}
-                className="py-2.5 px-4 rounded-xl bg-brand-black border border-brand-gold/50 hover:border-brand-gold text-brand-gold hover:text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="py-2.5 px-4 rounded-lg bg-raised border border-hairline-strong hover:border-accent/50 text-accent-ink font-medium text-xs transition-colors duration-150 ease-unslop flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {shopSettings?.printerEngine === 'direct_escpos' ? (
                   <>
-                    <Zap className="w-4 h-4 text-brand-gold" />
+                    <Zap className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
                     <span>{isPrinting ? 'Printing…' : 'Direct Print (P)'}</span>
                   </>
                 ) : (
                   <>
-                    <Printer className="w-4 h-4" />
+                    <Printer className="w-4 h-4" strokeWidth={1.5} />
                     <span>Print Invoice (P)</span>
                   </>
                 )}
@@ -226,10 +226,10 @@ export const SaleReceiptModal: React.FC<SaleReceiptModalProps> = ({
                 type="button"
                 onClick={onClose}
                 autoFocus
-                className="py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="py-2.5 px-4 rounded-lg bg-positive hover:opacity-90 text-white font-semibold text-xs transition-opacity duration-150 ease-unslop flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Next Sale (Enter)</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4" strokeWidth={1.75} />
               </button>
             </div>
 
@@ -238,7 +238,7 @@ export const SaleReceiptModal: React.FC<SaleReceiptModalProps> = ({
                 <button
                   type="button"
                   onClick={() => handlePrint(true)}
-                  className="text-[11px] text-neutral-400 hover:text-white underline cursor-pointer"
+                  className="text-xs text-ink-muted hover:text-ink underline cursor-pointer"
                 >
                   System Print Dialog (Ctrl+P)
                 </button>

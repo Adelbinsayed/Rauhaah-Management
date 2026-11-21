@@ -178,30 +178,30 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
   }, [filteredSales]);
 
   return (
-    <div className="h-full flex flex-col bg-brand-black text-white overflow-hidden p-6 gap-5">
+    <div className="h-full flex flex-col bg-canvas text-ink overflow-hidden gap-5">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <Receipt className="w-7 h-7 text-brand-gold" />
-            <span>Sales &amp; Orders History</span>
+          <h1 className="text-xl font-medium text-ink flex items-center gap-2.5">
+            <Receipt className="w-5 h-5 text-accent-ink" strokeWidth={1.5} />
+            <span>Sales &amp; orders history</span>
           </h1>
-          <p className="text-xs text-neutral-400 mt-1">
-            Audit completed transactions, review invoice details, and verify payments.
+          <p className="text-xs text-ink-muted mt-1">
+            Audit completed transactions, review invoice details, and verify payments
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Quick Metrics */}
-          <div className="bg-brand-surface border border-brand-border px-4 py-2 rounded-xl flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-brand-gold/15 flex items-center justify-center text-brand-gold">
-              <TrendingUp className="w-4 h-4" />
+          <div className="bg-surface border border-hairline px-4 py-2 rounded-xl flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-raised border border-hairline flex items-center justify-center text-accent-ink">
+              <TrendingUp className="w-4 h-4" strokeWidth={1.5} />
             </div>
             <div>
-              <div className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">
-                Total Shown
+              <div className="text-xs text-ink-muted">
+                Total shown
               </div>
-              <div className="text-base font-bold text-brand-gold font-mono">
+              <div className="text-base font-medium text-accent-ink font-mono tabular-nums">
                 {formatBdtAmount(totalRevenue)}
               </div>
             </div>
@@ -210,10 +210,10 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
           <button
             onClick={loadSales}
             disabled={loading}
-            className="p-2.5 rounded-xl bg-brand-surface border border-brand-border text-neutral-300 hover:text-white hover:border-brand-gold/50 transition-colors disabled:opacity-50 cursor-pointer"
+            className="p-2.5 rounded-lg bg-surface border border-hairline text-ink-secondary hover:text-ink hover:border-hairline-strong transition-colors duration-150 ease-unslop disabled:opacity-50 cursor-pointer"
             title="Refresh sales list"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} strokeWidth={1.5} />
           </button>
         </div>
       </div>
@@ -232,28 +232,28 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
       {/* Filter and Search Bar */}
       <div className="flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-ink-muted absolute left-3.5 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
           <input
             type="text"
-            placeholder="Search by invoice number (e.g. INV-202611-0001), customer name, or phone..."
+            placeholder="Search invoice number (e.g. INV-202611-0001), customer name, phone"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-brand-surface border border-brand-border rounded-xl text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-gold transition-colors"
+            className="w-full pl-10 pr-4 py-2 bg-surface border border-hairline rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-accent transition-colors duration-150 ease-unslop"
           />
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-          <span className="text-xs text-neutral-400 font-semibold uppercase tracking-wider pl-1">
-            Method:
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+          <span className="text-xs text-ink-muted font-medium pl-1">
+            Method
           </span>
           {['all', 'cash', 'bkash', 'nagad', 'card', 'bank'].map((m) => (
             <button
               key={m}
               onClick={() => setPaymentFilter(m)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize whitespace-nowrap transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize whitespace-nowrap transition-colors duration-150 ease-unslop cursor-pointer ${
                 paymentFilter === m
-                  ? 'bg-brand-gold text-brand-black shadow-md shadow-brand-gold/20'
-                  : 'bg-brand-surface border border-brand-border text-neutral-400 hover:text-white hover:border-brand-gold/40'
+                  ? 'bg-accent text-accent-fg font-semibold'
+                  : 'bg-surface border border-hairline text-ink-secondary hover:text-ink hover:border-hairline-strong'
               }`}
             >
               {m}
@@ -263,13 +263,13 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
       </div>
 
       {/* Sales Invoices Table */}
-      <div className="flex-1 bg-brand-surface border border-brand-border rounded-2xl overflow-hidden flex flex-col shadow-xl">
+      <div className="flex-1 bg-surface border border-hairline rounded-xl overflow-hidden flex flex-col">
         <div className="flex-1 overflow-auto">
           <table className="w-full text-left border-collapse text-xs">
-            <thead className="bg-brand-black/70 sticky top-0 border-b border-brand-border text-neutral-400 font-semibold tracking-wider uppercase text-[11px] select-none">
+            <thead className="bg-raised/70 sticky top-0 border-b border-hairline text-ink-muted font-medium select-none">
               <tr>
-                <th className="py-3 px-4">Invoice #</th>
-                <th className="py-3 px-4">Date &amp; Time</th>
+                <th className="py-3 px-4">Invoice</th>
+                <th className="py-3 px-4">Date &amp; time</th>
                 <th className="py-3 px-4">Customer</th>
                 <th className="py-3 px-4">Payment</th>
                 <th className="py-3 px-4 text-right">Subtotal</th>
@@ -279,19 +279,19 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
                 <th className="py-3 px-4 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-border/40 text-neutral-200">
+            <tbody className="divide-y divide-hairline text-ink-secondary">
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-neutral-500">
-                    <RefreshCw className="w-6 h-6 mx-auto animate-spin mb-2 text-brand-gold" />
-                    Loading transactions history...
+                  <td colSpan={9} className="py-12 text-center text-ink-muted">
+                    <RefreshCw className="w-5 h-5 mx-auto animate-spin mb-2 text-accent-ink" strokeWidth={1.5} />
+                    Loading transactions history…
                   </td>
                 </tr>
               ) : filteredSales.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-neutral-500">
-                    <Receipt className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                    No sales records found matching the current filters.
+                  <td colSpan={9} className="py-12 text-center text-ink-muted">
+                    <Receipt className="w-7 h-7 mx-auto mb-2 opacity-40" strokeWidth={1.5} />
+                    No sales records match the current filters
                   </td>
                 </tr>
               ) : (
@@ -299,49 +299,49 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
                   <tr
                     key={sale.id}
                     onClick={() => viewSaleDetails(sale)}
-                    className="hover:bg-brand-black/40 cursor-pointer transition-colors group"
+                    className="hover:bg-raised/50 cursor-pointer transition-colors duration-150 ease-unslop group"
                   >
-                    <td className="py-3 px-4 font-mono font-bold text-white group-hover:text-brand-gold transition-colors">
+                    <td className="py-3 px-4 font-mono tabular-nums font-medium text-ink group-hover:text-accent-ink transition-colors duration-150 ease-unslop">
                       {sale.invoiceNumber}
                     </td>
-                    <td className="py-3 px-4 font-mono text-neutral-400">
+                    <td className="py-3 px-4 font-mono tabular-nums text-ink-muted">
                       {formatDhakaDateTime(sale.createdAt)}
                     </td>
                     <td className="py-3 px-4">
                       {sale.customerName ? (
                         <div>
-                          <div className="font-semibold text-white">{sale.customerName}</div>
+                          <div className="font-medium text-ink">{sale.customerName}</div>
                           {sale.customerPhone && (
-                            <div className="text-[11px] text-neutral-400 font-mono">
+                            <div className="text-[11px] text-ink-muted font-mono tabular-nums">
                               {sale.customerPhone}
                             </div>
                           )}
                         </div>
                       ) : (
-                        <span className="text-neutral-500 italic">Walk-in Customer</span>
+                        <span className="text-ink-muted">Walk-in customer</span>
                       )}
                     </td>
                     <td className="py-3 px-4">
-                      <span className="inline-block px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-neutral-800 text-neutral-300 border border-brand-border">
+                      <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-medium capitalize bg-raised text-ink-secondary border border-hairline">
                         {sale.paymentMethod}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right font-mono text-neutral-300">
+                    <td className="py-3 px-4 text-right font-mono tabular-nums text-ink-secondary">
                       {formatBdtAmount(sale.subtotalBdt)}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono text-emerald-400">
+                    <td className="py-3 px-4 text-right font-mono tabular-nums text-positive">
                       {sale.discountAmountBdt > 0 ? `-${formatBdtAmount(sale.discountAmountBdt)}` : '—'}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-brand-gold">
+                    <td className="py-3 px-4 text-right font-mono tabular-nums font-medium text-accent-ink">
                       {formatBdtAmount(sale.totalAmountBdt)}
                     </td>
                     <td className="py-3 px-4 text-right">
                       {sale.dueAmountBdt > 0 ? (
-                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-medium bg-warning/10 text-warning border border-warning/25 font-mono tabular-nums">
                           Due {formatBdtAmount(sale.dueAmountBdt)}
                         </span>
                       ) : (
-                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400">
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-medium bg-positive/10 text-positive border border-positive/25">
                           Paid
                         </span>
                       )}
@@ -352,10 +352,10 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
                           e.stopPropagation();
                           viewSaleDetails(sale);
                         }}
-                        className="p-1.5 rounded-lg bg-brand-surface border border-brand-border text-neutral-400 hover:text-white hover:border-brand-gold/50 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg bg-raised border border-hairline text-ink-muted hover:text-ink hover:border-hairline-strong transition-colors duration-150 ease-unslop cursor-pointer"
                         title="View invoice details"
                       >
-                        <Eye className="w-3.5 h-3.5" />
+                        <Eye className="w-3.5 h-3.5" strokeWidth={1.5} />
                       </button>
                     </td>
                   </tr>
@@ -412,10 +412,10 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
             maxWidth="xl"
             title={
               <div className="flex items-center gap-2">
-                <span className="font-mono text-base font-bold text-white">
+                <span className="font-mono tabular-nums text-base font-medium text-ink">
                   {selectedSale.invoiceNumber}
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                <span className="px-2 py-0.5 rounded-md text-[11px] font-medium capitalize bg-positive/10 text-positive border border-positive/25">
                   {selectedSale.status}
                 </span>
               </div>
@@ -424,128 +424,128 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
           >
             <div className="space-y-4">
               {/* Customer & Cashier Info */}
-              <div className="grid grid-cols-2 gap-3 text-xs bg-brand-black/60 p-3 rounded-xl border border-brand-border/60">
+              <div className="grid grid-cols-2 gap-3 text-xs bg-raised p-3.5 rounded-xl border border-hairline">
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">
+                  <div className="text-xs text-ink-muted">
                     Customer
                   </div>
-                  <div className="font-semibold text-white mt-0.5 flex items-center gap-1.5">
-                    <UserIcon className="w-3.5 h-3.5 text-brand-gold" />
-                    <span>{selectedSale.customerName || 'Walk-in Customer'}</span>
+                  <div className="font-medium text-ink mt-0.5 flex items-center gap-1.5">
+                    <UserIcon className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
+                    <span>{selectedSale.customerName || 'Walk-in customer'}</span>
                   </div>
                   {selectedSale.customerPhone && (
-                    <div className="text-neutral-400 font-mono text-[11px] mt-0.5">
+                    <div className="text-ink-muted font-mono tabular-nums text-xs mt-0.5">
                       {selectedSale.customerPhone}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">
-                    Cashier / Served By
+                  <div className="text-xs text-ink-muted">
+                    Cashier / served by
                   </div>
-                  <div className="font-semibold text-white mt-0.5">
+                  <div className="font-medium text-ink mt-0.5">
                     {selectedSale.cashierName || 'Cashier'}
                   </div>
-                  <div className="text-[11px] text-neutral-400 mt-0.5 flex items-center gap-1">
-                    <CreditCard className="w-3.5 h-3.5 text-brand-gold" />
-                    <span>Payment: <strong className="uppercase">{selectedSale.paymentMethod}</strong></span>
+                  <div className="text-xs text-ink-muted mt-0.5 flex items-center gap-1.5">
+                    <CreditCard className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
+                    <span>Payment <strong className="capitalize font-medium text-ink-secondary">{selectedSale.paymentMethod}</strong></span>
                   </div>
                 </div>
               </div>
 
               {/* Items List */}
-              <div className="space-y-2 border border-brand-border/40 rounded-xl p-3 bg-brand-black/40 max-h-56 overflow-y-auto">
-                <div className="text-xs font-bold uppercase tracking-wider text-neutral-400 pb-1 border-b border-brand-border/40">
-                  Purchased Items
+              <div className="space-y-2 border border-hairline rounded-xl p-3.5 bg-raised/60 max-h-56 overflow-y-auto">
+                <div className="text-xs font-medium text-ink-muted pb-1.5 border-b border-hairline">
+                  Purchased items
                 </div>
 
                 {detailLoading ? (
-                  <div className="py-8 text-center text-xs text-neutral-400">
-                    <RefreshCw className="w-5 h-5 mx-auto animate-spin mb-1 text-brand-gold" />
-                    Loading items...
+                  <div className="py-8 text-center text-xs text-ink-muted">
+                    <RefreshCw className="w-5 h-5 mx-auto animate-spin mb-1 text-accent-ink" strokeWidth={1.5} />
+                    Loading items…
                   </div>
                 ) : selectedSale.items && selectedSale.items.length > 0 ? (
                   selectedSale.items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex justify-between items-center py-1.5 border-b border-brand-border/20 last:border-0 text-xs"
+                      className="flex justify-between items-center py-1.5 border-b border-hairline last:border-0 text-xs"
                     >
                       <div>
-                        <div className="font-semibold text-white">{item.productName}</div>
-                        <div className="text-[11px] text-neutral-400 font-mono">
+                        <div className="font-medium text-ink">{item.productName}</div>
+                        <div className="text-xs text-ink-muted font-mono tabular-nums">
                           {item.quantity} {item.unitCode}{' '}
                           {item.bottleSizeMl ? `(Decant ${item.bottleSizeMl}ml)` : ''}{' '}
                           @ {formatBdtAmount(item.unitPriceBdt)}/{item.unitCode}
                         </div>
                         {item.discountAmountBdt > 0 && (
-                          <div className="text-[10px] text-emerald-400">
-                            Discount: -{formatBdtAmount(item.discountAmountBdt)}
+                          <div className="text-[11px] text-positive">
+                            Discount -{formatBdtAmount(item.discountAmountBdt)}
                             {item.discountReason ? ` (${item.discountReason})` : ''}
                           </div>
                         )}
                       </div>
-                      <div className="font-bold text-brand-gold font-mono text-sm">
+                      <div className="font-medium text-accent-ink font-mono tabular-nums text-sm">
                         {formatBdtAmount(item.lineTotalBdt)}
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="py-4 text-center text-xs text-neutral-500">
-                    No line items recorded.
+                  <div className="py-4 text-center text-xs text-ink-muted">
+                    No line items recorded
                   </div>
                 )}
               </div>
 
               {/* Financial Summary */}
-              <div className="bg-brand-black/80 rounded-xl p-3.5 border border-brand-border space-y-1.5 text-xs">
-                <div className="flex justify-between text-neutral-400">
+              <div className="bg-raised rounded-xl p-3.5 border border-hairline space-y-1.5 text-xs">
+                <div className="flex justify-between text-ink-muted">
                   <span>Subtotal</span>
-                  <span className="font-mono text-white">{formatBdtAmount(selectedSale.subtotalBdt)}</span>
+                  <span className="font-mono tabular-nums text-ink">{formatBdtAmount(selectedSale.subtotalBdt)}</span>
                 </div>
                 {selectedSale.discountAmountBdt > 0 && (
-                  <div className="flex justify-between text-emerald-400">
+                  <div className="flex justify-between text-positive">
                     <span>
                       Discount {selectedSale.discountReason ? `(${selectedSale.discountReason})` : ''}
                     </span>
-                    <span className="font-mono">-{formatBdtAmount(selectedSale.discountAmountBdt)}</span>
+                    <span className="font-mono tabular-nums">-{formatBdtAmount(selectedSale.discountAmountBdt)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-base font-bold text-white pt-1.5 border-t border-brand-border/60">
-                  <span>Total Amount</span>
-                  <span className="font-mono text-brand-gold">
+                <div className="flex justify-between text-base font-medium text-ink pt-1.5 border-t border-hairline">
+                  <span>Total amount</span>
+                  <span className="font-mono tabular-nums text-accent-ink">
                     {formatBdtAmount(selectedSale.totalAmountBdt)}
                   </span>
                 </div>
-                <div className="flex justify-between text-neutral-400 pt-1 border-t border-brand-border/30">
+                <div className="flex justify-between text-ink-muted pt-1.5 border-t border-hairline">
                   <span>Paid</span>
-                  <span className="font-mono text-neutral-200">
+                  <span className="font-mono tabular-nums text-ink-secondary">
                     {formatBdtAmount(selectedSale.paidAmountBdt)}
                   </span>
                 </div>
                 {selectedSale.changeAmountBdt > 0 && (
-                  <div className="flex justify-between text-neutral-400">
-                    <span>Change Given</span>
-                    <span className="font-mono text-neutral-300">
+                  <div className="flex justify-between text-ink-muted">
+                    <span>Change given</span>
+                    <span className="font-mono tabular-nums text-ink-secondary">
                       {formatBdtAmount(selectedSale.changeAmountBdt)}
                     </span>
                   </div>
                 )}
                 {selectedSale.dueAmountBdt > 0 && (
-                  <div className="flex justify-between text-amber-400 font-bold">
-                    <span>Customer Due Balance</span>
-                    <span className="font-mono">{formatBdtAmount(selectedSale.dueAmountBdt)}</span>
+                  <div className="flex justify-between text-warning font-medium">
+                    <span>Customer due balance</span>
+                    <span className="font-mono tabular-nums">{formatBdtAmount(selectedSale.dueAmountBdt)}</span>
                   </div>
                 )}
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-brand-border/40">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-hairline">
                 {shopSettings?.printerEngine === 'direct_escpos' && (
                   <button
                     type="button"
                     onClick={() => handlePrintSale(true)}
-                    className="text-[11px] text-neutral-400 hover:text-white underline mr-2 cursor-pointer"
+                    className="text-xs text-ink-muted hover:text-ink underline mr-2 cursor-pointer"
                   >
                     System Dialog
                   </button>
@@ -553,16 +553,16 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
                 <button
                   type="button"
                   onClick={() => handlePrintSale(false)}
-                  className="px-4 py-2 rounded-xl bg-brand-surface border border-brand-border hover:border-brand-gold/50 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-lg bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs flex items-center gap-1.5 transition-colors duration-150 ease-unslop cursor-pointer"
                 >
                   {shopSettings?.printerEngine === 'direct_escpos' ? (
                     <>
-                      <Zap className="w-3.5 h-3.5 text-brand-gold" />
+                      <Zap className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
                       <span>Direct Print</span>
                     </>
                   ) : (
                     <>
-                      <Printer className="w-3.5 h-3.5 text-brand-gold" />
+                      <Printer className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
                       <span>Print Invoice</span>
                     </>
                   )}
@@ -570,7 +570,7 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
                 <button
                   type="button"
                   onClick={() => setSelectedSale(null)}
-                  className="px-5 py-2 rounded-xl bg-brand-gold text-brand-black font-bold text-xs hover:bg-brand-gold/90 transition-colors cursor-pointer"
+                  className="px-5 py-2 rounded-lg bg-accent text-accent-fg font-semibold text-xs hover:bg-accent-hover transition-colors duration-150 ease-unslop cursor-pointer"
                 >
                   Close
                 </button>

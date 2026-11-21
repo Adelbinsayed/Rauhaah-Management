@@ -105,65 +105,64 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ deviceId }) =>
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2.5">
-            <ShoppingBag className="w-5 h-5 text-brand-gold" />
-            <span>Purchases &amp; Stock Receiving</span>
+          <h2 className="text-xl font-medium text-ink flex items-center gap-2.5">
+            <ShoppingBag className="w-5 h-5 text-accent-ink" strokeWidth={1.5} />
+            <span>Purchases &amp; stock receiving</span>
           </h2>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-            Receive incoming fragrance oils (in tola, grams, ml, or litres), bottles, and accessories.
-            Automatically updates inventory stock, tracks supplier dues, and updates cost history.
+          <p className="text-xs text-ink-muted mt-1">
+            Receive incoming fragrance oils (in tola, grams, ml, or litres), bottles, and accessories. Updates inventory stock, supplier dues, and cost history.
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => setIsReceiveModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-gold text-brand-black text-xs font-bold hover:bg-brand-gold-light transition-all shadow-md shadow-brand-gold/20 cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-accent-fg text-xs font-semibold hover:bg-accent-hover transition-colors duration-150 ease-unslop cursor-pointer"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4" strokeWidth={1.75} />
           <span>Receive New Stock (PO)</span>
         </button>
       </div>
 
       {/* KPI Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border shadow-sm flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-brand-gold/15 border border-brand-gold/30 flex items-center justify-center text-brand-gold">
-            <ShoppingBag className="w-5 h-5" />
+        <div className="p-4 rounded-xl bg-surface border border-hairline flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-lg bg-raised border border-hairline flex items-center justify-center text-accent-ink">
+            <ShoppingBag className="w-4 h-4" strokeWidth={1.5} />
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-              Total Purchases
+            <div className="text-xs text-ink-muted">
+              Total purchases
             </div>
-            <div className="text-lg font-bold text-neutral-900 dark:text-white font-mono mt-0.5">
-              {metrics.count} Orders
+            <div className="text-lg font-medium text-ink font-mono tabular-nums mt-0.5">
+              {metrics.count} orders
             </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border shadow-sm flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-            <Layers className="w-5 h-5" />
+        <div className="p-4 rounded-xl bg-surface border border-hairline flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-lg bg-positive/10 border border-positive/25 flex items-center justify-center text-positive">
+            <Layers className="w-4 h-4" strokeWidth={1.5} />
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-              Total Stock In Value
+            <div className="text-xs text-ink-muted">
+              Total stock-in value
             </div>
-            <div className="text-lg font-bold text-emerald-500 font-mono mt-0.5">
+            <div className="text-lg font-medium text-positive font-mono tabular-nums mt-0.5">
               ৳{metrics.totalSpent.toFixed(2)}
             </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border shadow-sm flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-            <CreditCard className="w-5 h-5" />
+        <div className="p-4 rounded-xl bg-surface border border-hairline flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-lg bg-warning/10 border border-warning/25 flex items-center justify-center text-warning">
+            <CreditCard className="w-4 h-4" strokeWidth={1.5} />
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-              Outstanding Supplier Due
+            <div className="text-xs text-ink-muted">
+              Outstanding supplier due
             </div>
-            <div className="text-lg font-bold text-amber-400 font-mono mt-0.5">
+            <div className="text-lg font-medium text-warning font-mono tabular-nums mt-0.5">
               ৳{metrics.totalDue.toFixed(2)}
             </div>
           </div>
@@ -171,26 +170,26 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ deviceId }) =>
       </div>
 
       {/* Filters Bar */}
-      <div className="p-3 bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="p-3 bg-surface border border-hairline rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-ink-muted absolute left-3 top-2.5" strokeWidth={1.5} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search PO number, supplier, bill..."
-            className="w-full pl-9 pr-3 py-1.5 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold"
+            placeholder="Search PO number, supplier, bill"
+            className="w-full pl-9 pr-3 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink placeholder-ink-muted focus:outline-none focus:border-accent"
           />
         </div>
 
         {/* Supplier Filter */}
         <div className="flex items-center gap-2">
-          <span className="text-neutral-400 font-medium">Supplier:</span>
+          <span className="text-ink-muted font-medium">Supplier</span>
           <select
             value={supplierFilter}
             onChange={(e) => setSupplierFilter(e.target.value)}
-            className="px-2.5 py-1.5 bg-neutral-50 dark:bg-brand-black border border-neutral-200 dark:border-brand-border rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-brand-gold"
+            className="px-2.5 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink focus:outline-none focus:border-accent"
           >
             <option value="all">All Suppliers</option>
             {suppliers.map((s) => (
@@ -202,16 +201,16 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ deviceId }) =>
         </div>
 
         {/* Date Presets */}
-        <div className="flex items-center gap-1 bg-neutral-100 dark:bg-brand-black/80 p-1 rounded-xl border border-neutral-200 dark:border-brand-border">
+        <div className="flex items-center gap-1 bg-raised p-1 rounded-lg border border-hairline">
           {(['today', '7days', 'month', 'all'] as const).map((preset) => (
             <button
               key={preset}
               type="button"
               onClick={() => handlePresetChange(preset)}
-              className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors duration-150 ease-unslop cursor-pointer ${
                 datePreset === preset
-                  ? 'bg-brand-gold text-brand-black shadow-sm'
-                  : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+                  ? 'bg-accent text-accent-fg font-semibold'
+                  : 'text-ink-muted hover:text-ink'
               }`}
             >
               {preset === 'today'
@@ -227,34 +226,34 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ deviceId }) =>
       </div>
 
       {/* Purchases Table */}
-      <div className="bg-white dark:bg-brand-surface border border-neutral-200 dark:border-brand-border rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-surface border border-hairline rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-neutral-50 dark:bg-brand-black/60 border-b border-neutral-200 dark:border-brand-border text-neutral-500 uppercase tracking-wider font-semibold">
+            <thead className="bg-raised/70 border-b border-hairline text-ink-muted font-medium">
               <tr>
-                <th className="py-3 px-4">PO Number</th>
-                <th className="py-3 px-4">Date &amp; Time</th>
+                <th className="py-3 px-4">PO number</th>
+                <th className="py-3 px-4">Date &amp; time</th>
                 <th className="py-3 px-4">Supplier</th>
-                <th className="py-3 px-4">Payment Method</th>
-                <th className="py-3 px-4 text-right">Total Amount</th>
-                <th className="py-3 px-4 text-right">Status / Paid</th>
+                <th className="py-3 px-4">Payment method</th>
+                <th className="py-3 px-4 text-right">Total amount</th>
+                <th className="py-3 px-4 text-right">Status / paid</th>
                 <th className="py-3 px-4 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-200 dark:divide-brand-border text-neutral-700 dark:text-neutral-200">
+            <tbody className="divide-y divide-hairline text-ink-secondary">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-neutral-400">
-                    Loading purchases...
+                  <td colSpan={7} className="py-8 text-center text-ink-muted">
+                    Loading purchases…
                   </td>
                 </tr>
               ) : purchases.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-neutral-400">
-                    <ShoppingBag className="w-8 h-8 mx-auto text-neutral-500 mb-2 opacity-50" />
-                    <p className="font-semibold text-neutral-300">No purchase records found</p>
-                    <p className="text-[11px] text-neutral-500 mt-0.5">
-                      Click &ldquo;Receive New Stock&rdquo; to record your first inventory shipment.
+                  <td colSpan={7} className="py-12 text-center text-ink-muted">
+                    <ShoppingBag className="w-7 h-7 mx-auto text-ink-muted mb-2 opacity-60" strokeWidth={1.5} />
+                    <p className="font-medium text-ink-secondary">No purchase records found</p>
+                    <p className="text-xs text-ink-muted mt-0.5">
+                      Click Receive New Stock (PO) to record your first inventory shipment
                     </p>
                   </td>
                 </tr>
@@ -263,42 +262,42 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ deviceId }) =>
                   <tr
                     key={p.id}
                     onClick={() => handleViewPurchase(p)}
-                    className="hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 cursor-pointer transition-colors"
+                    className="hover:bg-raised/50 cursor-pointer transition-colors duration-150 ease-unslop"
                   >
-                    <td className="py-3 px-4 font-mono font-bold text-neutral-900 dark:text-white">
+                    <td className="py-3 px-4 font-mono tabular-nums font-medium text-ink">
                       {p.purchaseNumber}
                     </td>
-                    <td className="py-3 px-4 text-neutral-400 text-[11px]">
-                      {new Date(p.receivedAt).toLocaleDateString()} &bull;{' '}
+                    <td className="py-3 px-4 text-ink-muted text-xs tabular-nums">
+                      {new Date(p.receivedAt).toLocaleDateString()} ·{' '}
                       {new Date(p.receivedAt).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
                       })}
                     </td>
-                    <td className="py-3 px-4 font-semibold text-neutral-900 dark:text-white flex items-center gap-1.5">
-                      <Truck className="w-3.5 h-3.5 text-brand-gold shrink-0" />
+                    <td className="py-3 px-4 font-medium text-ink flex items-center gap-1.5">
+                      <Truck className="w-3.5 h-3.5 text-accent-ink shrink-0" strokeWidth={1.5} />
                       <span>{p.supplierName}</span>
                     </td>
-                    <td className="py-3 px-4 text-[11px]">
-                      <span className="uppercase font-semibold text-neutral-300">
+                    <td className="py-3 px-4 text-xs">
+                      <span className="capitalize font-medium text-ink-secondary">
                         {p.paymentMethod}
                       </span>
                       {p.referenceNumber && (
-                        <span className="text-neutral-500 font-mono ml-1">
+                        <span className="text-ink-muted font-mono ml-1">
                           ({p.referenceNumber})
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-brand-gold">
+                    <td className="py-3 px-4 text-right font-mono tabular-nums font-medium text-accent-ink">
                       ৳{p.totalAmountBdt.toFixed(2)}
                     </td>
                     <td className="py-3 px-4 text-right">
                       {p.totalAmountBdt > p.paidAmountBdt ? (
-                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-medium bg-warning/10 text-warning border border-warning/25 font-mono tabular-nums">
                           Due ৳{(p.totalAmountBdt - p.paidAmountBdt).toFixed(2)}
                         </span>
                       ) : (
-                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400">
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-medium bg-positive/10 text-positive border border-positive/25">
                           Paid
                         </span>
                       )}
@@ -310,10 +309,10 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ deviceId }) =>
                           e.stopPropagation();
                           handleViewPurchase(p);
                         }}
-                        className="p-1.5 rounded-lg border border-neutral-200 dark:border-brand-border text-neutral-400 hover:text-white hover:border-brand-gold transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg border border-hairline bg-raised text-ink-muted hover:text-ink hover:border-hairline-strong transition-colors duration-150 ease-unslop cursor-pointer"
                         title="View PO Details"
                       >
-                        <Eye className="w-3.5 h-3.5" />
+                        <Eye className="w-3.5 h-3.5" strokeWidth={1.5} />
                       </button>
                     </td>
                   </tr>
