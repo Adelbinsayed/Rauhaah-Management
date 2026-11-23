@@ -11,6 +11,21 @@ fn close_splashscreen(app: tauri::AppHandle) {
         let _ = main.show();
         let _ = main.unminimize();
         let _ = main.set_focus();
+    } else {
+        let _ = tauri::WebviewWindowBuilder::new(
+            &app,
+            "main",
+            tauri::WebviewUrl::App("index.html".into()),
+        )
+        .title("Rauhaah Management")
+        .inner_size(1280.0, 800.0)
+        .min_inner_size(1024.0, 680.0)
+        .center()
+        .build();
+    }
+
+    if let Some(splash) = app.get_webview_window("splash") {
+        let _ = splash.close();
     }
 }
 
@@ -80,7 +95,12 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(db_state)
-        .setup(|_app| {
+        .setup(|app| {
+            let app_handle = app.handle().clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(8000));
+                close_splashscreen(app_handle);
+            });
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
