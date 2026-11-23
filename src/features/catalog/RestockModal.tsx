@@ -132,8 +132,21 @@ export const RestockModal: React.FC<RestockModalProps> = ({
     }
   };
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px] overflow-y-auto">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px] overflow-y-auto"
+    >
       <div className="w-full max-w-xl bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 my-8 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-hairline">
@@ -153,6 +166,8 @@ export const RestockModal: React.FC<RestockModalProps> = ({
             </div>
           </div>
           <button
+            type="button"
+            aria-label="Close modal"
             onClick={onClose}
             className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised transition-colors duration-150 ease-unslop"
           >

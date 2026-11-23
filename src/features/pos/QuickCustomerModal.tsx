@@ -61,8 +61,21 @@ export const QuickCustomerModal: React.FC<QuickCustomerModalProps> = ({
     }
   };
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+    >
       <div className="w-full max-w-sm bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-5">
         <div className="flex items-center justify-between pb-3 border-b border-hairline">
           <div className="flex items-center gap-2.5">
@@ -75,6 +88,8 @@ export const QuickCustomerModal: React.FC<QuickCustomerModalProps> = ({
             </div>
           </div>
           <button
+            type="button"
+            aria-label="Close modal"
             onClick={onClose}
             className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised"
           >

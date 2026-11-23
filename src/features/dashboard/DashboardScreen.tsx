@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   TrendingUp,
   DollarSign,
@@ -57,9 +57,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   const [topSelling, setTopSelling] = useState<TopSellingItem[]>([]);
   const [recentSales, setRecentSales] = useState<RecentSaleActivity[]>([]);
   const [paymentShares, setPaymentShares] = useState<PaymentMethodShare[]>([]);
+  const loadSeqRef = useRef(0);
 
   const loadDashboardData = useCallback(
     async (isManualRefresh = false) => {
+      const seq = ++loadSeqRef.current;
       if (isManualRefresh) setRefreshing(true);
       else setLoading(true);
 
@@ -75,16 +77,22 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
           dashboardRepo.getPaymentMethodShares(start, end),
         ]);
 
+        if (seq !== loadSeqRef.current) return;
+
         setSummary(sum);
         setLowStockItems(lowStock);
         setTopSelling(top);
         setRecentSales(recent);
         setPaymentShares(shares);
       } catch (err) {
-        console.error('Failed to load dashboard metrics:', err);
+        if (seq === loadSeqRef.current) {
+          console.error('Failed to load dashboard metrics:', err);
+        }
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (seq === loadSeqRef.current) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [timeframe, allowProfit]
@@ -108,7 +116,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-12 select-none">
+    <div className="max-w-7xl mx-auto space-y-6 pb-12">
       {/* Top Counter Context & Period Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-xl bg-surface border border-hairline text-ink">
         <div className="space-y-1.5">
@@ -589,7 +597,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-hairline">
-              {recentSales.map((sale) => (
+              {recentSales.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-xs text-ink-muted">
+                    No recent sales recorded yet.
+                  </td>
+                </tr>
+              ) : (
+                recentSales.map((sale) => (
                 <tr key={sale.id} className="hover:bg-raised/50 transition-colors duration-150 ease-unslop">
                   <td className="py-2.5 px-3 font-mono font-medium text-accent-ink tabular-nums">
                     {sale.invoiceNumber}
@@ -624,7 +639,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                     {formatBdt(sale.totalAmountBdt)}
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
             </tbody>
           </table>
         </div>

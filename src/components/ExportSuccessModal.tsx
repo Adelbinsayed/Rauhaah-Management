@@ -22,6 +22,15 @@ export const ExportSuccessModal: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [exportModal, closeExportModal]);
 
+  useEffect(() => {
+    if (!exportModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeExportModal();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [exportModal, closeExportModal]);
+
   if (!exportModal) return null;
 
   const handleOpenFolder = async () => {
@@ -36,11 +45,16 @@ export const ExportSuccessModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+    >
       <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.5)] p-6 space-y-5 text-ink relative">
         {/* Close Button */}
         <button
           type="button"
+          aria-label="Close modal"
           onClick={closeExportModal}
           className="absolute top-4 right-4 p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised transition-colors duration-150 ease-unslop cursor-pointer"
         >

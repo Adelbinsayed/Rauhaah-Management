@@ -841,7 +841,11 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
 
       {/* Flashing Success Modal */}
       {successModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/75 backdrop-blur-sm"
+        >
           <div className="w-full max-w-sm bg-surface border border-positive/40 rounded-2xl shadow-lg p-6 text-center space-y-4">
             <div className="mx-auto w-14 h-14 rounded-full bg-positive/15 border border-positive/30 flex items-center justify-center text-positive">
               <CheckCircle2 className="w-8 h-8" strokeWidth={1.5} />

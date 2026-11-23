@@ -1,4 +1,5 @@
 import type { AuthSession, PermissionKey, ShopSettings, User } from '@/domain/auth/types';
+import type { HeldCart } from '@/domain/pos/types';
 import { create } from 'zustand';
 
 export type NavRoute =
@@ -45,6 +46,7 @@ interface AppState {
   shopSettings: ShopSettings | null;
   exportModal: ExportSuccessInfo | null;
   toast: ToastNotification | null;
+  heldCarts: HeldCart[];
 
   setActiveRoute: (route: NavRoute) => void;
   toggleTheme: () => void;
@@ -57,19 +59,40 @@ interface AppState {
   closeExportModal: () => void;
   showToast: (toast: Omit<ToastNotification, 'id'>) => void;
   hideToast: () => void;
+  holdCart: (cart: HeldCart) => void;
+  removeHeldCart: (id: string) => void;
+}
+
+const THEME_STORAGE_KEY = 'rauhaah_theme';
+
+function getInitialTheme(): 'dark' | 'light' {
+  let theme: 'dark' | 'light' = 'dark';
+  try {
+    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(THEME_STORAGE_KEY) : null;
+    if (stored === 'light' || stored === 'dark') {
+      theme = stored;
+    }
+  } catch {
+    // Ignore storage access errors
+  }
+  if (typeof document !== 'undefined') {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }
+  return theme;
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const useAppStore = create<AppState>((set) => ({
   activeRoute: 'dashboard',
-  theme: 'dark',
+  theme: getInitialTheme(),
   currentUser: null,
   permissions: [],
   isLocked: false,
   shopSettings: null,
   exportModal: null,
   toast: null,
+  heldCarts: [],
 
   setActiveRoute: (route) => set({ activeRoute: route }),
   showExportSuccess: (info) => set({ exportModal: info }),
@@ -90,11 +113,28 @@ export const useAppStore = create<AppState>((set) => ({
   toggleTheme: () =>
     set((state) => {
       const next = state.theme === 'dark' ? 'light' : 'dark';
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(THEME_STORAGE_KEY, next);
+        }
+      } catch {
+        // Ignore storage access errors
+      }
       if (typeof document !== 'undefined') {
         document.documentElement.classList.toggle('dark', next === 'dark');
       }
       return { theme: next };
     }),
+
+  holdCart: (cart) =>
+    set((state) => ({
+      heldCarts: [cart, ...state.heldCarts],
+    })),
+
+  removeHeldCart: (id) =>
+    set((state) => ({
+      heldCarts: state.heldCarts.filter((h) => h.id !== id),
+    })),
 
   setSession: (session) =>
     set({

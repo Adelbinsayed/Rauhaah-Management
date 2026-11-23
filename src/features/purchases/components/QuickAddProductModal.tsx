@@ -1,7 +1,7 @@
 import { purchasesRepo } from '@/data/repositories/purchasesRepo';
 import type { StockItemLookup } from '@/domain/purchases/types';
 import { AlertCircle, Package, X } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface QuickAddProductModalProps {
   isOpen: boolean;
@@ -33,6 +33,28 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
   const [newProdRetailPrice, setNewProdRetailPrice] = useState<number>(0);
   const [newProdSaving, setNewProdSaving] = useState(false);
   const [newProdError, setNewProdError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setNewProdName(initialName);
+    setNewProdSku('');
+    setNewProdItemType('raw_oil');
+    setNewProdUnitCode('ml');
+    setNewProdCategoryId(categories[0]?.id || '');
+    setNewProdDensity(1.0);
+    setNewProdCostPrice(0);
+    setNewProdIsSellable(true);
+    setNewProdRetailPrice(0);
+    setNewProdError(null);
+  }, [isOpen, initialName, categories]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -69,7 +91,11 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 dark:bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 dark:bg-black/75 backdrop-blur-sm"
+    >
       <div className="w-full max-w-lg bg-surface border border-hairline-strong rounded-2xl shadow-lg p-6 space-y-4 max-h-[90vh] flex flex-col relative z-[101]">
         {/* Modal Header */}
         <div className="flex justify-between items-center pb-3 border-b border-hairline shrink-0">
@@ -86,6 +112,7 @@ export const QuickAddProductModal: React.FC<QuickAddProductModalProps> = ({
           </div>
           <button
             type="button"
+            aria-label="Close modal"
             onClick={onClose}
             className="p-1 text-ink-muted hover:text-ink transition-colors cursor-pointer"
           >

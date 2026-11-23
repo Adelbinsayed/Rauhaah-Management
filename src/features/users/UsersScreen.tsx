@@ -43,11 +43,13 @@ export function UsersScreen({ deviceId }: UsersScreenProps) {
   const [editIsActive, setEditIsActive] = useState(true);
   const [resetPassword, setResetPassword] = useState('');
   const [resetPin, setResetPin] = useState('');
+  const [removePin, setRemovePin] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [allUsers, allRoles] = await Promise.all([
         authRepo.getUsers(),
@@ -76,6 +78,16 @@ export function UsersScreen({ deviceId }: UsersScreenProps) {
     loadData();
   }, [allowManageUsers]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (editingUser && !editLoading) setEditingUser(null);
+      else if (showAddModal && !addLoading) setShowAddModal(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [editingUser, editLoading, showAddModal, addLoading]);
+
   if (!allowManageUsers) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto">
@@ -99,8 +111,8 @@ export function UsersScreen({ deviceId }: UsersScreenProps) {
       setAddError('Username must be at least 3 characters.');
       return;
     }
-    if (newPassword.length < 6) {
-      setAddError('Password must be at least 6 characters.');
+    if (!newPassword.trim() || newPassword.length < 6) {
+      setAddError('Password must be at least 6 non-whitespace characters.');
       return;
     }
     if (newPin.trim() && !/^\d{4,6}$/.test(newPin.trim())) {
@@ -144,6 +156,7 @@ export function UsersScreen({ deviceId }: UsersScreenProps) {
     setEditIsActive(user.isActive);
     setResetPassword('');
     setResetPin('');
+    setRemovePin(false);
     setEditError(null);
   };
 
@@ -152,11 +165,15 @@ export function UsersScreen({ deviceId }: UsersScreenProps) {
     if (!currentUser || !editingUser) return;
     setEditError(null);
 
-    if (resetPassword && resetPassword.length < 6) {
-      setEditError('New password must be at least 6 characters.');
+    if (!editDisplayName.trim()) {
+      setEditError('Display name cannot be empty.');
       return;
     }
-    if (resetPin.trim() && !/^\d{4,6}$/.test(resetPin.trim())) {
+    if (resetPassword && (!resetPassword.trim() || resetPassword.length < 6)) {
+      setEditError('New password must be at least 6 non-whitespace characters.');
+      return;
+    }
+    if (!removePin && resetPin.trim() && !/^\d{4,6}$/.test(resetPin.trim())) {
       setEditError('New PIN must be 4 to 6 numbers.');
       return;
     }
@@ -178,7 +195,9 @@ export function UsersScreen({ deviceId }: UsersScreenProps) {
       if (resetPassword) {
         updates.passwordHash = await hashSecret(resetPassword);
       }
-      if (resetPin) {
+      if (removePin) {
+        updates.pinHash = null;
+      } else if (resetPin.trim()) {
         updates.pinHash = await hashSecret(resetPin.trim());
       }
 
@@ -189,6 +208,23 @@ export function UsersScreen({ deviceId }: UsersScreenProps) {
         currentUser.id,
         currentUser.username
       );
+
+      if (editingUser.id === currentUser.id) {
+        const updatedRole = roles.find((r) => r.id === editRoleId);
+        useAppStore.setState((state) =>
+          state.currentUser
+            ? {
+                currentUser: {
+                  ...state.currentUser,
+                  displayName: editDisplayName.trim(),
+                  roleId: editRoleId,
+                  roleName: updatedRole?.name ?? state.currentUser.roleName,
+                  roleDisplayName: updatedRole?.displayName ?? state.currentUser.roleDisplayName,
+                },
+              }
+            : {}
+        );
+      }
 
       setEditingUser(null);
       await loadData();
@@ -370,10 +406,15 @@ export function UsersScreen({ deviceId }: UsersScreenProps) {
 
       {/* Add User Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4"
+        >
           <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-5 relative">
             <button
               type="button"
+              aria-label="Close modal"
               onClick={() => setShowAddModal(false)}
               className="absolute right-4 top-4 p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-raised"
             >
@@ -497,10 +538,15 @@ export function UsersScreen({ deviceId }: UsersScreenProps) {
 
       {/* Edit / Reset User Modal */}
       {editingUser && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4"
+        >
           <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-5 relative">
             <button
               type="button"
+              aria-label="Close modal"
               onClick={() => setEditingUser(null)}
               className="absolute right-4 top-4 p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-raised"
             >
@@ -590,15 +636,30 @@ export function UsersScreen({ deviceId }: UsersScreenProps) {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-ink-secondary mb-1">New quick PIN</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs text-ink-secondary">New quick PIN</label>
+                    <label className="inline-flex items-center gap-1.5 text-xs text-ink-muted cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={removePin}
+                        onChange={(e) => {
+                          setRemovePin(e.target.checked);
+                          if (e.target.checked) setResetPin('');
+                        }}
+                        className="rounded border-hairline accent-accent"
+                      />
+                      <span>Remove PIN</span>
+                    </label>
+                  </div>
                   <input
                     type="password"
                     inputMode="numeric"
                     maxLength={6}
+                    disabled={removePin}
                     value={resetPin}
                     onChange={(e) => setResetPin(e.target.value.replace(/\D/g, ''))}
-                    placeholder="Leave empty to keep current PIN"
-                    className="w-full px-3.5 py-2 bg-raised border border-hairline rounded-lg text-xs text-ink focus:outline-none focus:border-accent font-mono tracking-widest text-center"
+                    placeholder={removePin ? 'PIN will be removed' : 'Leave empty to keep current PIN'}
+                    className="w-full px-3.5 py-2 bg-raised border border-hairline rounded-lg text-xs text-ink focus:outline-none focus:border-accent font-mono tracking-widest text-center disabled:opacity-50"
                   />
                 </div>
               </div>

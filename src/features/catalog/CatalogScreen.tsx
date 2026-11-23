@@ -614,7 +614,11 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
 
       {/* Success Modal */}
       {successModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+        >
           <div className="w-full max-w-sm bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 text-center space-y-4">
             <div className="mx-auto w-12 h-12 rounded-xl bg-positive/10 border border-positive/25 flex items-center justify-center text-positive">
               <CheckCircle2 className="w-6 h-6" strokeWidth={1.5} />

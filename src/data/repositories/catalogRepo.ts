@@ -1,6 +1,7 @@
 import { createChangeLogStatement, dbBatchTx, dbQuery, type BatchStatement, type SqlParam } from '@/data/db';
 import { nowUtcIso } from '@/lib/dates';
 import { uuidv7 } from '@/lib/ids';
+import { sanitizeSqlLikePattern } from '@/lib/sanitize';
 import type {
   Brand,
   Category,
@@ -121,8 +122,8 @@ export const catalogRepo = {
       params.push(options.itemType);
     }
     if (options?.search?.trim()) {
-      sql += ' AND (s.name LIKE ? OR s.sku LIKE ?)';
-      const term = `%${options.search.trim()}%`;
+      sql += " AND (s.name LIKE ? ESCAPE '\\' OR s.sku LIKE ? ESCAPE '\\')";
+      const term = `%${sanitizeSqlLikePattern(options.search)}%`;
       params.push(term, term);
     }
 
@@ -274,8 +275,8 @@ export const catalogRepo = {
       params.push(options.sellableType);
     }
     if (options?.search?.trim()) {
-      sql += ' AND (s.name LIKE ? OR s.sku LIKE ? OR s.barcode LIKE ?)';
-      const term = `%${options.search.trim()}%`;
+      sql += " AND (s.name LIKE ? ESCAPE '\\' OR s.sku LIKE ? ESCAPE '\\' OR s.barcode LIKE ? ESCAPE '\\')";
+      const term = `%${sanitizeSqlLikePattern(options.search)}%`;
       params.push(term, term, term);
     }
 

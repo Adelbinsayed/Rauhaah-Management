@@ -27,7 +27,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   units,
   canViewCost,
 }) => {
-  const [productKind, setProductKind] = useState<'oil' | 'packaged'>('oil');
+  const [productKind, setProductKind] = useState<'oil' | 'packaged' | 'accessory'>('oil');
 
   // Common Info
   const [name, setName] = useState('');
@@ -50,19 +50,46 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Reset all fields when modal opens or closes
+  useEffect(() => {
+    setProductKind('oil');
+    setName('');
+    setSku('');
+    setBarcode('');
+    setCategoryId('');
+    setBrandId('');
+    setQuantityBought('100');
+    setPurchaseCostTotal('10000');
+    setOverheadPercent('15');
+    setMarginPercent('25');
+    setCustomRetailPrice(null);
+    setCustomWholesalePrice(null);
+    setError(null);
+  }, [isOpen]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   // Dynamic unit measurement based on product type:
-  // If oil -> unit is 'ml'. If packaged -> unit is 'pcs' / 'bottle'.
+  // If oil -> unit is 'ml'. If packaged/accessory -> unit is 'pcs' / 'bottle'.
   useEffect(() => {
     if (productKind === 'oil') {
       const mlUnit = units.find((u) => u.code === 'ml');
       if (mlUnit) setSelectedUnitId(mlUnit.id);
       const attarCat = categories.find((c) => c.slug.includes('attar') || c.name.toLowerCase().includes('attar'));
-      if (attarCat && !categoryId) setCategoryId(attarCat.id);
+      if (attarCat) setCategoryId((prev) => prev || attarCat.id);
     } else {
       const pcsUnit = units.find((u) => u.code === 'pcs' || u.code === 'bottle');
       if (pcsUnit) setSelectedUnitId(pcsUnit.id);
     }
-  }, [productKind, units, categories, categoryId]);
+  }, [productKind, units, categories]);
 
   // Real-time automatic math
   const parsedQty = parseFloat(quantityBought);
@@ -138,7 +165,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setLoading(true);
 
       const sellableType: SellableType =
-        productKind === 'oil' ? 'loose_decant' : 'sealed_product';
+        productKind === 'oil'
+          ? 'loose_decant'
+          : productKind === 'accessory'
+          ? 'accessory'
+          : 'sealed_product';
 
       const payload: CreateProductInput = {
         name: name.trim(),
@@ -166,7 +197,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px] overflow-y-auto">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px] overflow-y-auto"
+    >
       <div className="w-full max-w-xl bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 my-8 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-hairline">
@@ -182,6 +217,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             </div>
           </div>
           <button
+            type="button"
+            aria-label="Close modal"
             onClick={onClose}
             className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised transition-colors duration-150 ease-unslop"
           >
@@ -190,7 +227,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         </div>
 
         {/* Product Type Selector */}
-        <div className="grid grid-cols-2 gap-2 p-1 bg-raised border border-hairline rounded-lg">
+        <div className="grid grid-cols-3 gap-2 p-1 bg-raised border border-hairline rounded-lg">
           <button
             type="button"
             onClick={() => {
@@ -204,7 +241,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             }`}
           >
             <Droplet className="w-4 h-4" strokeWidth={1.5} />
-            <span>Attar / Perfume Oil (ml)</span>
+            <span>Attar / Oil (ml)</span>
           </button>
 
           <button
@@ -220,7 +257,23 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             }`}
           >
             <Box className="w-4 h-4" strokeWidth={1.5} />
-            <span>Packaged / Accessory (pcs)</span>
+            <span>Packaged (pcs)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setProductKind('accessory');
+              handleQuantityChange('50');
+            }}
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs font-medium transition-colors duration-150 ease-unslop ${
+              productKind === 'accessory'
+                ? 'bg-accent text-accent-fg font-semibold'
+                : 'text-ink-muted hover:text-ink'
+            }`}
+          >
+            <Tag className="w-4 h-4" strokeWidth={1.5} />
+            <span>Accessory (pcs)</span>
           </button>
         </div>
 

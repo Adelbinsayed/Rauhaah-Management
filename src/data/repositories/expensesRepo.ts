@@ -1,4 +1,5 @@
 import { createChangeLogStatement, dbBatchTx, dbQuery, type BatchStatement, type SqlParam } from '@/data/db';
+import { sanitizeSqlLikePattern } from '@/lib/sanitize';
 import { getTodayDateString, nowUtcIso } from '@/lib/dates';
 import { uuidv7 } from '@/lib/ids';
 import type { Expense, ExpenseCategory, CashDrawerSummary } from '@/domain/expenses/types';
@@ -48,8 +49,8 @@ export const expensesRepo = {
       params.push(filter.categoryId);
     }
     if (filter?.searchQuery?.trim()) {
-      const q = `%${filter.searchQuery.trim()}%`;
-      sql += ` AND (title LIKE ? OR reference_number LIKE ? OR notes LIKE ?)`;
+      const q = `%${sanitizeSqlLikePattern(filter.searchQuery)}%`;
+      sql += ` AND (title LIKE ? ESCAPE '\\' OR reference_number LIKE ? ESCAPE '\\' OR notes LIKE ? ESCAPE '\\')`;
       params.push(q, q, q);
     }
 

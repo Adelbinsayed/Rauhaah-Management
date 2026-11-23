@@ -40,7 +40,7 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { downloadCsv, formatBdt, formatQty, getDateRangeForPreset } from './reportsUtils';
 import { PrintableReport } from './PrintableReport';
 import { PrintPreviewModal, type PrintReportType } from './PrintPreviewModal';
@@ -162,12 +162,15 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
     setCurrentFilter(filter);
   };
 
+  const loadSeqRef = useRef(0);
+
   // Load report data
   const loadReports = async () => {
     if (!canViewReports) {
       setLoading(false);
       return;
     }
+    const seq = ++loadSeqRef.current;
     setLoading(true);
     setError(null);
     try {
@@ -193,6 +196,8 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
         reportsRepo.getInventoryValuation(),
       ]);
 
+      if (seq !== loadSeqRef.current) return;
+
       setPnl(pnlData);
       setDailyTrends(trendsData);
       setTopProducts(productsData);
@@ -203,10 +208,14 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
       setCashFlow(cashFlowData);
       setInventoryVal(inventoryData);
     } catch (err: unknown) {
-      console.error('Failed to load reports:', err);
-      setError(err instanceof Error ? err.message : String(err));
+      if (seq === loadSeqRef.current) {
+        console.error('Failed to load reports:', err);
+        setError(err instanceof Error ? err.message : String(err));
+      }
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -262,14 +271,7 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
     ];
 
     const filename = `${shopSlug}_pnl_${activePreset}_${getTodayDateString()}`;
-    const res = await downloadCsv(filename, headers, rows);
-    if (res.success) {
-      showToast({
-        message: 'Profit & Loss Statement exported successfully! Check your Downloads folder.',
-        filePath: res.path,
-        type: 'success',
-      });
-    }
+    await downloadCsv(filename, headers, rows);
   };
 
   const handleExportTopProducts = async () => {
@@ -298,14 +300,7 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
       allowProfit ? `${p.marginPercent}%` : 'Hidden',
     ]);
     const filename = `${shopSlug}_top_products_${activePreset}_${getTodayDateString()}`;
-    const res = await downloadCsv(filename, headers, rows);
-    if (res.success) {
-      showToast({
-        message: 'Best-Selling Products report exported successfully! Check your Downloads folder.',
-        filePath: res.path,
-        type: 'success',
-      });
-    }
+    await downloadCsv(filename, headers, rows);
   };
 
   const handleExportSalesLedger = async () => {
@@ -343,14 +338,7 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
         formatDhakaDateTime(s.created_at),
       ]);
       const filename = `${shopSlug}_sales_ledger_${activePreset}_${getTodayDateString()}`;
-      const res = await downloadCsv(filename, headers, rows);
-      if (res.success) {
-        showToast({
-          message: 'Sales Ledger exported successfully! Check your Downloads folder.',
-          filePath: res.path,
-          type: 'success',
-        });
-      }
+      await downloadCsv(filename, headers, rows);
     } catch (e) {
       console.error('Failed to export sales:', e);
     }
@@ -384,21 +372,14 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
         e.notes || '',
       ]);
       const filename = `${shopSlug}_expenses_${activePreset}_${getTodayDateString()}`;
-      const res = await downloadCsv(filename, headers, rows);
-      if (res.success) {
-        showToast({
-          message: 'Expenses report exported successfully! Check your Downloads folder.',
-          filePath: res.path,
-          type: 'success',
-        });
-      }
+      await downloadCsv(filename, headers, rows);
     } catch (e) {
       console.error('Failed to export expenses:', e);
     }
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12 select-none">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Top Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-4">
         <div>
@@ -592,7 +573,7 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
             <span>Revenue − COGS</span>
             {allowProfit && (
               <span className="font-semibold text-positive bg-positive/10 px-1.5 py-0.5 rounded text-[10px] tabular-nums">
-                {pnl?.grossMarginPercent}% margin
+                {pnl?.grossMarginPercent ?? 0}% margin
               </span>
             )}
           </div>
@@ -765,7 +746,7 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                     </span>
                   </div>
                   <div className="text-[11px] text-ink-muted text-right tabular-nums">
-                    Gross Margin: {allowProfit ? `${pnl?.grossMarginPercent}%` : '••••'}
+                    Gross Margin: {allowProfit ? `${pnl?.grossMarginPercent ?? 0}%` : '••••'}
                   </div>
                 </div>
 

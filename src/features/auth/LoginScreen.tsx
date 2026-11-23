@@ -18,7 +18,7 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
     }
   });
 
-  const [mode, setMode] = useState<'password' | 'pin'>('pin');
+  const [mode, setMode] = useState<'password' | 'pin'>('password');
   const [username, setUsername] = useState(savedUser);
   const [rememberUsername, setRememberUsername] = useState(true);
   const [password, setPassword] = useState('');
@@ -26,11 +26,13 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [showRecovery, setShowRecovery] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setNotice(null);
 
     const cleanUser = username.trim();
     if (!cleanUser) {
@@ -174,6 +176,12 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
           </button>
         </div>
 
+        {notice && (
+          <div className="p-3 rounded-lg bg-positive/10 border border-positive/25 text-positive text-xs">
+            {notice}
+          </div>
+        )}
+
         {error && (
           <div className="flex items-start gap-2 p-3 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={1.5} />
@@ -304,7 +312,8 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
           onRecoverySuccess={() => {
             setShowRecovery(false);
             setMode('password');
-            setError('Password reset successfully. Please log in with your new password.');
+            setError(null);
+            setNotice('Password reset successfully. Please log in with your new password.');
           }}
         />
       )}

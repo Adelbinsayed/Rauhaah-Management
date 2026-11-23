@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, ArrowRight, Printer, Zap } from 'lucide-react';
 import type { CartItem, CartTotals, Customer, SalePayment } from '../../domain/pos/types';
 import { useAppStore } from '../../app/store';
@@ -33,7 +33,7 @@ export const SaleReceiptModal: React.FC<SaleReceiptModalProps> = ({
   const effectiveCashier =
     cashierName || currentUser?.displayName || currentUser?.username || 'Cashier';
 
-  const handlePrint = async (forceSystemDialog = false) => {
+  const handlePrint = useCallback(async (forceSystemDialog = false) => {
     if (!forceSystemDialog && shopSettings?.printerEngine === 'direct_escpos') {
       setIsPrinting(true);
       setPrintStatus(null);
@@ -81,12 +81,18 @@ export const SaleReceiptModal: React.FC<SaleReceiptModalProps> = ({
     } else {
       window.print();
     }
-  };
+  }, [invoiceNumber, effectiveCashier, customer, items, totals, payments, shopSettings]);
 
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (isPrinting) return;
       if (e.key === 'Enter') {
         e.preventDefault();
         onClose();
@@ -100,14 +106,18 @@ export const SaleReceiptModal: React.FC<SaleReceiptModalProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, handlePrint, isPrinting]);
 
   if (!isOpen) return null;
 
   return (
     <>
       {/* On-screen Modal View */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+      >
         <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 text-center space-y-4">
           {/* Success Badge */}
           <div className="mx-auto w-12 h-12 rounded-xl bg-positive/10 border border-positive/25 flex items-center justify-center text-positive">

@@ -1,6 +1,7 @@
 import { createChangeLogStatement, dbBatchTx, dbQuery, type BatchStatement, type SqlParam } from '@/data/db';
 import { nowUtcIso } from '@/lib/dates';
 import { uuidv7 } from '@/lib/ids';
+import { normalizePhoneNumber, sanitizeSqlLikePattern } from '@/lib/sanitize';
 import type { Customer, CustomerPayment, CustomerSaleSummary } from '@/domain/customers/types';
 
 export const customersRepo = {
@@ -21,8 +22,8 @@ export const customersRepo = {
     const params: SqlParam[] = [];
 
     if (filter?.search?.trim()) {
-      const q = `%${filter.search.trim()}%`;
-      sql += ` AND (c.name LIKE ? OR c.phone LIKE ? OR c.email LIKE ?)`;
+      const q = `%${sanitizeSqlLikePattern(filter.search)}%`;
+      sql += ` AND (c.name LIKE ? ESCAPE '\\' OR c.phone LIKE ? ESCAPE '\\' OR c.email LIKE ? ESCAPE '\\')`;
       params.push(q, q, q);
     }
 
@@ -188,7 +189,7 @@ export const customersRepo = {
   ): Promise<Customer> {
     const id = uuidv7();
     const now = nowUtcIso();
-    const cleanPhone = input.phone.trim();
+    const cleanPhone = normalizePhoneNumber(input.phone);
     const cleanName = input.name.trim();
 
     const statements: BatchStatement[] = [
@@ -248,7 +249,7 @@ export const customersRepo = {
               WHERE id = ?`,
         params: [
           input.name.trim(),
-          input.phone.trim(),
+          normalizePhoneNumber(input.phone),
           input.email?.trim() || null,
           input.address?.trim() || null,
           input.notes?.trim() || null,

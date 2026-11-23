@@ -549,7 +549,11 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
 
       {/* RECORD EXPENSE MODAL */}
       {isAddExpenseOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+        >
           <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-hairline">
               <h3 className="text-base font-medium text-ink flex items-center gap-2">
@@ -558,6 +562,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
               </h3>
               <button
                 type="button"
+                aria-label="Close modal"
                 onClick={() => setIsAddExpenseOpen(false)}
                 className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-raised cursor-pointer"
               >
@@ -688,7 +693,11 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
 
       {/* START DRAWER SESSION MODAL */}
       {isOpenDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+        >
           <div className="w-full max-w-sm bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-positive/10 border border-positive/25 flex items-center justify-center text-positive">
@@ -743,7 +752,11 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
 
       {/* CLOSE / RECONCILE DRAWER SESSION MODAL */}
       {isCloseDrawerOpen && drawerSummary && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+        >
           <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
             <div className="flex items-center gap-3 pb-3 border-b border-hairline">
               <div className="w-9 h-9 rounded-lg bg-warning/10 border border-warning/25 flex items-center justify-center text-warning">

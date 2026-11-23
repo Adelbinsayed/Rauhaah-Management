@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Truck,
   Plus,
@@ -22,6 +22,7 @@ import {
 import { useAppStore } from '@/app/store';
 import { canViewCost } from '@/domain/auth/permissions';
 import { purchasesRepo } from '@/data/repositories/purchasesRepo';
+import { Modal } from '@/components/ui';
 import type { Supplier, Purchase } from '@/domain/purchases/types';
 
 interface SuppliersScreenProps {
@@ -43,6 +44,19 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
   const [loadingPurchases, setLoadingPurchases] = useState(false);
   const [expandedPurchaseId, setExpandedPurchaseId] = useState<string | null>(null);
   const [purchaseDetailsCache, setPurchaseDetailsCache] = useState<Record<string, Purchase>>({});
+  const [deleteTarget, setDeleteTarget] = useState<Supplier | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const purchasesSeqRef = useRef(0);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (modalOpen) setModalOpen(false);
+      else if (viewingSupplier) setViewingSupplier(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [modalOpen, viewingSupplier]);
   const [loadingPoId, setLoadingPoId] = useState<string | null>(null);
 
   // Form states
@@ -148,33 +162,47 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
     }
   };
 
-  const handleDelete = async (id: string, supName: string) => {
-    if (!window.confirm(`Are you sure you want to remove supplier "${supName}"?`)) {
-      return;
-    }
+  const handleDelete = (sup: Supplier) => {
+    setDeleteTarget(sup);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
     try {
-      await purchasesRepo.deleteSupplier(id, deviceId);
-      await loadSuppliers();
-      if (viewingSupplier?.id === id) {
+      await purchasesRepo.deleteSupplier(deleteTarget.id, deviceId);
+      if (viewingSupplier?.id === deleteTarget.id) {
         setViewingSupplier(null);
       }
+      setDeleteTarget(null);
+      await loadSuppliers();
     } catch (err) {
       console.error('Failed to delete supplier:', err);
+    } finally {
+      setDeleting(false);
     }
   };
 
   // Click on a supplier card to view their purchases & ledger
   const handleViewSupplierPurchases = async (sup: Supplier) => {
+    const seq = ++purchasesSeqRef.current;
     setViewingSupplier(sup);
+    setSupplierPurchases([]);
     setLoadingPurchases(true);
     setExpandedPurchaseId(null);
     try {
       const pos = await purchasesRepo.getPurchases({ supplierId: sup.id });
-      setSupplierPurchases(pos);
+      if (seq === purchasesSeqRef.current) {
+        setSupplierPurchases(pos);
+      }
     } catch (err) {
-      console.error('Failed to load supplier purchases:', err);
+      if (seq === purchasesSeqRef.current) {
+        console.error('Failed to load supplier purchases:', err);
+      }
     } finally {
-      setLoadingPurchases(false);
+      if (seq === purchasesSeqRef.current) {
+        setLoadingPurchases(false);
+      }
     }
   };
 
@@ -435,7 +463,7 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDelete(s.id, s.name);
+                      handleDelete(s);
                     }}
                     className="p-1.5 rounded-lg border border-hairline bg-raised text-ink-muted hover:text-negative hover:border-negative/40 transition-colors duration-150 ease-unslop"
                     title="Delete supplier"
@@ -451,7 +479,11 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
 
       {/* SUPPLIER PURCHASES & PROFILE MODAL */}
       {viewingSupplier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+        >
           <div className="w-full max-w-4xl bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4 max-h-[92vh] flex flex-col">
             {/* Modal Header */}
             <div className="flex justify-between items-start pb-3 border-b border-hairline shrink-0">
@@ -722,7 +754,11 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
 
       {/* ADD / EDIT SUPPLIER MODAL */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+        >
           <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-hairline">
               <h3 className="text-base font-medium text-ink flex items-center gap-2">
@@ -731,6 +767,7 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
               </h3>
               <button
                 type="button"
+                aria-label="Close modal"
                 onClick={() => setModalOpen(false)}
                 className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised cursor-pointer"
               >
@@ -860,6 +897,47 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
           </div>
         </div>
       )}
+
+      {/* Delete Supplier Confirmation Modal */}
+      <Modal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => {
+          if (!deleting) setDeleteTarget(null);
+        }}
+        maxWidth="sm"
+        title="Remove Supplier"
+        subtitle={deleteTarget?.name}
+      >
+        <div className="space-y-4">
+          {(deleteTarget?.totalDueBdt || 0) > 0 && (
+            <div className="p-3 rounded-xl bg-warning/10 border border-warning/25 text-xs text-warning">
+              Warning: This supplier still has an unpaid payable balance of{' '}
+              <strong className="font-mono">৳{(deleteTarget?.totalDueBdt || 0).toFixed(2)}</strong>.
+            </div>
+          )}
+          <p className="text-xs text-ink-secondary">
+            Are you sure you want to remove supplier <strong className="text-ink">&ldquo;{deleteTarget?.name}&rdquo;</strong>?
+          </p>
+          <div className="flex justify-end gap-2 pt-2 border-t border-hairline">
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={() => setDeleteTarget(null)}
+              className="px-4 py-2 rounded-lg border border-hairline bg-raised text-xs text-ink-secondary hover:text-ink font-medium cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={confirmDelete}
+              className="px-4 py-2 rounded-lg bg-negative text-white text-xs font-semibold hover:bg-negative/90 cursor-pointer disabled:opacity-50"
+            >
+              {deleting ? 'Removing…' : 'Remove Supplier'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -31,7 +31,7 @@ interface PosScreenProps {
 }
 
 export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
-  const { currentUser, permissions, shopSettings } = useAppStore();
+  const { currentUser, permissions, shopSettings, heldCarts, holdCart, removeHeldCart } = useAppStore();
   const allowCost = canViewCost(permissions);
   const negativeStockPolicy = shopSettings?.negativeStockPolicy ?? 'warn_allow';
   const isStrictBlock = negativeStockPolicy === 'block';
@@ -65,9 +65,10 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
   const [isQuickCustomerOpen, setIsQuickCustomerOpen] = useState(false);
   const customerDropdownRef = useRef<HTMLDivElement>(null);
   const customerNameInputRef = useRef<HTMLInputElement>(null);
+  const phoneSearchSeqRef = useRef(0);
+  const phoneDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Held Carts
-  const [heldCarts, setHeldCarts] = useState<HeldCart[]>([]);
   const [showHeldDrawer, setShowHeldDrawer] = useState(false);
 
   // Modals
@@ -116,10 +117,32 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Handle phone input changes with live suggestion and auto-population
-  const handlePhoneChange = async (val: string) => {
+  // Cleanup phone debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (phoneDebounceRef.current) clearTimeout(phoneDebounceRef.current);
+    };
+  }, []);
+
+  // Close held carts drawer on Escape
+  useEffect(() => {
+    if (!showHeldDrawer) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowHeldDrawer(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showHeldDrawer]);
+
+  // Handle phone input changes with 200ms debounce, race guard, and auto-population
+  const handlePhoneChange = (val: string) => {
     setCustomerPhone(val);
     const clean = val.trim();
+    const seq = ++phoneSearchSeqRef.current;
+
+    if (phoneDebounceRef.current) {
+      clearTimeout(phoneDebounceRef.current);
+    }
 
     if (!clean) {
       setCustomerResults([]);
@@ -132,32 +155,36 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
       return;
     }
 
-    try {
-      const results = await posRepo.searchCustomers(clean);
-      setCustomerResults(results);
-      setShowCustomerDropdown(results.length > 0);
+    phoneDebounceRef.current = setTimeout(async () => {
+      try {
+        const results = await posRepo.searchCustomers(clean);
+        if (seq !== phoneSearchSeqRef.current) return;
 
-      // Check if there is an exact or normalized phone match
-      const cleanDigits = clean.replace(/\D/g, '');
-      const exactMatch = results.find(
-        (c) =>
-          c.phone.replace(/\D/g, '') === cleanDigits ||
-          c.phone === clean
-      );
+        setCustomerResults(results);
+        setShowCustomerDropdown(results.length > 0);
 
-      if (exactMatch) {
-        setSelectedCustomer(exactMatch);
-        setCustomerName(exactMatch.name);
-        setCustomerNameError(false);
-      } else {
-        // If current input does not match existing customer, detach selectedCustomer
-        if (selectedCustomer && selectedCustomer.phone !== clean) {
-          setSelectedCustomer(null);
+        // Check if there is an exact or normalized phone match
+        const cleanDigits = clean.replace(/\D/g, '');
+        const exactMatch = results.find(
+          (c) =>
+            c.phone.replace(/\D/g, '') === cleanDigits ||
+            c.phone === clean
+        );
+
+        if (exactMatch) {
+          setSelectedCustomer(exactMatch);
+          setCustomerName(exactMatch.name);
+          setCustomerNameError(false);
+        } else {
+          // If current input does not match existing customer, detach selectedCustomer
+          setSelectedCustomer((prev) => (prev && prev.phone !== clean ? null : prev));
+        }
+      } catch (err) {
+        if (seq === phoneSearchSeqRef.current) {
+          console.error('Customer phone search error:', err);
         }
       }
-    } catch (err) {
-      console.error('Customer phone search error:', err);
-    }
+    }, 200);
   };
 
   const handleSelectCustomer = (c: Customer) => {
@@ -460,7 +487,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
       items: cartItems,
       note: customerName.trim() || customerPhone.trim() || (selectedCustomer ? selectedCustomer.name : 'Walk-in'),
     };
-    setHeldCarts((prev) => [newHold, ...prev]);
+    holdCart(newHold);
     // Clear current cart
     setCartItems([]);
     setStockError(null);
@@ -488,7 +515,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
     );
     setCustomerResults([]);
     setShowCustomerDropdown(false);
-    setHeldCarts((prev) => prev.filter((h) => h.id !== hold.id));
+    removeHeldCart(hold.id);
     setShowHeldDrawer(false);
   };
 
@@ -583,7 +610,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
   };
 
   return (
-    <div className="flex h-[calc(100vh-2rem)] gap-4 select-none">
+    <div className="flex h-full gap-4 select-none">
       {/* LEFT: PRODUCTS BROWSER */}
       <div className="flex-1 flex flex-col bg-surface rounded-xl border border-hairline overflow-hidden">
         {/* Top Search & Scan Bar */}
@@ -596,6 +623,22 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
               autoFocus
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const q = search.trim().toLowerCase();
+                  if (!q) return;
+                  const exactMatch = products.find(
+                    (p) =>
+                      p.sku.toLowerCase() === q ||
+                      (p.barcode && p.barcode.toLowerCase() === q)
+                  );
+                  if (exactMatch) {
+                    e.preventDefault();
+                    handleProductClick(exactMatch);
+                    setSearch('');
+                  }
+                }
+              }}
               placeholder="Search perfumes, attars, SKU or barcode"
               className="w-full pl-9 pr-12 py-2 bg-raised border border-hairline rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-accent"
             />
@@ -734,19 +777,28 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
               <span>Customer information</span>
             </span>
 
-            {(customerPhone || customerName || selectedCustomer) ? (
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={handleClearCustomer}
-                className="text-xs text-ink-muted hover:text-negative flex items-center gap-1 transition-colors duration-150 ease-unslop"
-                title="Reset to walk-in"
+                onClick={() => setIsQuickCustomerOpen(true)}
+                className="text-xs font-medium text-accent-ink hover:text-accent transition-colors duration-150 ease-unslop cursor-pointer"
               >
-                <X className="w-3 h-3" strokeWidth={1.5} />
-                <span>Clear (walk-in)</span>
+                + New
               </button>
-            ) : (
-              <span className="text-xs text-ink-muted">Walk-in</span>
-            )}
+              {(customerPhone || customerName || selectedCustomer) ? (
+                <button
+                  type="button"
+                  onClick={handleClearCustomer}
+                  className="text-xs text-ink-muted hover:text-negative flex items-center gap-1 transition-colors duration-150 ease-unslop"
+                  title="Reset to walk-in"
+                >
+                  <X className="w-3 h-3" strokeWidth={1.5} />
+                  <span>Clear (walk-in)</span>
+                </button>
+              ) : (
+                <span className="text-xs text-ink-muted">Walk-in</span>
+              )}
+            </div>
           </div>
 
           {/* Dual Inputs: Customer Phone & Customer Name */}
@@ -801,7 +853,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                           ৳{c.totalSpendBdt || 0}
                         </div>
                         <div className="text-[11px] text-ink-muted">
-                          {c.visitCount || 1} visit{c.visitCount === 1 ? '' : 's'}
+                          {c.visitCount ?? 0} visit{(c.visitCount ?? 0) === 1 ? '' : 's'}
                         </div>
                       </div>
                     </div>
@@ -852,7 +904,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
               <div className="flex items-center gap-2">
                 <span className="text-accent-ink font-medium">Loyalty</span>
                 <span className="text-ink-secondary">
-                  Visits <strong className="text-ink font-medium">{selectedCustomer.visitCount || 1}</strong>
+                  Visits <strong className="text-ink font-medium">{selectedCustomer.visitCount ?? 0}</strong>
                 </span>
                 <span className="text-ink-muted">·</span>
                 <span className="text-ink-secondary">
@@ -1097,7 +1149,11 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
 
       {/* Held Carts Modal / Drawer */}
       {showHeldDrawer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+        >
           <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-hairline">
               <h3 className="text-base font-medium text-ink flex items-center gap-2">
@@ -1106,6 +1162,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
               </h3>
               <button
                 type="button"
+                aria-label="Close modal"
                 onClick={() => setShowHeldDrawer(false)}
                 className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-raised"
               >

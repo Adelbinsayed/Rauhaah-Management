@@ -1,6 +1,7 @@
 import { createChangeLogStatement, dbBatchTx, dbQuery, type BatchStatement } from '@/data/db';
 import { dhakaDateBoundsToUtcIso, nowUtcIso } from '@/lib/dates';
 import { uuidv7 } from '@/lib/ids';
+import { normalizePhoneNumber, sanitizeSqlLikePattern } from '@/lib/sanitize';
 import type { CartItem, CartTotals, Customer, Sale, SalePayment } from '@/domain/pos/types';
 import { formatInvoiceNumber } from '@/domain/pos/posCalculations';
 
@@ -19,12 +20,12 @@ export const posRepo = {
              MAX(s.created_at) as last_visit_at
       FROM customers c
       LEFT JOIN sales s ON c.id = s.customer_id AND s.status = 'completed'
-      WHERE c.deleted_at IS NULL AND (c.phone LIKE ? OR c.name LIKE ?)
+      WHERE c.deleted_at IS NULL AND (c.phone LIKE ? ESCAPE '\\' OR c.name LIKE ? ESCAPE '\\')
       GROUP BY c.id
       ORDER BY total_spend_bdt DESC, c.name ASC
       LIMIT 10
     `;
-    const term = `%${clean}%`;
+    const term = `%${sanitizeSqlLikePattern(clean)}%`;
     const rows = await dbQuery<Record<string, unknown>>(sql, [term, term]);
 
     return rows.map((r) => ({
@@ -44,7 +45,7 @@ export const posRepo = {
    * Retrieves single customer by exact phone number
    */
   async getCustomerByPhone(phone: string): Promise<Customer | null> {
-    const clean = phone.trim().replace(/[\s-]/g, '');
+    const clean = normalizePhoneNumber(phone);
     if (!clean) return null;
 
     const sql = `
@@ -86,7 +87,7 @@ export const posRepo = {
   ): Promise<Customer> {
     const id = uuidv7();
     const now = nowUtcIso();
-    const cleanPhone = phone.trim().replace(/[\s-]/g, '');
+    const cleanPhone = normalizePhoneNumber(phone);
     const cleanName = name.trim();
 
     await dbBatchTx([
@@ -507,5 +508,146 @@ export const posRepo = {
       payments,
       createdAt: String(r.created_at),
     };
+  },
+
+  /**
+   * Voids a completed sale atomically: marks sale voided, restores stock,
+   * adjusts customer due balance, and writes audit + change logs.
+   */
+  async voidSale(params: {
+    saleId: string;
+    reason: string;
+    userId: string;
+    username: string;
+    deviceId: string;
+  }): Promise<void> {
+    const { saleId, reason, userId, username, deviceId } = params;
+    const cleanReason = reason.trim();
+    if (!cleanReason) {
+      throw new Error('Void reason is required.');
+    }
+
+    const saleRows = await dbQuery<Record<string, unknown>>(
+      `SELECT id, invoice_number, customer_id, total_amount_bdt, due_amount_bdt, status, branch_id
+       FROM sales WHERE id = ?`,
+      [saleId]
+    );
+    if (saleRows.length === 0) {
+      throw new Error('Sale not found.');
+    }
+
+    const sale = saleRows[0];
+    if (sale.status !== 'completed') {
+      throw new Error(`Sale cannot be voided (current status: ${String(sale.status)}).`);
+    }
+
+    const itemRows = await dbQuery<Record<string, unknown>>(
+      `SELECT id, sellable_id, product_name, quantity FROM sale_items WHERE sale_id = ?`,
+      [saleId]
+    );
+
+    const now = new Date().toISOString();
+    const statements: BatchStatement[] = [];
+    const runningStockMap = new Map<string, number>();
+
+    statements.push({
+      sql: `UPDATE sales
+            SET status = 'voided',
+                void_reason = ?,
+                voided_at = ?,
+                voided_by = ?,
+                updated_at = ?
+            WHERE id = ? AND status = 'completed'`,
+      params: [cleanReason, now, userId, now, saleId],
+    });
+
+    for (const item of itemRows) {
+      const compRows = await dbQuery<{
+        stock_item_id: string;
+        comp_qty: number;
+        current_quantity: number;
+        cost_price_bdt: number;
+      }>(
+        `SELECT sc.stock_item_id, sc.quantity as comp_qty, si.current_quantity, si.cost_price_bdt
+         FROM sellable_components sc
+         JOIN stock_items si ON sc.stock_item_id = si.id
+         WHERE sc.sellable_id = ?`,
+        [String(item.sellable_id)]
+      );
+
+      for (const comp of compRows) {
+        const restoreQty = Number(comp.comp_qty || 1) * Number(item.quantity || 0);
+        if (restoreQty <= 0) continue;
+
+        const qtyBefore =
+          runningStockMap.get(comp.stock_item_id) ?? Number(comp.current_quantity || 0);
+        const qtyAfter = qtyBefore + restoreQty;
+        runningStockMap.set(comp.stock_item_id, qtyAfter);
+
+        statements.push({
+          sql: `UPDATE stock_items
+                SET current_quantity = current_quantity + ?,
+                    updated_at = ?
+                WHERE id = ?`,
+          params: [restoreQty, now, comp.stock_item_id],
+        });
+
+        statements.push({
+          sql: `INSERT INTO stock_movements (
+                  id, stock_item_id, movement_type, reference_id, quantity_delta,
+                  quantity_before, quantity_after, cost_price_bdt, reason, created_at, device_id
+                ) VALUES (?, ?, 'return', ?, ?, ?, ?, ?, ?, ?, ?)`,
+          params: [
+            uuidv7(),
+            comp.stock_item_id,
+            saleId,
+            restoreQty,
+            qtyBefore,
+            qtyAfter,
+            Number(comp.cost_price_bdt || 0),
+            `Void Sale ${String(sale.invoice_number)}: ${cleanReason}`,
+            now,
+            deviceId,
+          ],
+        });
+
+        statements.push(createChangeLogStatement('stock_items', comp.stock_item_id, 'update', now));
+      }
+    }
+
+    const dueAmountBdt = Number(sale.due_amount_bdt || 0);
+    if (sale.customer_id && dueAmountBdt > 0) {
+      statements.push({
+        sql: `UPDATE customers
+              SET due_balance_bdt = MAX(0.0, due_balance_bdt - ?),
+                  updated_at = ?
+              WHERE id = ?`,
+        params: [dueAmountBdt, now, String(sale.customer_id)],
+      });
+      statements.push(createChangeLogStatement('customers', String(sale.customer_id), 'update', now));
+    }
+
+    statements.push({
+      sql: `INSERT INTO audit_log (id, user_id, username, action, details, branch_id, created_at, device_id)
+            VALUES (?, ?, ?, 'sale.void', ?, ?, ?, ?)`,
+      params: [
+        uuidv7(),
+        userId,
+        username,
+        JSON.stringify({
+          saleId,
+          invoiceNumber: String(sale.invoice_number),
+          totalAmountBdt: Number(sale.total_amount_bdt || 0),
+          dueReversedBdt: dueAmountBdt,
+          reason: cleanReason,
+        }),
+        sale.branch_id ? String(sale.branch_id) : 'default',
+        now,
+        deviceId,
+      ],
+    });
+    statements.push(createChangeLogStatement('sales', saleId, 'update', now));
+
+    await dbBatchTx(statements);
   },
 };

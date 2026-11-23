@@ -13,10 +13,23 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
   detailLoading,
   onClose,
 }) => {
+  React.useEffect(() => {
+    if (!selectedPurchase) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedPurchase, onClose]);
+
   if (!selectedPurchase) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+    >
       <div className="w-full max-w-2xl bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4 max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-start border-b border-hairline pb-3">
@@ -37,6 +50,7 @@ export const PurchaseDetailsModal: React.FC<PurchaseDetailsModalProps> = ({
 
           <button
             type="button"
+            aria-label="Close modal"
             onClick={onClose}
             className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised transition-colors duration-150 ease-unslop cursor-pointer"
           >

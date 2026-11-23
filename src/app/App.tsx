@@ -10,14 +10,16 @@ import { ToastContainer } from '@/components/ui/ToastContainer';
 import { ROUTE_PERMISSIONS } from '@/domain/auth/permissions';
 import { en } from '@/lib/i18n/en';
 import {
+  AlertTriangle,
   Lock,
   Moon,
   Package,
+  RefreshCw,
   Shield,
   ShieldAlert,
   Sun,
 } from 'lucide-react';
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { Component, lazy, Suspense, useCallback, useEffect, useState, type ErrorInfo, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { useAppStore } from './store';
 
@@ -71,6 +73,60 @@ function ScreenFallback() {
   );
 }
 
+interface ErrorBoundaryProps {
+  routeKey: string;
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  errorMessage: string;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, errorMessage: '' };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, errorMessage: error?.message || 'An unexpected module error occurred.' };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Module ErrorBoundary caught:', error, info);
+  }
+
+  componentDidUpdate(prevProps: ErrorBoundaryProps) {
+    if (prevProps.routeKey !== this.props.routeKey && this.state.hasError) {
+      this.setState({ hasError: false, errorMessage: '' });
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-full flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto">
+          <div className="w-12 h-12 rounded-full bg-negative/15 border border-negative/25 text-negative flex items-center justify-center mb-4">
+            <AlertTriangle className="w-6 h-6" strokeWidth={1.5} />
+          </div>
+          <h2 className="text-lg font-semibold text-ink">Module Failed to Load</h2>
+          <p className="text-xs text-ink-secondary mt-1 break-words">{this.state.errorMessage}</p>
+          <button
+            type="button"
+            onClick={() => this.setState({ hasError: false, errorMessage: '' })}
+            className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-xs font-semibold transition-colors duration-150 ease-unslop cursor-pointer"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Reload Module</span>
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export function App() {
   const {
     activeRoute,
@@ -89,9 +145,11 @@ export function App() {
   const [dbInfo, setDbInfo] = useState<DbInfo | null>(null);
   const [hasUsers, setHasUsers] = useState<boolean | null>(null);
   const [initLoading, setInitLoading] = useState(true);
+  const [initError, setInitError] = useState<string | null>(null);
 
   const initSystem = useCallback(async () => {
     setInitLoading(true);
+    setInitError(null);
     try {
       const info = await systemRepo.getDbInfo();
       setDbInfo(info);
@@ -105,6 +163,7 @@ export function App() {
       }
     } catch (err) {
       console.error('System initialization error:', err);
+      setInitError(err instanceof Error ? err.message : 'Failed to connect to the local database.');
     } finally {
       setInitLoading(false);
     }
@@ -147,6 +206,26 @@ export function App() {
       <div className="h-screen w-screen bg-canvas text-ink flex flex-col items-center justify-center p-6 space-y-4">
         <div className="w-7 h-7 rounded-full border-2 border-accent border-t-transparent animate-spin" />
         <p className="text-xs text-ink-muted font-mono">Connecting database…</p>
+      </div>
+    );
+  }
+
+  if (initError) {
+    return (
+      <div className="h-screen w-screen bg-canvas text-ink flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-12 h-12 rounded-full bg-negative/15 border border-negative/25 text-negative flex items-center justify-center mb-4">
+          <AlertTriangle className="w-6 h-6" strokeWidth={1.5} />
+        </div>
+        <h2 className="text-lg font-semibold text-ink">Database Connection Error</h2>
+        <p className="text-xs text-ink-secondary mt-1 max-w-md break-words">{initError}</p>
+        <button
+          type="button"
+          onClick={initSystem}
+          className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-xs font-semibold transition-colors duration-150 ease-unslop cursor-pointer"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span>Retry</span>
+        </button>
       </div>
     );
   }
@@ -261,7 +340,8 @@ export function App() {
               </button>
             </div>
           ) : (
-            <Suspense fallback={<ScreenFallback />}>
+            <ErrorBoundary routeKey={activeRoute}>
+              <Suspense fallback={<ScreenFallback />}>
               {activeRoute === 'dashboard' && <DashboardScreen deviceId={deviceId} />}
 
               {activeRoute === 'price-checker' && <PriceCheckerScreen deviceId={deviceId} />}
@@ -317,6 +397,7 @@ export function App() {
                 </div>
               )}
             </Suspense>
+            </ErrorBoundary>
           )}
         </main>
       </div>

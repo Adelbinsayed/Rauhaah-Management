@@ -1,6 +1,7 @@
 import { createChangeLogStatement, dbQuery, dbBatchTx, type BatchStatement } from '../db';
 import { dhakaDateBoundsToUtcIso, nowUtcIso } from '@/lib/dates';
 import { uuidv7 } from '@/lib/ids';
+import { sanitizeSqlLikePattern } from '@/lib/sanitize';
 import type {
   Supplier,
   Purchase,
@@ -244,9 +245,9 @@ export const purchasesRepo = {
       sql += ` AND p.supplier_id = ?`;
       sqlParams.push(params.supplierId);
     }
-    if (params?.searchQuery) {
-      sql += ` AND (p.purchase_number LIKE ? OR p.supplier_name LIKE ? OR p.reference_number LIKE ?)`;
-      const q = `%${params.searchQuery.trim()}%`;
+    if (params?.searchQuery?.trim()) {
+      sql += ` AND (p.purchase_number LIKE ? ESCAPE '\\' OR p.supplier_name LIKE ? ESCAPE '\\' OR p.reference_number LIKE ? ESCAPE '\\')`;
+      const q = `%${sanitizeSqlLikePattern(params.searchQuery)}%`;
       sqlParams.push(q, q, q);
     }
 

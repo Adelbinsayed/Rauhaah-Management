@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   UserCheck,
   Plus,
@@ -19,7 +19,7 @@ import { customersRepo } from '@/data/repositories/customersRepo';
 import { useAppStore } from '@/app/store';
 import { canManageUsers, hasPermission } from '@/domain/auth/permissions';
 import { downloadCsv } from '@/features/reports/reportsUtils';
-import { MetricCard } from '@/components/ui';
+import { MetricCard, Modal } from '@/components/ui';
 import { formatDhakaDate, formatDhakaDateTime, getTodayDateString } from '@/lib/dates';
 import { formatBdtAmount } from '@/lib/money';
 import type { Customer, CustomerPayment, CustomerSaleSummary } from '@/domain/customers/types';
@@ -65,36 +65,77 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
   const [payNotes, setPayNotes] = useState('');
   const [paySubmitting, setPaySubmitting] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
+  const [totalCustomerCount, setTotalCustomerCount] = useState<number>(0);
+  const [deleteTarget, setDeleteTarget] = useState<Customer | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const loadCustomers = async () => {
+  const loadSeqRef = useRef(0);
+  const detailsSeqRef = useRef(0);
+
+  const loadCustomers = useCallback(async (searchVal = search, dueOnly = filterDueOnly) => {
+    const seq = ++loadSeqRef.current;
     setLoading(true);
     try {
       const data = await customersRepo.getCustomers({
-        search: search || undefined,
-        onlyWithDues: filterDueOnly,
+        search: searchVal || undefined,
+        onlyWithDues: dueOnly,
       });
+      if (seq !== loadSeqRef.current) return;
       setCustomers(data);
+      if (!searchVal.trim() && !dueOnly) {
+        setTotalCustomerCount(data.length);
+      }
     } catch (err) {
-      console.error('Failed to load customers:', err);
+      if (seq === loadSeqRef.current) {
+        console.error('Failed to load customers:', err);
+      }
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, [search, filterDueOnly]);
 
   useEffect(() => {
-    loadCustomers();
-  }, [search, filterDueOnly]);
+    const timer = setTimeout(() => {
+      loadCustomers(search, filterDueOnly);
+    }, search ? 200 : 0);
+    return () => clearTimeout(timer);
+  }, [search, filterDueOnly, loadCustomers]);
 
   // Open Details Modal
   const handleOpenDetails = async (cust: Customer) => {
+    const seq = ++detailsSeqRef.current;
+    setCustomerDetails(null);
     setSelectedCustomerId(cust.id);
     try {
       const res = await customersRepo.getCustomerDetails(cust.id);
-      setCustomerDetails(res);
+      if (seq === detailsSeqRef.current) {
+        setCustomerDetails(res);
+      }
     } catch (err) {
-      console.error('Failed to load customer details:', err);
+      if (seq === detailsSeqRef.current) {
+        console.error('Failed to load customer details:', err);
+      }
     }
   };
+
+  const closeDetailsModal = useCallback(() => {
+    detailsSeqRef.current++;
+    setSelectedCustomerId(null);
+    setCustomerDetails(null);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (payingCustomer && !paySubmitting) setPayingCustomer(null);
+      else if (isFormModalOpen) setIsFormModalOpen(false);
+      else if (selectedCustomerId) closeDetailsModal();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [payingCustomer, paySubmitting, isFormModalOpen, selectedCustomerId, closeDetailsModal]);
 
   // Open Add Modal
   const openAddModal = () => {
@@ -169,7 +210,7 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
   };
 
   // Delete Customer
-  const handleDeleteCustomer = async (cust: Customer) => {
+  const handleDeleteCustomer = (cust: Customer) => {
     if (!canDeleteCustomer) return;
     if (cust.dueBalanceBdt > 0.01) {
       showToast({
@@ -178,19 +219,25 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
       });
       return;
     }
-    if (!window.confirm(`Are you sure you want to remove customer "${cust.name}"?`)) {
-      return;
-    }
+    setDeleteTarget(cust);
+  };
+
+  const confirmDeleteCustomer = async () => {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
     try {
-      await customersRepo.deleteCustomer(cust.id, deviceId);
+      await customersRepo.deleteCustomer(deleteTarget.id, deviceId);
+      if (selectedCustomerId === deleteTarget.id) closeDetailsModal();
+      setDeleteTarget(null);
       await loadCustomers();
-      if (selectedCustomerId === cust.id) setSelectedCustomerId(null);
     } catch (err) {
       console.error('Failed to delete customer:', err);
       showToast({
         type: 'error',
         message: err instanceof Error ? err.message : 'Failed to delete customer.',
       });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -284,14 +331,7 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
           .replace(/[^a-z0-9]+/g, '_')
           .replace(/^_+|_+$/g, '') || 'shop';
       const filename = `${shopSlug}_customers_${getTodayDateString()}`;
-      const res = await downloadCsv(filename, headers, rows);
-      if (res.success) {
-        showToast({
-          message: `Customer database exported successfully (${allCustomers.length} customers)! Saved to Downloads folder.`,
-          filePath: res.path,
-          type: 'success',
-        });
-      }
+      await downloadCsv(filename, headers, rows);
     } catch (err) {
       console.error('Failed to export customer database:', err);
     } finally {
@@ -394,7 +434,7 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
                 : 'text-ink-muted hover:text-ink'
             }`}
           >
-            All Customers ({customers.length})
+            All Customers ({totalCustomerCount || customers.length})
           </button>
           <button
             type="button"
@@ -541,7 +581,11 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
 
       {/* CUSTOMER PROFILE & HISTORY MODAL */}
       {selectedCustomerId && customerDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+        >
           <div className="w-full max-w-4xl bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4 max-h-[92vh] flex flex-col">
             {/* Header */}
             <div className="flex justify-between items-start pb-3 border-b border-hairline shrink-0">
@@ -576,7 +620,8 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
 
               <button
                 type="button"
-                onClick={() => setSelectedCustomerId(null)}
+                aria-label="Close modal"
+                onClick={closeDetailsModal}
                 className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised cursor-pointer"
               >
                 <X className="w-4 h-4" strokeWidth={1.5} />
@@ -741,7 +786,11 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
 
       {/* COLLECT DUE PAYMENT MODAL */}
       {payingCustomer && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+        >
           <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-hairline">
               <div className="flex items-center gap-2.5">
@@ -858,7 +907,11 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
 
       {/* ADD / EDIT CUSTOMER MODAL */}
       {isFormModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+        >
           <div className="w-full max-w-md bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-none p-6 space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-hairline">
               <h3 className="text-base font-medium text-ink flex items-center gap-2">
@@ -867,6 +920,7 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
               </h3>
               <button
                 type="button"
+                aria-label="Close modal"
                 onClick={() => setIsFormModalOpen(false)}
                 className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-raised cursor-pointer"
               >
@@ -968,6 +1022,41 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
           </div>
         </div>
       )}
+
+      {/* Delete Customer Confirmation Modal */}
+      <Modal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => {
+          if (!deleting) setDeleteTarget(null);
+        }}
+        maxWidth="sm"
+        title="Remove Customer"
+        subtitle={deleteTarget?.name}
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-ink-secondary">
+            Are you sure you want to remove customer <strong className="text-ink">&ldquo;{deleteTarget?.name}&rdquo;</strong>?
+          </p>
+          <div className="flex justify-end gap-2 pt-2 border-t border-hairline">
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={() => setDeleteTarget(null)}
+              className="px-4 py-2 rounded-lg border border-hairline bg-raised text-xs text-ink-secondary hover:text-ink font-medium cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={confirmDeleteCustomer}
+              className="px-4 py-2 rounded-lg bg-negative text-white text-xs font-semibold hover:bg-negative/90 cursor-pointer disabled:opacity-50"
+            >
+              {deleting ? 'Removing…' : 'Remove Customer'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

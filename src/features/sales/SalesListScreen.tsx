@@ -10,6 +10,7 @@ import {
   ShieldAlert,
   TrendingUp,
   Zap,
+  Ban,
 } from 'lucide-react';
 import { posRepo } from '@/data/repositories/posRepo';
 import { hasPermission } from '@/domain/auth/permissions';
@@ -25,11 +26,12 @@ interface SalesListScreenProps {
   deviceId: string;
 }
 
-export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _deviceId }) => {
-  const { currentUser, permissions, shopSettings } = useAppStore();
+export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId }) => {
+  const { currentUser, permissions, shopSettings, showToast } = useAppStore();
   const canViewAllSales =
     hasPermission(permissions, 'report.view') || hasPermission(permissions, 'sale.void');
   const canViewOwnSales = hasPermission(permissions, 'sale.view_own');
+  const canVoidSale = hasPermission(permissions, 'sale.void');
 
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +39,12 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+
+  // Void Sale Modal State
+  const [voidModalSale, setVoidModalSale] = useState<Sale | null>(null);
+  const [voidReason, setVoidReason] = useState('');
+  const [voidError, setVoidError] = useState<string | null>(null);
+  const [voiding, setVoiding] = useState(false);
 
   // Date Filtering State (Default: Today)
   const [datePreset, setDatePreset] = useState<DatePresetKey>('today');
@@ -185,8 +193,44 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
   }, [sales, searchQuery, paymentFilter]);
 
   const totalRevenue = useMemo(() => {
-    return filteredSales.reduce((acc, s) => acc + s.totalAmountBdt, 0);
+    return filteredSales.reduce(
+      (acc, s) => (s.status === 'voided' ? acc : acc + s.totalAmountBdt),
+      0
+    );
   }, [filteredSales]);
+
+  const handleConfirmVoid = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!voidModalSale || !currentUser) return;
+    if (!voidReason.trim()) {
+      setVoidError('Please enter a reason for voiding this sale.');
+      return;
+    }
+
+    setVoiding(true);
+    setVoidError(null);
+    try {
+      await posRepo.voidSale({
+        saleId: voidModalSale.id,
+        reason: voidReason.trim(),
+        userId: currentUser.id,
+        username: currentUser.username,
+        deviceId,
+      });
+      showToast({
+        type: 'success',
+        message: `Sale ${voidModalSale.invoiceNumber} voided and stock restored.`,
+      });
+      setVoidModalSale(null);
+      setVoidReason('');
+      setSelectedSale(null);
+      await loadSales();
+    } catch (err) {
+      setVoidError(err instanceof Error ? err.message : 'Failed to void sale.');
+    } finally {
+      setVoiding(false);
+    }
+  };
 
   if (!canViewAllSales && !canViewOwnSales) {
     return (
@@ -271,7 +315,7 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
           <span className="text-xs text-ink-muted font-medium pl-1">
             Method
           </span>
-          {['all', 'cash', 'bkash', 'nagad', 'card', 'bank'].map((m) => (
+          {['all', 'cash', 'bkash', 'nagad', 'card', 'bank', 'split'].map((m) => (
             <button
               key={m}
               onClick={() => setPaymentFilter(m)}
@@ -361,7 +405,11 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
                       {formatBdtAmount(sale.totalAmountBdt)}
                     </td>
                     <td className="py-3 px-4 text-right">
-                      {sale.dueAmountBdt > 0 ? (
+                      {sale.status === 'voided' ? (
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-medium bg-negative/10 text-negative border border-negative/25">
+                          Voided
+                        </span>
+                      ) : sale.dueAmountBdt > 0 ? (
                         <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-medium bg-warning/10 text-warning border border-warning/25 font-mono tabular-nums">
                           Due {formatBdtAmount(sale.dueAmountBdt)}
                         </span>
@@ -440,7 +488,13 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
                 <span className="font-mono tabular-nums text-base font-medium text-ink">
                   {selectedSale.invoiceNumber}
                 </span>
-                <span className="px-2 py-0.5 rounded-md text-[11px] font-medium capitalize bg-positive/10 text-positive border border-positive/25">
+                <span
+                  className={`px-2 py-0.5 rounded-md text-[11px] font-medium capitalize border ${
+                    selectedSale.status === 'voided'
+                      ? 'bg-negative/10 text-negative border-negative/25'
+                      : 'bg-positive/10 text-positive border-positive/25'
+                  }`}
+                >
                   {selectedSale.status}
                 </span>
               </div>
@@ -565,45 +619,131 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-hairline">
-                {shopSettings?.printerEngine === 'direct_escpos' && (
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-hairline">
+                <div>
+                  {canVoidSale && selectedSale.status === 'completed' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setVoidReason('');
+                        setVoidError(null);
+                        setVoidModalSale(selectedSale);
+                      }}
+                      className="px-3.5 py-2 rounded-lg bg-negative/10 border border-negative/25 hover:bg-negative/20 text-negative font-medium text-xs flex items-center gap-1.5 transition-colors duration-150 ease-unslop cursor-pointer"
+                    >
+                      <Ban className="w-3.5 h-3.5" strokeWidth={1.5} />
+                      <span>Void Sale</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {shopSettings?.printerEngine === 'direct_escpos' && (
+                    <button
+                      type="button"
+                      disabled={detailLoading}
+                      onClick={() => handlePrintSale(true)}
+                      className="text-xs text-ink-muted hover:text-ink underline mr-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      System Dialog
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={() => handlePrintSale(true)}
-                    className="text-xs text-ink-muted hover:text-ink underline mr-2 cursor-pointer"
+                    disabled={detailLoading}
+                    onClick={() => handlePrintSale(false)}
+                    className="px-4 py-2 rounded-lg bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs flex items-center gap-1.5 transition-colors duration-150 ease-unslop cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    System Dialog
+                    {shopSettings?.printerEngine === 'direct_escpos' ? (
+                      <>
+                        <Zap className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
+                        <span>Direct Print</span>
+                      </>
+                    ) : (
+                      <>
+                        <Printer className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
+                        <span>Print Invoice</span>
+                      </>
+                    )}
                   </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => handlePrintSale(false)}
-                  className="px-4 py-2 rounded-lg bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs flex items-center gap-1.5 transition-colors duration-150 ease-unslop cursor-pointer"
-                >
-                  {shopSettings?.printerEngine === 'direct_escpos' ? (
-                    <>
-                      <Zap className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
-                      <span>Direct Print</span>
-                    </>
-                  ) : (
-                    <>
-                      <Printer className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} />
-                      <span>Print Invoice</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedSale(null)}
-                  className="px-5 py-2 rounded-lg bg-accent text-accent-fg font-semibold text-xs hover:bg-accent-hover transition-colors duration-150 ease-unslop cursor-pointer"
-                >
-                  Close
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSale(null)}
+                    className="px-5 py-2 rounded-lg bg-accent text-accent-fg font-semibold text-xs hover:bg-accent-hover transition-colors duration-150 ease-unslop cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </Modal>
         </>
       )}
+
+      {/* Void Sale Confirmation Modal */}
+      <Modal
+        isOpen={Boolean(voidModalSale)}
+        onClose={() => {
+          if (!voiding) {
+            setVoidModalSale(null);
+            setVoidError(null);
+          }
+        }}
+        maxWidth="md"
+        title="Void Sale"
+        subtitle={voidModalSale ? `Invoice ${voidModalSale.invoiceNumber}` : undefined}
+      >
+        <form onSubmit={handleConfirmVoid} className="space-y-4">
+          <div className="p-3 rounded-xl bg-negative/10 border border-negative/25 text-xs text-negative">
+            Voiding this sale will mark it as <strong>voided</strong>, restore all deducted stock, and reverse any customer due balance recorded on this invoice.
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-ink-secondary mb-1.5">
+              Reason for voiding <span className="text-negative">*</span>
+            </label>
+            <textarea
+              rows={3}
+              required
+              autoFocus
+              value={voidReason}
+              onChange={(e) => {
+                setVoidReason(e.target.value);
+                if (voidError) setVoidError(null);
+              }}
+              placeholder="e.g. Customer returned unopened bottle, duplicate entry…"
+              className="w-full px-3 py-2 bg-raised border border-hairline rounded-lg text-xs text-ink placeholder-ink-muted focus:outline-none focus:border-accent"
+            />
+          </div>
+
+          {voidError && (
+            <div className="p-2.5 rounded-lg bg-negative/10 border border-negative/25 text-xs text-negative">
+              {voidError}
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-hairline">
+            <button
+              type="button"
+              disabled={voiding}
+              onClick={() => {
+                setVoidModalSale(null);
+                setVoidError(null);
+              }}
+              className="px-4 py-2 rounded-lg bg-raised border border-hairline text-xs font-medium text-ink-secondary hover:text-ink cursor-pointer disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={voiding || !voidReason.trim()}
+              className="px-4 py-2 rounded-lg bg-negative text-white text-xs font-semibold hover:bg-negative/90 transition-colors duration-150 ease-unslop cursor-pointer disabled:opacity-50"
+            >
+              {voiding ? 'Voiding…' : 'Confirm Void Sale'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
