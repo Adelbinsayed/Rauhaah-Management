@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAppStore } from '../../app/store';
+import { canViewCost } from '../../domain/auth/permissions';
 import { catalogRepo } from '../../data/repositories/catalogRepo';
 import { posRepo } from '../../data/repositories/posRepo';
 import { calculateCartTotals, calculateLineTotal } from '../../domain/pos/posCalculations';
@@ -28,7 +29,8 @@ interface PosScreenProps {
 }
 
 export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
-  const { currentUser } = useAppStore();
+  const { currentUser, permissions } = useAppStore();
+  const allowCost = canViewCost(permissions);
 
   // Catalog State
   const [products, setProducts] = useState<Sellable[]>([]);
@@ -78,7 +80,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
     try {
       setLoading(true);
       const [p, c] = await Promise.all([
-        catalogRepo.getSellables(undefined, true),
+        catalogRepo.getSellables(undefined, allowCost),
         catalogRepo.getCategories(),
       ]);
       setProducts(p);
@@ -92,7 +94,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
 
   useEffect(() => {
     loadCatalog();
-  }, []);
+  }, [allowCost]);
 
   // Close customer dropdown on click outside
   useEffect(() => {
@@ -224,13 +226,21 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
 
   // Adding product to cart
   const handleProductClick = (product: Sellable) => {
-    if (product.sellableType === 'loose_decant') {
-      // Open Decant / Pouring Modal to select bottle size (3ml, 6ml, 12ml) and price
+    const primaryComp =
+      product.components?.find((c) => c.isPrimary) ?? product.components?.[0];
+    const isPreSizedDecant =
+      product.sellableType === 'loose_decant' &&
+      Boolean(primaryComp && primaryComp.quantity > 1);
+
+    if (product.sellableType === 'loose_decant' && !isPreSizedDecant) {
+      // Per-1ml bulk pour: Open Decant / Pouring Modal to select bottle size (3ml, 6ml, 12ml) and price
       setDecantProduct(product);
     } else {
-      // Packaged product or accessory: Add 1 unit directly
+      // Packaged product, accessory, or pre-sized decant bottle: Add 1 unit directly
       const existingIdx = cartItems.findIndex(
-        (item) => item.sellableId === product.id && !item.bottleSizeMl
+        (item) =>
+          item.sellableId === product.id &&
+          (isPreSizedDecant ? item.unitCode === 'bottle' : !item.bottleSizeMl)
       );
 
       if (existingIdx >= 0) {
@@ -265,7 +275,8 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
           sku: product.sku,
           barcode: product.barcode,
           sellableType: product.sellableType,
-          unitCode: product.primaryUnitCode || 'pcs',
+          unitCode: isPreSizedDecant ? 'bottle' : product.primaryUnitCode || 'pcs',
+          bottleSizeMl: isPreSizedDecant ? primaryComp!.quantity : undefined,
           quantity: 1,
           unitPriceBdt: unitPrice,
           idealRetailPriceBdt: product.retailPriceBdt,
@@ -320,7 +331,10 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
       prev
         .map((item) => {
           if (item.id === itemId) {
-            const step = item.sellableType === 'loose_decant' ? (item.bottleSizeMl || 1) : 1;
+            const step =
+              item.sellableType === 'loose_decant' && item.unitCode !== 'bottle'
+                ? item.bottleSizeMl || 1
+                : 1;
             const newQty = item.quantity + delta * step;
             if (newQty <= 0) return null;
 
@@ -550,6 +564,10 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
               const isOil = p.sellableType === 'loose_decant';
               const stock = p.primaryStockQuantity ?? 0;
               const unit = p.primaryUnitCode || (isOil ? 'ml' : 'pcs');
+              const primaryComp =
+                p.components?.find((c) => c.isPrimary) ?? p.components?.[0];
+              const isPreSized = isOil && Boolean(primaryComp && primaryComp.quantity > 1);
+              const priceUnitLabel = isPreSized ? `${primaryComp!.quantity}ml` : unit;
               const isLow = stock <= 5;
 
               return (
@@ -587,7 +605,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                   <div className="flex items-center justify-between pt-2 border-t border-hairline">
                     <span className="text-xs font-medium font-mono tabular-nums text-accent-ink">
                       ৳{p.retailPriceBdt.toFixed(2)}
-                      <span className="text-[11px] text-ink-muted font-normal"> / {unit}</span>
+                      <span className="text-[11px] text-ink-muted font-normal"> / {priceUnitLabel}</span>
                     </span>
 
                     <button
@@ -861,7 +879,9 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                     max="100"
                     value={cartDiscountPercent || ''}
                     onChange={(e) => {
-                      setCartDiscountPercent(parseFloat(e.target.value) || 0);
+                      const raw = parseFloat(e.target.value);
+                      const clamped = Number.isFinite(raw) ? Math.min(100, Math.max(0, raw)) : 0;
+                      setCartDiscountPercent(clamped);
                       setCartDiscountAmount(0);
                     }}
                     placeholder="0%"
@@ -875,7 +895,9 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                     min="0"
                     value={cartDiscountAmount || ''}
                     onChange={(e) => {
-                      setCartDiscountAmount(parseFloat(e.target.value) || 0);
+                      const raw = parseFloat(e.target.value);
+                      const clamped = Number.isFinite(raw) ? Math.max(0, raw) : 0;
+                      setCartDiscountAmount(clamped);
                       setCartDiscountPercent(0);
                     }}
                     placeholder="৳ 0"

@@ -23,7 +23,7 @@ interface ExpensesScreenProps {
 }
 
 export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
-  const { currentUser, permissions } = useAppStore();
+  const { currentUser, permissions, showToast } = useAppStore();
   const allowProfit = canViewProfit(permissions);
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -123,7 +123,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
       setExpError('Expense description is required.');
       return;
     }
-    if (expAmount <= 0) {
+    if (!Number.isFinite(expAmount) || expAmount <= 0) {
       setExpError('Amount must be greater than zero.');
       return;
     }
@@ -159,11 +159,16 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
 
   // Open Drawer Session
   const handleOpenDrawerSession = async () => {
-    if (!currentUser) return;
+    if (!currentUser || drawerSubmitting) return;
+    const floatVal = Number(openingFloat);
+    if (!Number.isFinite(floatVal) || floatVal < 0) {
+      showToast({ type: 'error', message: 'Opening cash float must be zero or positive.' });
+      return;
+    }
     setDrawerSubmitting(true);
     try {
       await expensesRepo.openDrawerSession(
-        Number(openingFloat) || 0,
+        floatVal,
         currentUser.id,
         currentUser.displayName || currentUser.username,
         deviceId
@@ -172,6 +177,10 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
       await loadData();
     } catch (err) {
       console.error('Failed to open drawer session:', err);
+      showToast({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Failed to open drawer session.',
+      });
     } finally {
       setDrawerSubmitting(false);
     }
@@ -179,12 +188,17 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
 
   // Close Drawer Session
   const handleCloseDrawerSession = async () => {
-    if (!currentUser || !drawerSummary?.sessionId) return;
+    if (!currentUser || !drawerSummary?.sessionId || drawerSubmitting) return;
+    const actualVal = Number(actualCashCounted);
+    if (!Number.isFinite(actualVal) || actualVal < 0) {
+      showToast({ type: 'error', message: 'Counted cash must be zero or positive.' });
+      return;
+    }
     setDrawerSubmitting(true);
     try {
       await expensesRepo.closeDrawerSession({
         sessionId: drawerSummary.sessionId,
-        actualCashBdt: Number(actualCashCounted),
+        actualCashBdt: actualVal,
         expectedCashBdt: drawerSummary.expectedCashInDrawerBdt,
         notes: closeNotes,
         userId: currentUser.id,
@@ -195,6 +209,10 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
       await loadData();
     } catch (err) {
       console.error('Failed to close drawer session:', err);
+      showToast({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Failed to close drawer session.',
+      });
     } finally {
       setDrawerSubmitting(false);
     }
@@ -242,7 +260,14 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
           {drawerSummary?.isSessionOpen ? (
             <button
               type="button"
-              onClick={() => setIsCloseDrawerOpen(true)}
+              onClick={async () => {
+                try {
+                  const latest = await expensesRepo.getCashDrawerSummary();
+                  setDrawerSummary(latest);
+                  setActualCashCounted(latest.expectedCashInDrawerBdt);
+                } catch {}
+                setIsCloseDrawerOpen(true);
+              }}
               className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-warning/35 bg-warning/10 text-warning text-xs font-medium hover:bg-warning hover:text-accent-fg transition-colors duration-150 ease-unslop cursor-pointer"
             >
               <Lock className="w-4 h-4" strokeWidth={1.5} />

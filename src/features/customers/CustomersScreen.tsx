@@ -205,9 +205,15 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
 
   // Submit Due Payment
   const handleExecutePayment = async () => {
-    if (!payingCustomer) return;
-    if (payAmount <= 0) {
+    if (paySubmitting || !payingCustomer) return;
+    if (!Number.isFinite(payAmount) || payAmount <= 0) {
       setPayError('Payment amount must be greater than zero.');
+      return;
+    }
+    if (payAmount > payingCustomer.dueBalanceBdt + 0.001) {
+      setPayError(
+        `Payment amount cannot exceed due balance of ৳${payingCustomer.dueBalanceBdt.toFixed(2)}.`
+      );
       return;
     }
 

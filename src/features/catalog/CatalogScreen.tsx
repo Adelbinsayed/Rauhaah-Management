@@ -133,7 +133,8 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
     sellableId: string,
     addedQuantity: number,
     totalCostPaid: number,
-    updateRetailPrice?: number
+    updateRetailPrice?: number,
+    overheadPercent?: number
   ) => {
     if (!currentUser || !allowStockAdjust) return;
     const target = sellables.find((s) => s.id === sellableId);
@@ -143,7 +144,8 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
       totalCostPaid,
       currentUser.id,
       deviceId,
-      updateRetailPrice
+      updateRetailPrice,
+      overheadPercent
     );
     await loadData();
 

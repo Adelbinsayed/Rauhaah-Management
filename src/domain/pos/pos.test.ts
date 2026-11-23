@@ -109,4 +109,56 @@ describe('POS Domain Calculations', () => {
     const date = new Date(2026, 10, 14); // Nov 2026
     expect(formatInvoiceNumber('INV', date, 42)).toBe('INV-202611-0042');
   });
+
+  it('strips trailing hyphens from invoice prefix', () => {
+    const date = new Date(2026, 10, 14); // Nov 2026
+    expect(formatInvoiceNumber('INV-', date, 1)).toBe('INV-202611-0001');
+  });
+
+  it('clamps line and cart discount percentages to [0, 100]', () => {
+    const overLine = calculateLineTotal({
+      quantity: 2,
+      unitPriceBdt: 500,
+      discountPercent: 150,
+    });
+    expect(overLine.discountBdt).toBe(1000);
+    expect(overLine.lineTotalBdt).toBe(0);
+
+    const underLine = calculateLineTotal({
+      quantity: 2,
+      unitPriceBdt: 500,
+      discountPercent: -25,
+    });
+    expect(underLine.discountBdt).toBe(0);
+    expect(underLine.lineTotalBdt).toBe(1000);
+
+    const items: CartItem[] = [
+      {
+        id: 'line-1',
+        sellableId: 'prd-1',
+        productName: 'Black Oud',
+        sku: 'RAU-001',
+        sellableType: 'sealed_product',
+        unitCode: 'pcs',
+        quantity: 1,
+        unitPriceBdt: 1000,
+        idealRetailPriceBdt: 1000,
+        costPriceBdt: 600,
+        discountPercent: 0,
+        discountAmountBdt: 0,
+        lineTotalBdt: 1000,
+        stockInHand: 10,
+      },
+    ];
+
+    const overCart = calculateCartTotals(items, 120, 0, 0);
+    expect(overCart.cartDiscountPercent).toBe(100);
+    expect(overCart.cartDiscountBdt).toBe(1000);
+    expect(overCart.totalAmountBdt).toBe(0);
+
+    const underCart = calculateCartTotals(items, -15, 0, 1000);
+    expect(underCart.cartDiscountPercent).toBe(0);
+    expect(underCart.cartDiscountBdt).toBe(0);
+    expect(underCart.totalAmountBdt).toBe(1000);
+  });
 });

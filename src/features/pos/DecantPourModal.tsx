@@ -52,7 +52,14 @@ export const DecantPourModal: React.FC<DecantPourModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (currentMl <= 0 || parsedRate < 0) return;
+    if (
+      !Number.isFinite(currentMl) ||
+      currentMl <= 0 ||
+      !Number.isFinite(parsedRate) ||
+      parsedRate < 0
+    ) {
+      return;
+    }
 
     onConfirm({
       bottleSizeMl: currentMl,

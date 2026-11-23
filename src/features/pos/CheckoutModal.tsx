@@ -86,6 +86,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     let finalPaid = 0;
 
     if (method === 'cash') {
+      if (!Number.isFinite(parsedTender) || parsedTender < 0) {
+        setError('Please enter a valid cash amount.');
+        return;
+      }
       if (parsedTender <= 0 && totals.totalAmountBdt > 0) {
         setError('Please enter amount received from customer.');
         return;
@@ -117,13 +121,28 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       });
       finalPaid = totals.totalAmountBdt;
     } else if (method === 'split') {
-      if (splitCashNum > 0) {
-        payments.push({ method: 'cash', amountBdt: splitCashNum });
+      if (
+        !Number.isFinite(splitCashNum) ||
+        !Number.isFinite(splitDigitalNum) ||
+        splitCashNum < 0 ||
+        splitDigitalNum < 0
+      ) {
+        setError('Split payment amounts must be zero or positive.');
+        return;
       }
-      if (splitDigitalNum > 0) {
+      if (splitTotal <= 0 && totals.totalAmountBdt > 0) {
+        setError('Please enter split payment amounts.');
+        return;
+      }
+      const netDigital = Math.min(splitDigitalNum, totals.totalAmountBdt);
+      const netCash = Math.min(splitCashNum, Math.max(0, totals.totalAmountBdt - netDigital));
+      if (netCash > 0) {
+        payments.push({ method: 'cash', amountBdt: netCash });
+      }
+      if (netDigital > 0) {
         payments.push({
           method: splitDigitalMethod,
-          amountBdt: splitDigitalNum,
+          amountBdt: netDigital,
           reference: splitRef.trim() || undefined,
         });
       }
@@ -131,6 +150,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
 
     const finalDue = Math.max(0, totals.totalAmountBdt - finalPaid);
+
+    // Block walk-in due sales (must have customer with phone)
+    if (finalDue > 0.01 && (!customer || !customer.phone?.trim())) {
+      setError('Customer phone and name are required to record an unpaid due balance.');
+      return;
+    }
 
     // If there is an unpaid due amount, prompt cashier for explicit confirmation
     if (finalDue > 0.01) {

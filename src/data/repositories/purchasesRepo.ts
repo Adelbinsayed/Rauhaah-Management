@@ -1,4 +1,4 @@
-import { dbQuery, dbExecute, dbBatchTx, type BatchStatement } from '../db';
+import { createChangeLogStatement, dbQuery, dbBatchTx, type BatchStatement } from '../db';
 import { nowUtcIso } from '@/lib/dates';
 import { uuidv7 } from '@/lib/ids';
 import type {
@@ -34,7 +34,7 @@ export const purchasesRepo = {
               COALESCE(SUM(p.paid_amount_bdt), 0.0) AS total_paid_bdt,
               COALESCE(SUM(p.total_amount_bdt - p.paid_amount_bdt), 0.0) AS total_due_bdt
        FROM suppliers s
-       LEFT JOIN purchases p ON s.id = p.supplier_id AND p.deleted_at IS NULL
+       LEFT JOIN purchases p ON s.id = p.supplier_id AND p.deleted_at IS NULL AND p.status != 'cancelled'
        WHERE s.deleted_at IS NULL
        GROUP BY s.id
        ORDER BY s.name ASC`
@@ -72,23 +72,26 @@ export const purchasesRepo = {
     const id = uuidv7();
     const now = nowUtcIso();
 
-    await dbExecute(
-      `INSERT INTO suppliers (
-        id, name, contact_person, phone, email, address, notes, is_active, created_at, updated_at, device_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`,
-      [
-        id,
-        supplier.name.trim(),
-        supplier.contactPerson?.trim() || null,
-        supplier.phone?.trim() || null,
-        supplier.email?.trim() || null,
-        supplier.address?.trim() || null,
-        supplier.notes?.trim() || null,
-        now,
-        now,
-        deviceId,
-      ]
-    );
+    await dbBatchTx([
+      {
+        sql: `INSERT INTO suppliers (
+          id, name, contact_person, phone, email, address, notes, is_active, created_at, updated_at, device_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`,
+        params: [
+          id,
+          supplier.name.trim(),
+          supplier.contactPerson?.trim() || null,
+          supplier.phone?.trim() || null,
+          supplier.email?.trim() || null,
+          supplier.address?.trim() || null,
+          supplier.notes?.trim() || null,
+          now,
+          now,
+          deviceId,
+        ],
+      },
+      createChangeLogStatement('suppliers', id, 'insert', now),
+    ]);
 
     return {
       id,
@@ -122,31 +125,37 @@ export const purchasesRepo = {
     deviceId: string
   ): Promise<void> {
     const now = nowUtcIso();
-    await dbExecute(
-      `UPDATE suppliers
-       SET name = ?, contact_person = ?, phone = ?, email = ?, address = ?, notes = ?, is_active = ?, updated_at = ?, device_id = ?
-       WHERE id = ?`,
-      [
-        supplier.name.trim(),
-        supplier.contactPerson?.trim() || null,
-        supplier.phone?.trim() || null,
-        supplier.email?.trim() || null,
-        supplier.address?.trim() || null,
-        supplier.notes?.trim() || null,
-        supplier.isActive ? 1 : 0,
-        now,
-        deviceId,
-        supplier.id,
-      ]
-    );
+    await dbBatchTx([
+      {
+        sql: `UPDATE suppliers
+              SET name = ?, contact_person = ?, phone = ?, email = ?, address = ?, notes = ?, is_active = ?, updated_at = ?, device_id = ?
+              WHERE id = ?`,
+        params: [
+          supplier.name.trim(),
+          supplier.contactPerson?.trim() || null,
+          supplier.phone?.trim() || null,
+          supplier.email?.trim() || null,
+          supplier.address?.trim() || null,
+          supplier.notes?.trim() || null,
+          supplier.isActive ? 1 : 0,
+          now,
+          deviceId,
+          supplier.id,
+        ],
+      },
+      createChangeLogStatement('suppliers', supplier.id, 'update', now),
+    ]);
   },
 
   async deleteSupplier(id: string, deviceId: string): Promise<void> {
     const now = nowUtcIso();
-    await dbExecute(
-      `UPDATE suppliers SET deleted_at = ?, updated_at = ?, device_id = ? WHERE id = ?`,
-      [now, now, deviceId, id]
-    );
+    await dbBatchTx([
+      {
+        sql: `UPDATE suppliers SET deleted_at = ?, updated_at = ?, device_id = ? WHERE id = ?`,
+        params: [now, now, deviceId, id],
+      },
+      createChangeLogStatement('suppliers', id, 'delete', now),
+    ]);
   },
 
   // ==========================================
@@ -189,16 +198,19 @@ export const purchasesRepo = {
   // Purchase PO Number Generator
   // ==========================================
   async getNextPurchaseNumber(prefix = 'PO'): Promise<string> {
+    const cleanPrefix = (prefix || 'PO').trim().replace(/-+$/, '') || 'PO';
     const today = new Date();
     const ym = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}`;
-    const pattern = `${prefix}-${ym}-%`;
+    const base = `${cleanPrefix}-${ym}-`;
 
-    const row = await dbQuery<{ count: number }>(
-      `SELECT COUNT(*) as count FROM purchases WHERE purchase_number LIKE ?`,
-      [pattern]
+    const row = await dbQuery<{ max_seq: number }>(
+      `SELECT COALESCE(MAX(CAST(SUBSTR(purchase_number, ?) AS INTEGER)), 0) as max_seq
+       FROM purchases
+       WHERE purchase_number LIKE ?`,
+      [base.length + 1, `${base}%`]
     );
-    const count = (row[0]?.count || 0) + 1;
-    return `${prefix}-${ym}-${String(count).padStart(4, '0')}`;
+    const nextSeq = Number(row[0]?.max_seq || 0) + 1;
+    return `${base}${String(nextSeq).padStart(4, '0')}`;
   },
 
   // ==========================================
@@ -504,15 +516,17 @@ export const purchasesRepo = {
           (qtyBefore * item.currentCostBefore + qtyDelta * item.baseCostPerUnitBdt) / qtyAfter;
       }
 
-      // Update stock_items table: increase quantity and update cost price
+      // Update stock_items table: increase quantity and update cost price (5 decimal places = milli-poisha precision)
       statements.push({
         sql: `UPDATE stock_items
               SET current_quantity = current_quantity + ?,
                   cost_price_bdt = ?,
                   updated_at = ?
               WHERE id = ?`,
-        params: [qtyDelta, Math.round(newWeightedCost * 100) / 100, now, item.stockItemId],
+        params: [qtyDelta, Math.round(newWeightedCost * 100000) / 100000, now, item.stockItemId],
       });
+
+      statements.push(createChangeLogStatement('stock_items', item.stockItemId, 'update', now));
 
       // Insert stock movement record
       statements.push({
@@ -535,7 +549,7 @@ export const purchasesRepo = {
       });
     }
 
-    // 3. Record Audit Log
+    // 3. Record Audit Log & Change Log
     statements.push({
       sql: `INSERT INTO audit_log (
         id, user_id, username, action, details, created_at, device_id
@@ -555,6 +569,7 @@ export const purchasesRepo = {
         params.deviceId,
       ],
     });
+    statements.push(createChangeLogStatement('purchases', purchaseId, 'insert', now));
 
     // Execute everything atomically
     await dbBatchTx(statements);

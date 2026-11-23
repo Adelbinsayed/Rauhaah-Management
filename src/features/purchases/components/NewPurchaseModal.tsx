@@ -116,9 +116,9 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
       } else {
         setRowStockItemId('');
         setItemSearchQuery('');
+        setRowRate(0);
       }
       setRowQuantity(1);
-      setRowRate(0);
       setRowNotes('');
     }
   }, [isOpen]);
@@ -142,12 +142,10 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
     setItemSearchQuery('');
     setIsItemSearchOpen(false);
 
-    if (item.unitCode === 'ml') {
-      setRowUnit('tola'); // 12 ml standard
-    } else {
-      setRowUnit(item.unitCode);
-    }
-    setRowRate(item.costPriceBdt || 0);
+    const defaultUnit = item.unitCode === 'ml' ? 'tola' : item.unitCode;
+    setRowUnit(defaultUnit);
+    const factor = convertToBaseQuantity(defaultUnit, 1, item.unitCode, item.densityGPerMl);
+    setRowRate(Math.round((item.costPriceBdt || 0) * factor * 100) / 100);
   };
 
   const selectedRowStockItem = useMemo(() => {
@@ -171,7 +169,7 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
     if (!selectedRowStockItem) {
       return { totalCost: 0, convertedQty: 0, baseCostPerUnit: 0 };
     }
-    const totalCost = rowQuantity * rowRate;
+    const totalCost = Math.round(rowQuantity * rowRate * 100) / 100;
     const convertedQty = convertToBaseQuantity(
       rowUnit,
       rowQuantity,
@@ -189,6 +187,10 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
   useEffect(() => {
     if (paymentMode === 'full') {
       setPaidAmountBdt(totalOrderAmount);
+      if (paymentMethod === 'due') setPaymentMethod('cash');
+    } else if (paymentMode === 'partial') {
+      setPaidAmountBdt((prev) => Math.min(Math.max(0, prev), totalOrderAmount));
+      if (paymentMethod === 'due') setPaymentMethod('cash');
     } else if (paymentMode === 'due') {
       setPaidAmountBdt(0);
       setPaymentMethod('due');
@@ -200,12 +202,16 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
       setFormError('Please search and select a stock item.');
       return;
     }
-    if (rowQuantity <= 0) {
+    if (!Number.isFinite(rowQuantity) || rowQuantity <= 0) {
       setFormError('Quantity must be greater than zero.');
       return;
     }
-    if (rowRate < 0) {
+    if (!Number.isFinite(rowRate) || rowRate < 0) {
       setFormError('Unit rate cannot be negative.');
+      return;
+    }
+    if (items.some((i) => i.stockItemId === selectedRowStockItem.id)) {
+      setFormError('This item is already in the purchase order. Remove it to edit quantity.');
       return;
     }
 
@@ -262,7 +268,14 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
     onStockItemsUpdated(updatedStockList);
     selectStockItem(createdItem);
     if (costPrice > 0) {
-      setRowRate(costPrice);
+      const defaultUnit = createdItem.unitCode === 'ml' ? 'tola' : createdItem.unitCode;
+      const factor = convertToBaseQuantity(
+        defaultUnit,
+        1,
+        createdItem.unitCode,
+        createdItem.densityGPerMl
+      );
+      setRowRate(Math.round(costPrice * factor * 100) / 100);
     }
     setNewProductSuccessToast(
       `Added "${createdItem.name}" to inventory catalog and selected for this shipment!`
@@ -295,7 +308,10 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
         supplierName: supName,
         branchId: 'default-branch',
         totalAmountBdt: totalOrderAmount,
-        paidAmountBdt: Number(paidAmountBdt) || 0,
+        paidAmountBdt:
+          paymentMode === 'due'
+            ? 0
+            : Math.min(totalOrderAmount, Math.max(0, Number(paidAmountBdt) || 0)),
         paymentMethod: paymentMode === 'due' ? 'due' : paymentMethod,
         referenceNumber: referenceNumber || null,
         notes: notes || null,
@@ -634,7 +650,19 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                   </label>
                   <select
                     value={rowUnit}
-                    onChange={(e) => setRowUnit(e.target.value)}
+                    onChange={(e) => {
+                      const newUnit = e.target.value;
+                      setRowUnit(newUnit);
+                      if (selectedRowStockItem && selectedRowStockItem.costPriceBdt > 0) {
+                        const factor = convertToBaseQuantity(
+                          newUnit,
+                          1,
+                          selectedRowStockItem.unitCode,
+                          selectedRowStockItem.densityGPerMl
+                        );
+                        setRowRate(Math.round(selectedRowStockItem.costPriceBdt * factor * 100) / 100);
+                      }
+                    }}
                     className="w-full px-2.5 py-1.5 bg-surface border border-hairline rounded-lg text-ink font-medium focus:outline-none focus:border-accent text-xs"
                   >
                     {selectedRowStockItem?.unitCode === 'ml' ? (
@@ -645,6 +673,19 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                         <option value="g">Grams (g)</option>
                         <option value="kg">Kilograms (kg)</option>
                         <option value="tola_g">Tola Weight (11.664 g)</option>
+                      </>
+                    ) : selectedRowStockItem?.unitCode === 'g' ? (
+                      <>
+                        <option value="g">Grams (g)</option>
+                        <option value="kg">Kilograms (kg - 1000g)</option>
+                        <option value="tola_g">Tola Weight (11.664 g)</option>
+                        {(selectedRowStockItem.densityGPerMl ?? 0) > 0 && (
+                          <>
+                            <option value="ml">Millilitres (ml)</option>
+                            <option value="l">Litres (L - 1000ml)</option>
+                            <option value="tola">Tola (12 ml)</option>
+                          </>
+                        )}
                       </>
                     ) : (
                       <>
@@ -805,7 +846,10 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                 <div className="flex items-center gap-1 bg-surface p-1 rounded-lg border border-hairline">
                   <button
                     type="button"
-                    onClick={() => setPaymentMode('full')}
+                    onClick={() => {
+                      setPaymentMode('full');
+                      if (paymentMethod === 'due') setPaymentMethod('cash');
+                    }}
                     className={`px-3 py-1 rounded-md text-xs font-medium transition-colors duration-150 ease-unslop cursor-pointer ${
                       paymentMode === 'full'
                         ? 'bg-positive text-white font-semibold'
@@ -818,6 +862,7 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                     type="button"
                     onClick={() => {
                       setPaymentMode('partial');
+                      if (paymentMethod === 'due') setPaymentMethod('cash');
                       if (paidAmountBdt === 0 || paidAmountBdt === totalOrderAmount) {
                         setPaidAmountBdt(Math.round(totalOrderAmount * 0.5));
                       }
@@ -859,11 +904,17 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                       disabled={paymentMode === 'due'}
                       value={paidAmountBdt}
                       onChange={(e) => {
-                        const val = Math.max(0, Number(e.target.value));
-                        setPaidAmountBdt(val);
-                        if (val === totalOrderAmount) setPaymentMode('full');
-                        else if (val === 0) setPaymentMode('due');
-                        else setPaymentMode('partial');
+                        const raw = Number(e.target.value);
+                        const clamped = Number.isFinite(raw)
+                          ? Math.min(totalOrderAmount, Math.max(0, raw))
+                          : 0;
+                        setPaidAmountBdt(clamped);
+                        if (clamped >= totalOrderAmount && totalOrderAmount > 0) {
+                          setPaymentMode('full');
+                        } else {
+                          setPaymentMode('partial');
+                        }
+                        if (paymentMethod === 'due') setPaymentMethod('cash');
                       }}
                       className="w-full px-3 py-1.5 bg-surface border border-hairline rounded-lg text-ink font-mono tabular-nums font-medium focus:outline-none focus:border-accent text-xs"
                     />

@@ -25,6 +25,7 @@ export const dashboardRepo = {
       cashSalesRows,
       collRows,
       cashExpRows,
+      cashPurRows,
       dueRows,
     ] = await Promise.all([
       dbQuery<{
@@ -72,14 +73,14 @@ export const dashboardRepo = {
         FROM sale_payments sp
         JOIN sales s ON sp.sale_id = s.id
         WHERE s.status = 'completed'
-          AND sp.payment_method = 'cash'
+          AND LOWER(sp.payment_method) = 'cash'
           AND s.created_at >= ? AND s.created_at <= ?`,
         [startDateIso, endDateIso]
       ),
       dbQuery<{ total_coll: number }>(
         `SELECT COALESCE(SUM(amount_bdt), 0) as total_coll
         FROM customer_payments
-        WHERE payment_method = 'cash'
+        WHERE LOWER(payment_method) = 'cash'
           AND created_at >= ? AND created_at <= ?`,
         [startDateIso, endDateIso]
       ).catch(() => []),
@@ -87,13 +88,22 @@ export const dashboardRepo = {
         `SELECT COALESCE(SUM(amount_bdt), 0) as total_cash_exp
         FROM expenses
         WHERE deleted_at IS NULL
-          AND payment_method = 'cash'
+          AND LOWER(payment_method) = 'cash'
           AND (
             (expense_date >= ? AND expense_date <= ?)
             OR (created_at >= ? AND created_at <= ?)
           )`,
         [startDateIso, endDateIso, startDateIso, endDateIso]
       ),
+      dbQuery<{ total_cash_pur: number }>(
+        `SELECT COALESCE(SUM(paid_amount_bdt), 0) as total_cash_pur
+        FROM purchases
+        WHERE deleted_at IS NULL
+          AND status = 'received'
+          AND LOWER(payment_method) = 'cash'
+          AND received_at >= ? AND received_at <= ?`,
+        [startDateIso, endDateIso]
+      ).catch(() => []),
       dbQuery<{ total_dues: number }>(
         `SELECT COALESCE(SUM(due_balance_bdt), 0) as total_dues
         FROM customers
@@ -125,10 +135,13 @@ export const dashboardRepo = {
     const cashSalesBdt = Math.round(Number(cashSalesRows[0]?.total_cash || 0) * 100) / 100;
     const customerDuesCollectedCashBdt = Math.round(Number(collRows[0]?.total_coll || 0) * 100) / 100;
     const cashExpensesBdt = Math.round(Number(cashExpRows[0]?.total_cash_exp || 0) * 100) / 100;
+    const cashPurchasesBdt = Math.round(Number(cashPurRows[0]?.total_cash_pur || 0) * 100) / 100;
 
     // Estimated counter cash balance added in this period
     const counterCashBalanceBdt =
-      Math.round((cashSalesBdt + customerDuesCollectedCashBdt - cashExpensesBdt) * 100) / 100;
+      Math.round(
+        (cashSalesBdt + customerDuesCollectedCashBdt - cashExpensesBdt - cashPurchasesBdt) * 100
+      ) / 100;
 
     // 5. Total outstanding customer credit balance across whole store
     const totalOutstandingCustomerDuesBdt = Math.round(Number(dueRows[0]?.total_dues || 0) * 100) / 100;

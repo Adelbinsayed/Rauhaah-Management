@@ -523,8 +523,10 @@ export const reportsRepo = {
       const purRow = await dbQuery<{ total: number }>(
         `SELECT COALESCE(SUM(paid_amount_bdt), 0) as total
         FROM purchases
-        WHERE lower(payment_method) = 'cash'
-          AND created_at >= ? AND created_at <= ?`,
+        WHERE deleted_at IS NULL
+          AND status = 'received'
+          AND lower(payment_method) = 'cash'
+          AND received_at >= ? AND received_at <= ?`,
         [startDateIso, endDateIso]
       );
       cashSupplierPurchasesBdt = Number(purRow[0]?.total || 0);
@@ -562,7 +564,7 @@ export const reportsRepo = {
       `SELECT 
         COUNT(id) as total_skus,
         COALESCE(SUM(current_quantity), 0) as total_units,
-        COALESCE(SUM(current_quantity * cost_price_bdt), 0) as total_cost_val,
+        COALESCE(SUM(MAX(0, current_quantity) * cost_price_bdt), 0) as total_cost_val,
         COUNT(CASE WHEN current_quantity > min_alert_quantity AND current_quantity > 0 THEN 1 END) as healthy_count,
         COUNT(CASE WHEN current_quantity <= min_alert_quantity AND current_quantity > 0 THEN 1 END) as low_count,
         COUNT(CASE WHEN current_quantity <= 0 THEN 1 END) as out_of_stock_count
@@ -577,19 +579,28 @@ export const reportsRepo = {
     const lowStockCount = Number(rows[0]?.low_count || 0);
     const outOfStockCount = Number(rows[0]?.out_of_stock_count || 0);
 
-    // Compute retail value from sellables mapped via sellable_components
+    // Compute retail value from one primary active sellable per stock_item (avoiding fan-out duplication)
     let totalRetailValueBdt = totalCostValueBdt * 1.5; // fallback
     try {
       const retailRow = await dbQuery<{ total_retail: number }>(
-        `SELECT 
-          COALESCE(SUM(si.current_quantity * COALESCE(s.retail_price_bdt, si.cost_price_bdt * 1.5)), 0) as total_retail
+        `SELECT COALESCE(SUM(
+          MAX(0, si.current_quantity) * COALESCE(
+            (
+              SELECT s.retail_price_bdt / NULLIF(sc.quantity, 0)
+              FROM sellable_components sc
+              JOIN sellables s ON sc.sellable_id = s.id AND s.deleted_at IS NULL AND s.is_active = 1
+              WHERE sc.stock_item_id = si.id
+              ORDER BY sc.is_primary DESC, sc.quantity ASC
+              LIMIT 1
+            ),
+            si.cost_price_bdt * 1.5
+          )
+        ), 0) as total_retail
         FROM stock_items si
-        LEFT JOIN sellable_components sc ON sc.stock_item_id = si.id
-        LEFT JOIN sellables s ON sc.sellable_id = s.id AND s.deleted_at IS NULL
         WHERE si.deleted_at IS NULL`
       );
-      if (retailRow.length > 0 && Number(retailRow[0]?.total_retail || 0) > 0) {
-        totalRetailValueBdt = Math.round(Number(retailRow[0].total_retail) * 100) / 100;
+      if (retailRow.length > 0) {
+        totalRetailValueBdt = Math.round(Number(retailRow[0]?.total_retail || 0) * 100) / 100;
       }
     } catch {
       // fallback

@@ -115,26 +115,30 @@ export const posRepo = {
    * Generates the next sequential invoice number for the branch
    */
   async getNextInvoiceNumber(prefix: string = 'INV'): Promise<string> {
+    const cleanPrefix = (prefix || 'INV').trim().replace(/-+$/, '') || 'INV';
     const now = new Date();
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const pattern = `${prefix}-${yearMonth}-%`;
+    const base = `${cleanPrefix}-${yearMonth}-`;
 
-    const rows = await dbQuery<{ count: number }>(
-      `SELECT COUNT(*) as count FROM sales WHERE invoice_number LIKE ?`,
-      [pattern]
+    const rows = await dbQuery<{ max_seq: number }>(
+      `SELECT COALESCE(MAX(CAST(SUBSTR(invoice_number, ?) AS INTEGER)), 0) as max_seq
+       FROM sales
+       WHERE invoice_number LIKE ?`,
+      [base.length + 1, `${base}%`]
     );
 
-    const seq = (rows[0]?.count || 0) + 1;
-    return formatInvoiceNumber(prefix, now, seq);
+    const seq = Number(rows[0]?.max_seq || 0) + 1;
+    return formatInvoiceNumber(cleanPrefix, now, seq);
   },
 
   /**
    * Executes a complete sale transaction atomically:
    * 1. Inserts into `sales`
-   * 2. Inserts all `sale_items`
+   * 2. Inserts all `sale_items` with DB-authoritative COGS
    * 3. Inserts payment records into `sale_payments`
-   * 4. Deducts stock from `stock_items`
+   * 4. Deducts stock from `stock_items` and records `stock_movements`
    * 5. Updates customer due balance (if any remaining due)
+   * 6. Writes `audit_log` and `change_log`
    */
   async completeSale(params: {
     invoiceNumber: string;
@@ -150,6 +154,33 @@ export const posRepo = {
       params;
     const saleId = uuidv7();
     const now = nowUtcIso();
+
+    // Resolve active branch UUID from branches table
+    let resolvedBranchId = branchId;
+    try {
+      const branchRows = await dbQuery<{ id: string }>(
+        `SELECT id FROM branches WHERE deleted_at IS NULL ORDER BY is_default DESC, created_at ASC LIMIT 1`
+      );
+      if (branchRows.length > 0 && branchRows[0].id) {
+        resolvedBranchId = branchRows[0].id;
+      }
+    } catch (err) {
+      console.warn('Branch lookup for sale:', err);
+    }
+
+    // Resolve cashier username for audit_log
+    let resolvedCashierName = 'Cashier';
+    try {
+      const userRows = await dbQuery<{ name: string | null }>(
+        `SELECT COALESCE(display_name, username) as name FROM users WHERE id = ? LIMIT 1`,
+        [cashierId]
+      );
+      if (userRows.length > 0 && userRows[0].name) {
+        resolvedCashierName = userRows[0].name;
+      }
+    } catch {
+      // keep default
+    }
 
     const statements: BatchStatement[] = [];
 
@@ -183,15 +214,38 @@ export const posRepo = {
         totals.changeAmountBdt,
         totals.dueAmountBdt,
         primaryPaymentMethod,
-        branchId,
+        resolvedBranchId,
         now,
         now,
         deviceId,
       ],
     });
 
-    // 2. Insert sale_items and deduct stock
+    // Track sequential stock changes within this sale if multiple lines share a stock item
+    const runningStockMap = new Map<string, number>();
+
+    // 2. Insert sale_items (with DB-authoritative COGS), deduct stock, and record stock_movements
     for (const item of items) {
+      const compRows = await dbQuery<{
+        stock_item_id: string;
+        comp_qty: number;
+        current_quantity: number;
+        cost_price_bdt: number;
+      }>(
+        `SELECT sc.stock_item_id, sc.quantity as comp_qty, si.current_quantity, si.cost_price_bdt
+         FROM sellable_components sc
+         JOIN stock_items si ON sc.stock_item_id = si.id
+         WHERE sc.sellable_id = ?`,
+        [item.sellableId]
+      );
+
+      const dbUnitCost = compRows.reduce(
+        (sum, c) => sum + Number(c.comp_qty || 0) * Number(c.cost_price_bdt || 0),
+        0
+      );
+      const authoritativeCostBdt =
+        compRows.length > 0 ? Math.round(dbUnitCost * 100000) / 100000 : item.costPriceBdt;
+
       const saleItemId = uuidv7();
       statements.push({
         sql: `INSERT INTO sale_items (
@@ -212,7 +266,7 @@ export const posRepo = {
           item.bottleSizeMl || null,
           item.unitPriceBdt,
           item.idealRetailPriceBdt,
-          item.costPriceBdt,
+          authoritativeCostBdt,
           item.discountAmountBdt,
           item.discountPercent,
           item.discountReason || null,
@@ -222,20 +276,43 @@ export const posRepo = {
         ],
       });
 
-      // Deduct stock from stock_items via components
-      // If sellable is loose decant, deducts item.quantity in ml; if packaged, deducts in pcs
-      statements.push({
-        sql: `UPDATE stock_items
-              SET current_quantity = current_quantity - (
-                SELECT COALESCE(sc.quantity, 1.0) * ?
-                FROM sellable_components sc
-                WHERE sc.sellable_id = ? AND sc.stock_item_id = stock_items.id
-                LIMIT 1
-              ),
-              updated_at = ?
-              WHERE id IN (SELECT stock_item_id FROM sellable_components WHERE sellable_id = ?)`,
-        params: [item.quantity, item.sellableId, now, item.sellableId],
-      });
+      // Deduct stock from stock_items via components and record stock_movements
+      for (const comp of compRows) {
+        const deductQty = Number(comp.comp_qty || 1) * item.quantity;
+        const qtyBefore =
+          runningStockMap.get(comp.stock_item_id) ?? Number(comp.current_quantity || 0);
+        const qtyAfter = qtyBefore - deductQty;
+        runningStockMap.set(comp.stock_item_id, qtyAfter);
+
+        statements.push({
+          sql: `UPDATE stock_items
+                SET current_quantity = current_quantity - ?,
+                    updated_at = ?
+                WHERE id = ?`,
+          params: [deductQty, now, comp.stock_item_id],
+        });
+
+        statements.push({
+          sql: `INSERT INTO stock_movements (
+                  id, stock_item_id, movement_type, reference_id, quantity_delta,
+                  quantity_before, quantity_after, cost_price_bdt, reason, created_at, device_id
+                ) VALUES (?, ?, 'sale', ?, ?, ?, ?, ?, ?, ?, ?)`,
+          params: [
+            uuidv7(),
+            comp.stock_item_id,
+            saleId,
+            -deductQty,
+            qtyBefore,
+            qtyAfter,
+            Number(comp.cost_price_bdt || 0),
+            `POS Sale ${invoiceNumber} (${item.productName})`,
+            now,
+            deviceId,
+          ],
+        });
+
+        statements.push(createChangeLogStatement('stock_items', comp.stock_item_id, 'update', now));
+      }
     }
 
     // 3. Insert sale_payments
@@ -255,9 +332,31 @@ export const posRepo = {
               WHERE id = ?`,
         params: [totals.dueAmountBdt, now, customer.id],
       });
+      statements.push(createChangeLogStatement('customers', customer.id, 'update', now));
     }
 
-    // 5. Audit change_log
+    // 5. Audit & Change Log
+    statements.push({
+      sql: `INSERT INTO audit_log (id, user_id, username, action, details, branch_id, created_at, device_id)
+            VALUES (?, ?, ?, 'sale.complete', ?, ?, ?, ?)`,
+      params: [
+        uuidv7(),
+        cashierId,
+        resolvedCashierName,
+        JSON.stringify({
+          saleId,
+          invoiceNumber,
+          totalAmountBdt: totals.totalAmountBdt,
+          paidAmountBdt: totals.paidAmountBdt,
+          dueAmountBdt: totals.dueAmountBdt,
+          paymentMethod: primaryPaymentMethod,
+          itemCount: items.length,
+        }),
+        resolvedBranchId,
+        now,
+        deviceId,
+      ],
+    });
     statements.push(createChangeLogStatement('sales', saleId, 'insert', now));
 
     await dbBatchTx(statements);

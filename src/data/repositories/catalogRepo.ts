@@ -732,7 +732,8 @@ export const catalogRepo = {
     totalCostPaid: number,
     userId: string,
     deviceId: string,
-    updateRetailPrice?: number
+    updateRetailPrice?: number,
+    overheadPercent: number = 15
   ): Promise<void> {
     const now = nowUtcIso();
 
@@ -753,7 +754,10 @@ export const catalogRepo = {
     }
 
     const txStatements: BatchStatement[] = [];
-    const effectiveUnitCost = addedQuantity > 0 ? (totalCostPaid / addedQuantity) * 1.15 : 0;
+    const safeOverhead = Number.isFinite(overheadPercent) && overheadPercent >= 0 ? overheadPercent : 0;
+    const effectiveUnitCost =
+      addedQuantity > 0 ? (totalCostPaid / addedQuantity) * (1 + safeOverhead / 100) : 0;
+    const roundedEffectiveCost = Math.round(effectiveUnitCost * 100000) / 100000;
 
     if (!stockItemId) {
       // Fallback: If product had no stock item linked yet, auto-create one now!
@@ -787,7 +791,7 @@ export const catalogRepo = {
             itemType,
             defaultUnitId,
             addedQuantity,
-            effectiveUnitCost,
+            roundedEffectiveCost,
             now,
             now,
             deviceId,
@@ -800,16 +804,70 @@ export const catalogRepo = {
           params: [uuidv7(), sellableId, stockItemId, defaultUnitId, now, deviceId],
         });
 
+        txStatements.push({
+          sql: `INSERT INTO stock_movements (
+                  id, stock_item_id, movement_type, reference_id, quantity_delta,
+                  quantity_before, quantity_after, cost_price_bdt, reason, created_at, device_id
+                ) VALUES (?, ?, 'adjustment', ?, ?, 0, ?, ?, 'Shipment restock', ?, ?)`,
+          params: [
+            uuidv7(),
+            stockItemId,
+            sellableId,
+            addedQuantity,
+            addedQuantity,
+            roundedEffectiveCost,
+            now,
+            deviceId,
+          ],
+        });
+
         txStatements.push(createChangeLogStatement('stock_items', stockItemId, 'insert', now));
       }
     } else {
+      const stockRows = await dbQuery<{ current_quantity: number; cost_price_bdt: number }>(
+        `SELECT current_quantity, cost_price_bdt FROM stock_items WHERE id = ? LIMIT 1`,
+        [stockItemId]
+      );
+      const qtyBefore = Number(stockRows[0]?.current_quantity || 0);
+      const costBefore = Number(stockRows[0]?.cost_price_bdt || 0);
+      const safeQtyBefore = Math.max(0, qtyBefore);
+      const qtyAfter = qtyBefore + addedQuantity;
+
+      let newWeightedCost = costBefore;
+      if (effectiveUnitCost > 0) {
+        newWeightedCost =
+          safeQtyBefore + addedQuantity > 0
+            ? (safeQtyBefore * costBefore + addedQuantity * effectiveUnitCost) /
+              (safeQtyBefore + addedQuantity)
+            : effectiveUnitCost;
+      }
+      const roundedWeightedCost = Math.round(newWeightedCost * 100000) / 100000;
+
       txStatements.push({
         sql: `UPDATE stock_items 
               SET current_quantity = current_quantity + ?,
-                  cost_price_bdt = CASE WHEN ? > 0 THEN ? ELSE cost_price_bdt END,
+                  cost_price_bdt = ?,
                   updated_at = ?
               WHERE id = ?`,
-        params: [addedQuantity, effectiveUnitCost, effectiveUnitCost, now, stockItemId],
+        params: [addedQuantity, roundedWeightedCost, now, stockItemId],
+      });
+
+      txStatements.push({
+        sql: `INSERT INTO stock_movements (
+                id, stock_item_id, movement_type, reference_id, quantity_delta,
+                quantity_before, quantity_after, cost_price_bdt, reason, created_at, device_id
+              ) VALUES (?, ?, 'adjustment', ?, ?, ?, ?, ?, 'Shipment restock', ?, ?)`,
+        params: [
+          uuidv7(),
+          stockItemId,
+          sellableId,
+          addedQuantity,
+          qtyBefore,
+          qtyAfter,
+          roundedEffectiveCost,
+          now,
+          deviceId,
+        ],
       });
 
       txStatements.push(createChangeLogStatement('stock_items', stockItemId, 'update', now));

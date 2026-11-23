@@ -65,10 +65,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   }, [productKind, units, categories, categoryId]);
 
   // Real-time automatic math
-  const qty = parseFloat(quantityBought) || 0;
-  const totalCost = canViewCost ? (parseFloat(purchaseCostTotal) || 0) : 0;
-  const overhead = parseFloat(overheadPercent) || 0;
-  const margin = parseFloat(marginPercent) || 0;
+  const parsedQty = parseFloat(quantityBought);
+  const qty = Number.isFinite(parsedQty) ? Math.max(0, parsedQty) : 0;
+  const parsedCost = parseFloat(purchaseCostTotal);
+  const totalCost = canViewCost && Number.isFinite(parsedCost) ? Math.max(0, parsedCost) : 0;
+  const parsedOverhead = parseFloat(overheadPercent);
+  const overhead = Number.isFinite(parsedOverhead) ? Math.max(0, parsedOverhead) : 0;
+  const parsedMargin = parseFloat(marginPercent);
+  const margin = Number.isFinite(parsedMargin) ? Math.max(0, parsedMargin) : 0;
 
   const baseRate = canViewCost && qty > 0 ? totalCost / qty : 0;
   const trueCostRate = canViewCost ? baseRate * (1 + overhead / 100) : 0;
@@ -115,11 +119,18 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       return;
     }
 
-    const rPrice = parseFloat(displayRetail) || autoIdealSellRate;
-    const wPrice = parseFloat(displayWholesale) || autoWholesaleRate;
+    const parsedRetail = parseFloat(displayRetail);
+    const rPrice = Number.isFinite(parsedRetail) ? parsedRetail : autoIdealSellRate;
+    const parsedWholesale = parseFloat(displayWholesale);
+    const wPrice = Number.isFinite(parsedWholesale) ? parsedWholesale : autoWholesaleRate;
 
-    if (rPrice <= 0) {
+    if (!Number.isFinite(rPrice) || rPrice <= 0) {
       setError('Please specify a valid Retail Selling Price.');
+      return;
+    }
+
+    if (!Number.isFinite(wPrice) || wPrice < 0) {
+      setError('Wholesale selling price cannot be negative.');
       return;
     }
 
@@ -363,6 +374,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                     <span>+</span>
                     <input
                       type="number"
+                      min="0"
+                      step="any"
                       value={overheadPercent}
                       onChange={(e) => handleOverheadChange(e.target.value)}
                       className="w-7 text-center bg-transparent border-b border-warning font-medium text-warning text-[11px] focus:outline-none tabular-nums"
@@ -379,6 +392,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                     <span>+</span>
                     <input
                       type="number"
+                      min="0"
+                      step="any"
                       value={marginPercent}
                       onChange={(e) => handleMarginChange(e.target.value)}
                       className="w-7 text-center bg-transparent border-b border-positive font-medium text-positive text-[11px] focus:outline-none tabular-nums"

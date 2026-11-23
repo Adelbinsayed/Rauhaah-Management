@@ -11,9 +11,9 @@ export const customersRepo = {
     let sql = `
       SELECT c.id, c.phone, c.name, c.email, c.address, c.notes, c.due_balance_bdt,
              c.created_at, c.updated_at,
-             COUNT(s.id) as total_orders,
+             COUNT(CASE WHEN s.status = 'completed' THEN 1 END) as total_orders,
              COALESCE(SUM(CASE WHEN s.status = 'completed' THEN s.total_amount_bdt ELSE 0 END), 0.0) as total_spent_bdt,
-             MAX(s.created_at) as last_order_date
+             MAX(CASE WHEN s.status = 'completed' THEN s.created_at END) as last_order_date
       FROM customers c
       LEFT JOIN sales s ON c.id = s.customer_id
       WHERE c.deleted_at IS NULL
@@ -88,9 +88,9 @@ export const customersRepo = {
       }>(
         `SELECT c.id, c.phone, c.name, c.email, c.address, c.notes, c.due_balance_bdt,
                 c.created_at, c.updated_at,
-                COUNT(s.id) as total_orders,
+                COUNT(CASE WHEN s.status = 'completed' THEN 1 END) as total_orders,
                 COALESCE(SUM(CASE WHEN s.status = 'completed' THEN s.total_amount_bdt ELSE 0 END), 0.0) as total_spent_bdt,
-                MAX(s.created_at) as last_order_date
+                MAX(CASE WHEN s.status = 'completed' THEN s.created_at END) as last_order_date
          FROM customers c
          LEFT JOIN sales s ON c.id = s.customer_id
          WHERE c.id = ? AND c.deleted_at IS NULL
@@ -342,6 +342,7 @@ export const customersRepo = {
           params.deviceId,
         ],
       },
+      createChangeLogStatement('customers', params.customerId, 'update', now),
     ];
 
     await dbBatchTx(statements);

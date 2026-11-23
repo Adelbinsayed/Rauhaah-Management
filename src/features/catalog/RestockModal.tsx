@@ -11,7 +11,8 @@ interface RestockModalProps {
     sellableId: string,
     addedQuantity: number,
     totalCostPaid: number,
-    updateRetailPrice?: number
+    updateRetailPrice?: number,
+    overheadPercent?: number
   ) => Promise<void>;
   canViewCost: boolean;
 }
@@ -67,10 +68,14 @@ export const RestockModal: React.FC<RestockModalProps> = ({
   }, [sellables, searchTerm]);
 
   // Pricing calculations
-  const qty = parseFloat(addedQuantity) || 0;
-  const cost = canViewCost ? (parseFloat(totalCostPaid) || 0) : 0;
-  const overhead = parseFloat(overheadPercent) || 0;
-  const margin = parseFloat(marginPercent) || 0;
+  const parsedQty = parseFloat(addedQuantity);
+  const qty = Number.isFinite(parsedQty) ? parsedQty : 0;
+  const parsedCost = parseFloat(totalCostPaid);
+  const cost = canViewCost && Number.isFinite(parsedCost) ? parsedCost : 0;
+  const parsedOverhead = parseFloat(overheadPercent);
+  const overhead = Number.isFinite(parsedOverhead) ? Math.max(0, parsedOverhead) : 0;
+  const parsedMargin = parseFloat(marginPercent);
+  const margin = Number.isFinite(parsedMargin) ? Math.max(0, parsedMargin) : 0;
 
   const baseRate = canViewCost && qty > 0 ? cost / qty : 0;
   const trueCostRate = canViewCost ? baseRate * (1 + overhead / 100) : 0;
@@ -95,8 +100,13 @@ export const RestockModal: React.FC<RestockModalProps> = ({
       return;
     }
 
-    if (qty <= 0) {
+    if (!Number.isFinite(qty) || qty <= 0) {
       setError('Please enter a valid quantity received.');
+      return;
+    }
+
+    if (canViewCost && (!Number.isFinite(cost) || cost < 0)) {
+      setError('Total cost paid cannot be negative.');
       return;
     }
 
@@ -106,7 +116,8 @@ export const RestockModal: React.FC<RestockModalProps> = ({
         selectedSellableId,
         qty,
         cost,
-        canViewCost && updatePrice && recommendedSellRate > 0 ? recommendedSellRate : undefined
+        canViewCost && updatePrice && recommendedSellRate > 0 ? recommendedSellRate : undefined,
+        canViewCost ? overhead : 15
       );
       onClose();
       // Reset form
@@ -327,6 +338,8 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                       <span>+</span>
                       <input
                         type="number"
+                        min="0"
+                        step="any"
                         value={overheadPercent}
                         onChange={(e) => setOverheadPercent(e.target.value)}
                         className="w-7 text-center bg-transparent border-b border-warning font-medium text-warning text-[11px] focus:outline-none tabular-nums"
@@ -343,6 +356,8 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                       <span>+</span>
                       <input
                         type="number"
+                        min="0"
+                        step="any"
                         value={marginPercent}
                         onChange={(e) => setMarginPercent(e.target.value)}
                         className="w-7 text-center bg-transparent border-b border-positive font-medium text-positive text-[11px] focus:outline-none tabular-nums"

@@ -107,7 +107,15 @@ export const expensesRepo = {
     const id = uuidv7();
     const now = nowUtcIso();
     const expDate = input.expenseDate || now;
-    const branchId = input.branchId || 'default-branch';
+    let branchId = input.branchId || 'default-branch';
+    if (!input.branchId) {
+      try {
+        const b = await dbQuery<{ id: string }>(
+          `SELECT id FROM branches WHERE deleted_at IS NULL ORDER BY is_default DESC, created_at ASC LIMIT 1`
+        );
+        if (b.length > 0 && b[0].id) branchId = b[0].id;
+      } catch {}
+    }
 
     let resolvedUserId: string | null = null;
     if (input.userId) {
@@ -206,36 +214,54 @@ export const expensesRepo = {
     );
 
     const activeSession = sessionRows[0] || null;
-    const openingCashBdt = activeSession ? Number(activeSession.opening_cash_bdt) : 0;
-    const dateLimit = activeSession ? activeSession.opened_at : '1970-01-01';
+    if (!activeSession) {
+      return {
+        openingCashBdt: 0,
+        cashSalesBdt: 0,
+        customerDueCollectedCashBdt: 0,
+        cashExpensesBdt: 0,
+        supplierPurchasesCashBdt: 0,
+        expectedCashInDrawerBdt: 0,
+        isSessionOpen: false,
+        sessionId: null,
+        openedAt: null,
+        openedByUsername: null,
+      };
+    }
+
+    const openingCashBdt = Number(activeSession.opening_cash_bdt);
+    const dateLimit = activeSession.opened_at;
 
     // 2-5. Fetch cash movements concurrently
     const [salesCashRows, dueCashRows, expCashRows, poCashRows] = await Promise.all([
       dbQuery<{ total: number }>(
-        `SELECT COALESCE(SUM(paid_amount_bdt), 0.0) as total
-         FROM sales
-         WHERE status = 'completed' AND payment_method = 'cash'
-           AND created_at >= ?`,
+        `SELECT COALESCE(SUM(sp.amount_bdt), 0.0) as total
+         FROM sale_payments sp
+         JOIN sales s ON sp.sale_id = s.id
+         WHERE s.status = 'completed'
+           AND LOWER(sp.payment_method) = 'cash'
+           AND s.created_at >= ?`,
         [dateLimit]
       ),
       dbQuery<{ total: number }>(
         `SELECT COALESCE(SUM(amount_bdt), 0.0) as total
          FROM customer_payments
-         WHERE payment_method = 'cash'
+         WHERE LOWER(payment_method) = 'cash'
            AND created_at >= ?`,
         [dateLimit]
       ),
       dbQuery<{ total: number }>(
         `SELECT COALESCE(SUM(amount_bdt), 0.0) as total
          FROM expenses
-         WHERE payment_method = 'cash' AND deleted_at IS NULL
+         WHERE LOWER(payment_method) = 'cash' AND deleted_at IS NULL
            AND created_at >= ?`,
         [dateLimit]
       ),
       dbQuery<{ total: number }>(
         `SELECT COALESCE(SUM(paid_amount_bdt), 0.0) as total
          FROM purchases
-         WHERE payment_method = 'cash' AND status = 'received'
+         WHERE LOWER(payment_method) = 'cash' AND status = 'received'
+           AND deleted_at IS NULL
            AND created_at >= ?`,
         [dateLimit]
       ),
@@ -279,8 +305,10 @@ export const expensesRepo = {
 
     let resolvedBranchId = 'default-branch';
     try {
-      const b = await dbQuery<{ id: string }>(`SELECT id FROM branches LIMIT 1`);
-      if (b.length > 0) resolvedBranchId = b[0].id;
+      const b = await dbQuery<{ id: string }>(
+        `SELECT id FROM branches WHERE deleted_at IS NULL ORDER BY is_default DESC, created_at ASC LIMIT 1`
+      );
+      if (b.length > 0 && b[0].id) resolvedBranchId = b[0].id;
     } catch {}
 
     const statements: BatchStatement[] = [

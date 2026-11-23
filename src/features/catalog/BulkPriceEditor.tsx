@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Save,
   RotateCcw,
@@ -53,6 +53,22 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const map: Record<
+      string,
+      { retailPrice: number; wholesalePrice: number; minPrice: number; changed: boolean }
+    > = {};
+    for (const s of sellables) {
+      map[s.id] = {
+        retailPrice: s.retailPriceBdt,
+        wholesalePrice: s.wholesalePriceBdt,
+        minPrice: s.minPriceBdt,
+        changed: false,
+      };
+    }
+    setEditedPrices(map);
+  }, [sellables]);
+
   const changedCount = Object.values(editedPrices).filter((p) => p.changed).length;
 
   const handlePriceChange = (
@@ -71,7 +87,8 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
         changed: false,
       };
 
-      const next = { ...current, [field]: isNaN(val) ? 0 : val };
+      const safeVal = Number.isFinite(val) && val >= 0 ? val : 0;
+      const next = { ...current, [field]: safeVal };
       const hasChanged =
         next.retailPrice !== orig.retailPriceBdt ||
         next.wholesalePrice !== orig.wholesalePriceBdt ||
@@ -87,7 +104,7 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
   const applyMarkupToAll = () => {
     if (!canEdit) return;
     const pct = parseFloat(markupPercent);
-    if (isNaN(pct)) return;
+    if (!Number.isFinite(pct)) return;
 
     setEditedPrices((prev) => {
       const next = { ...prev };
@@ -101,18 +118,24 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
 
         if (markupTarget === 'retail') {
           const base = markupBase === 'wholesale' ? cur.wholesalePrice : cur.retailPrice;
-          const newRetail = Math.round(base * (1 + pct / 100));
+          const newRetail = Math.max(0, Math.round(base * (1 + pct / 100)));
           next[s.id] = {
             ...cur,
             retailPrice: newRetail,
-            changed: newRetail !== s.retailPriceBdt || cur.wholesalePrice !== s.wholesalePriceBdt,
+            changed:
+              newRetail !== s.retailPriceBdt ||
+              cur.wholesalePrice !== s.wholesalePriceBdt ||
+              cur.minPrice !== s.minPriceBdt,
           };
         } else {
-          const newWholesale = Math.round(cur.wholesalePrice * (1 + pct / 100));
+          const newWholesale = Math.max(0, Math.round(cur.wholesalePrice * (1 + pct / 100)));
           next[s.id] = {
             ...cur,
             wholesalePrice: newWholesale,
-            changed: cur.retailPrice !== s.retailPriceBdt || newWholesale !== s.wholesalePriceBdt,
+            changed:
+              cur.retailPrice !== s.retailPriceBdt ||
+              newWholesale !== s.wholesalePriceBdt ||
+              cur.minPrice !== s.minPriceBdt,
           };
         }
       }
@@ -142,6 +165,17 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
     for (const s of sellables) {
       const p = editedPrices[s.id];
       if (p && p.changed) {
+        if (
+          !Number.isFinite(p.retailPrice) ||
+          p.retailPrice < 0 ||
+          !Number.isFinite(p.wholesalePrice) ||
+          p.wholesalePrice < 0 ||
+          !Number.isFinite(p.minPrice) ||
+          p.minPrice < 0
+        ) {
+          setError(`Invalid negative or non-numeric price for ${s.name}.`);
+          return;
+        }
         changedItems.push({
           sellableId: s.id,
           retailPriceBdt: p.retailPrice,
@@ -159,12 +193,12 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
       setError(null);
       await onSavePrices(changedItems);
       setSuccess(`Successfully updated prices for ${changedItems.length} products!`);
-      // clear changed flags
+      // clear changed flags without mutating state objects in place
       setEditedPrices((prev) => {
         const next = { ...prev };
         for (const it of changedItems) {
           if (next[it.sellableId]) {
-            next[it.sellableId].changed = false;
+            next[it.sellableId] = { ...next[it.sellableId], changed: false };
           }
         }
         return next;
