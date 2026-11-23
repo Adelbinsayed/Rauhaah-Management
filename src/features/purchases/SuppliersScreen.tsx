@@ -17,7 +17,10 @@ import {
   ChevronUp,
   Eye,
   Clock,
+  ShieldAlert,
 } from 'lucide-react';
+import { useAppStore } from '@/app/store';
+import { canViewCost } from '@/domain/auth/permissions';
 import { purchasesRepo } from '@/data/repositories/purchasesRepo';
 import type { Supplier, Purchase } from '@/domain/purchases/types';
 
@@ -26,6 +29,8 @@ interface SuppliersScreenProps {
 }
 
 export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) => {
+  const { permissions } = useAppStore();
+  const allowCost = canViewCost(permissions);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -64,8 +69,12 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
   };
 
   useEffect(() => {
+    if (!allowCost) {
+      setLoading(false);
+      return;
+    }
     loadSuppliers();
-  }, []);
+  }, [allowCost]);
 
   const openAddModal = () => {
     setEditingSupplier(null);
@@ -203,6 +212,20 @@ export const SuppliersScreen: React.FC<SuppliersScreenProps> = ({ deviceId }) =>
       (s.address && s.address.toLowerCase().includes(q))
     );
   });
+
+  if (!allowCost) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto">
+        <div className="w-12 h-12 rounded-full bg-negative/15 border border-negative/25 text-negative flex items-center justify-center mb-4">
+          <ShieldAlert className="w-6 h-6" strokeWidth={1.5} />
+        </div>
+        <h2 className="text-lg font-semibold text-ink">Access Denied</h2>
+        <p className="text-xs text-ink-secondary mt-1">
+          Only accounts with the <code>cost.view</code> permission can view or manage suppliers.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

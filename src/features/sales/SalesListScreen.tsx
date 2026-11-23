@@ -7,10 +7,12 @@ import {
   User as UserIcon,
   RefreshCw,
   Printer,
+  ShieldAlert,
   TrendingUp,
   Zap,
 } from 'lucide-react';
 import { posRepo } from '@/data/repositories/posRepo';
+import { hasPermission } from '@/domain/auth/permissions';
 import type { Sale } from '@/domain/pos/types';
 import { useAppStore } from '@/app/store';
 import { PrintableReceipt } from '@/features/pos/PrintableReceipt';
@@ -24,7 +26,10 @@ interface SalesListScreenProps {
 }
 
 export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _deviceId }) => {
-  const { shopSettings } = useAppStore();
+  const { currentUser, permissions, shopSettings } = useAppStore();
+  const canViewAllSales =
+    hasPermission(permissions, 'report.view') || hasPermission(permissions, 'sale.void');
+  const canViewOwnSales = hasPermission(permissions, 'sale.view_own');
 
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,11 +129,17 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
   };
 
   const loadSales = useCallback(async () => {
+    if (!canViewAllSales && (!canViewOwnSales || !currentUser?.id)) {
+      setSales([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const data = await posRepo.getSales({
         startDate: startDate || undefined,
         endDate: endDate || undefined,
+        cashierId: canViewAllSales ? undefined : currentUser?.id,
         limit: 500,
       });
       setSales(data);
@@ -137,7 +148,7 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
     } finally {
       setLoading(false);
     }
-  }, [startDate, endDate]);
+  }, [startDate, endDate, canViewAllSales, canViewOwnSales, currentUser?.id]);
 
   useEffect(() => {
     loadSales();
@@ -176,6 +187,20 @@ export const SalesListScreen: React.FC<SalesListScreenProps> = ({ deviceId: _dev
   const totalRevenue = useMemo(() => {
     return filteredSales.reduce((acc, s) => acc + s.totalAmountBdt, 0);
   }, [filteredSales]);
+
+  if (!canViewAllSales && !canViewOwnSales) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto">
+        <div className="w-12 h-12 rounded-full bg-negative/15 border border-negative/25 text-negative flex items-center justify-center mb-4">
+          <ShieldAlert className="w-6 h-6" strokeWidth={1.5} />
+        </div>
+        <h2 className="text-lg font-semibold text-ink">Access Denied</h2>
+        <p className="text-xs text-ink-secondary mt-1">
+          Your role does not have permission to view sales history.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col bg-canvas text-ink overflow-hidden gap-5">

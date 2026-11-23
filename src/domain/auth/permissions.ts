@@ -79,3 +79,17 @@ export function canManageSettings(permissions: PermissionKey[] | undefined): boo
 export function canRunImport(permissions: PermissionKey[] | undefined): boolean {
   return hasPermission(permissions, 'import.run');
 }
+
+export const ROUTE_PERMISSIONS: Partial<Record<string, PermissionKey>> = {
+  pos: 'pos.access',
+  'price-checker': 'price_checker.access',
+  'price-list': 'price.edit',
+  blends: 'cost.view',
+  purchases: 'cost.view',
+  suppliers: 'cost.view',
+  expenses: 'profit.view',
+  reports: 'report.view',
+  import: 'import.run',
+  users: 'user.manage',
+  settings: 'settings.manage',
+};

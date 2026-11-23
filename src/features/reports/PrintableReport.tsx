@@ -44,8 +44,8 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
   inventoryVal,
   shopSettings,
   currentUser,
-  allowCost = true,
-  allowProfit = true,
+  allowCost = false,
+  allowProfit = false,
 }) => {
   const shopName = shopSettings?.shopName || 'RAUHAAH';
   const subtitle = shopSettings?.invoiceSubtitle || 'Live Peaceful • Luxury Fragrances & Lifestyle';
@@ -174,7 +174,7 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
             {allowProfit ? formatBdt(pnl?.netProfitBdt || 0) : '••••••'}
           </div>
           <div className="text-[9px] font-semibold text-gray-700 mt-0.5">
-            Expenses: {formatBdt(pnl?.operatingExpensesBdt || 0)}
+            {allowProfit ? `Expenses: ${formatBdt(pnl?.operatingExpensesBdt || 0)}` : 'Hidden from role'}
           </div>
         </div>
       </div>
@@ -233,13 +233,17 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                   {allowProfit ? formatBdt(pnl?.grossProfitBdt || 0) : 'Hidden'}
                 </td>
                 <td className="py-2 px-3 text-gray-600 text-[10px]">
-                  Gross Margin: <strong className="text-black">{pnl?.grossMarginPercent || 0}%</strong>
+                  {allowProfit ? (
+                    <>Gross Margin: <strong className="text-black">{pnl?.grossMarginPercent || 0}%</strong></>
+                  ) : (
+                    'Margin: Hidden'
+                  )}
                 </td>
               </tr>
               <tr>
                 <td className="py-1.5 px-3 text-gray-700 pl-6">(-) Operating Expenses</td>
                 <td className="py-1.5 px-3 text-right font-mono text-red-600">
-                  -{formatBdt(pnl?.operatingExpensesBdt || 0)}
+                  {allowProfit ? `-${formatBdt(pnl?.operatingExpensesBdt || 0)}` : 'Hidden'}
                 </td>
                 <td className="py-1.5 px-3 text-gray-600 text-[10px]">Shop rent, utilities, staff, packaging, etc.</td>
               </tr>
@@ -249,7 +253,11 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                   {allowProfit ? formatBdt(pnl?.netProfitBdt || 0) : 'Hidden'}
                 </td>
                 <td className="py-2.5 px-3 text-gray-700 text-[10px]">
-                  Net Margin: <strong className="text-black">{pnl?.netMarginPercent || 0}%</strong>
+                  {allowProfit ? (
+                    <>Net Margin: <strong className="text-black">{pnl?.netMarginPercent || 0}%</strong></>
+                  ) : (
+                    'Margin: Hidden'
+                  )}
                 </td>
               </tr>
             </tbody>
@@ -268,7 +276,7 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
           </div>
 
           {/* Expense Categories Breakdown */}
-          {expenseCats.length > 0 && (
+          {allowProfit && expenseCats.length > 0 && (
             <div className="pt-2">
               <h3 className="text-[11px] font-bold text-gray-700 uppercase tracking-wide mb-1.5">
                 Expense Categories Breakdown

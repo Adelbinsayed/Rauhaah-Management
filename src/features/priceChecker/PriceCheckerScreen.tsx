@@ -8,7 +8,6 @@ import {
   ShoppingCart,
   CheckCircle2,
   AlertTriangle,
-  Lock,
   ChevronRight,
   Calculator,
   X,
@@ -16,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '@/app/store';
 import { catalogRepo } from '@/data/repositories/catalogRepo';
-import { canViewCost } from '@/domain/auth/permissions';
+import { hasPermission } from '@/domain/auth/permissions';
 import type { Category, Sellable } from '@/domain/catalog/types';
 import { formatBdt } from '@/features/reports/reportsUtils';
 
@@ -26,7 +25,7 @@ interface PriceCheckerScreenProps {
 
 export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
   const { permissions, setActiveRoute } = useAppStore();
-  const hasCostPermission = canViewCost(permissions);
+  const allowPos = hasPermission(permissions, 'pos.access');
 
   const [products, setProducts] = useState<Sellable[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -41,21 +40,22 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Load Catalog
+  // Load Catalog (customer-safe: never request cost fields)
   useEffect(() => {
     async function load() {
       try {
         setLoading(true);
         const [prodList, catList] = await Promise.all([
-          catalogRepo.getSellables(undefined, hasCostPermission),
+          catalogRepo.getSellables(undefined, false),
           catalogRepo.getCategories(),
         ]);
-        setProducts(prodList);
+        const activeProducts = prodList.filter((p) => p.isActive);
+        setProducts(activeProducts);
         setCategories(catList);
 
         // Preselect the first product if none selected
-        if (prodList.length > 0 && !selectedProduct) {
-          setSelectedProduct(prodList[0]);
+        if (activeProducts.length > 0 && !selectedProduct) {
+          setSelectedProduct(activeProducts[0]);
         }
       } catch (err) {
         console.error('Failed to load products for price checker:', err);
@@ -64,17 +64,27 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
       }
     }
     load();
-  }, [hasCostPermission]);
+  }, []);
 
   // Autofocus search on mount and hotkeys
   useEffect(() => {
     searchInputRef.current?.focus();
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (useAppStore.getState().isLocked) return;
+      const activeTag = document.activeElement?.tagName;
       if (e.key === 'Escape') {
+        if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') {
+          if (document.activeElement === searchInputRef.current) {
+            setSearchTerm('');
+          }
+          return;
+        }
         setSearchTerm('');
         searchInputRef.current?.focus();
-      } else if (e.key === 'F2' || (e.key === '/' && document.activeElement !== searchInputRef.current)) {
+      } else if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') {
+        return;
+      } else if (e.key === 'F2' || e.key === '/') {
         e.preventDefault();
         searchInputRef.current?.focus();
       }
@@ -98,6 +108,7 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
         (p) =>
           p.name.toLowerCase().includes(term) ||
           p.sku.toLowerCase().includes(term) ||
+          (p.brandName && p.brandName.toLowerCase().includes(term)) ||
           (p.barcode && p.barcode.toLowerCase().includes(term))
       );
     }
@@ -116,17 +127,21 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
   const isDecant = selectedProduct?.sellableType === 'loose_decant';
   const baseRate = selectedProduct?.retailPriceBdt || 0;
   const stockQty = selectedProduct?.primaryStockQuantity ?? 0;
+  const primaryComp =
+    selectedProduct?.components?.find((c) => c.isPrimary) ?? selectedProduct?.components?.[0];
+  const mlPerUnit = primaryComp && primaryComp.quantity > 0 ? primaryComp.quantity : 1;
+  const ratePerMl = isDecant ? baseRate / mlPerUnit : baseRate;
 
   // Compute preset ml pricing
-  const decant3mlPrice = isDecant ? Math.round(baseRate * (3 / (selectedProduct?.name.includes('12 ml') ? 12 : 1))) : 0;
-  const decant6mlPrice = isDecant ? Math.round(baseRate * (6 / (selectedProduct?.name.includes('12 ml') ? 12 : 1))) : 0;
-  const decant9mlPrice = isDecant ? Math.round(baseRate * (9 / (selectedProduct?.name.includes('12 ml') ? 12 : 1))) : 0;
-  const decant12mlPrice = isDecant ? Math.round(baseRate * (12 / (selectedProduct?.name.includes('12 ml') ? 12 : 1))) : 0;
+  const decant3mlPrice = isDecant ? Math.round(ratePerMl * 3) : 0;
+  const decant6mlPrice = isDecant ? Math.round(ratePerMl * 6) : 0;
+  const decant9mlPrice = isDecant ? Math.round(ratePerMl * 9) : 0;
+  const decant12mlPrice = isDecant ? Math.round(ratePerMl * 12) : 0;
 
   // Custom ML calculation
   const parsedCustomMl = Math.max(0, parseFloat(customMl) || 0);
   const customCalculatedPrice = isDecant
-    ? Math.round(baseRate * (parsedCustomMl / (selectedProduct?.name.includes('12 ml') ? 12 : 1)))
+    ? Math.round(ratePerMl * parsedCustomMl)
     : Math.round(baseRate * parsedCustomMl);
 
   if (loading) {
@@ -149,7 +164,7 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
               <span>Quick price &amp; decant checker</span>
             </h1>
             <p className="text-xs text-ink-muted mt-1">
-              Scan barcodes or search products to check retail rates, wholesale pricing, tola conversions, and stock availability
+              Scan barcodes or search products to check retail rates, tola conversions, and stock availability
             </p>
           </div>
 
@@ -232,29 +247,34 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
               {/* Top Identity */}
               <div className="space-y-2 pb-4 border-b border-hairline">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-accent/12 text-accent-ink border border-accent/25">
-                    {selectedProduct.categoryName || 'General Product'}
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-accent/12 text-accent-ink border border-accent/25">
+                      {selectedProduct.categoryName || 'General Product'}
+                    </span>
+                    {selectedProduct.brandName && (
+                      <span className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-raised text-ink-secondary border border-hairline">
+                        {selectedProduct.brandName}
+                      </span>
+                    )}
+                  </div>
 
-                  {/* Stock Status Badge */}
+                  {/* Stock Status Badge (Customer-safe: no exact quantity) */}
                   <span
                     className={`px-2.5 py-0.5 rounded-md text-xs font-medium flex items-center gap-1.5 border ${
                       stockQty <= 0
                         ? 'bg-negative/10 text-negative border-negative/25'
-                        : stockQty <= 10
-                        ? 'bg-warning/10 text-warning border-warning/25'
                         : 'bg-positive/10 text-positive border-positive/25'
                     }`}
                   >
                     {stockQty <= 0 ? (
                       <>
                         <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} />
-                        Out of stock
+                        Out of Stock
                       </>
                     ) : (
                       <>
                         <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} />
-                        <span className="tabular-nums">In stock: {stockQty} {isDecant ? 'ml' : 'pcs'}</span>
+                        <span>In Stock</span>
                       </>
                     )}
                   </span>
@@ -398,52 +418,18 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
                 </div>
               )}
 
-              {/* Wholesale & Commercial Guardrails */}
-              <div className="p-3.5 rounded-lg bg-raised border border-hairline space-y-2 text-xs">
-                <div className="flex items-center justify-between pb-2 border-b border-hairline">
-                  <span className="text-ink-muted font-medium">Wholesale rate</span>
-                  <span className="font-medium text-ink font-mono tabular-nums">
-                    {selectedProduct.wholesalePriceBdt
-                      ? formatBdt(selectedProduct.wholesalePriceBdt)
-                      : 'None set'}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between pb-2 border-b border-hairline">
-                  <span className="text-ink-muted font-medium">Minimum allowed price</span>
-                  <span className="font-medium text-accent-ink font-mono tabular-nums">
-                    {selectedProduct.minPriceBdt
-                      ? formatBdt(selectedProduct.minPriceBdt)
-                      : formatBdt(selectedProduct.retailPriceBdt)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-ink-muted font-medium">Cost price</span>
-                  {hasCostPermission ? (
-                    <span className="font-medium text-ink-secondary font-mono tabular-nums">
-                      {selectedProduct.calculatedCostBdt
-                        ? formatBdt(selectedProduct.calculatedCostBdt)
-                        : '৳0.00'}
-                    </span>
-                  ) : (
-                    <span className="text-ink-muted flex items-center gap-1 text-xs">
-                      <Lock className="w-3.5 h-3.5 text-accent-ink" strokeWidth={1.5} /> Hidden (Admin)
-                    </span>
-                  )}
-                </div>
-              </div>
-
               {/* Quick POS Navigation Shortcut */}
-              <button
-                type="button"
-                onClick={() => setActiveRoute('pos')}
-                className="w-full py-2.5 px-4 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs transition-colors duration-150 ease-unslop flex items-center justify-center gap-2"
-              >
-                <ShoppingCart className="w-4 h-4" strokeWidth={1.75} />
-                <span>Open POS Register to Sell</span>
-                <ChevronRight className="w-4 h-4" strokeWidth={1.75} />
-              </button>
+              {allowPos && (
+                <button
+                  type="button"
+                  onClick={() => setActiveRoute('pos')}
+                  className="w-full py-2.5 px-4 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs transition-colors duration-150 ease-unslop flex items-center justify-center gap-2"
+                >
+                  <ShoppingCart className="w-4 h-4" strokeWidth={1.75} />
+                  <span>Open POS Register to Sell</span>
+                  <ChevronRight className="w-4 h-4" strokeWidth={1.75} />
+                </button>
+              )}
             </div>
           ) : (
             <div className="p-12 rounded-xl bg-surface border border-hairline text-center text-ink-muted space-y-3">
@@ -471,8 +457,7 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
                     <th className="py-3 px-3.5">Product name</th>
                     <th className="py-3 px-3.5">Category</th>
                     <th className="py-3 px-3.5 text-right">Retail rate</th>
-                    <th className="py-3 px-3.5 text-right">Wholesale</th>
-                    <th className="py-3 px-3.5 text-right">Stock</th>
+                    <th className="py-3 px-3.5 text-right">Availability</th>
                     <th className="py-3 px-3 text-center">Action</th>
                   </tr>
                 </thead>
@@ -510,20 +495,15 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
                         <td className="py-3 px-3.5 text-right font-medium text-ink font-mono tabular-nums">
                           {formatBdt(prod.retailPriceBdt)}
                         </td>
-                        <td className="py-3 px-3.5 text-right font-medium text-ink-secondary font-mono tabular-nums">
-                          {prod.wholesalePriceBdt ? formatBdt(prod.wholesalePriceBdt) : '—'}
-                        </td>
-                        <td className="py-3 px-3.5 text-right font-mono tabular-nums">
+                        <td className="py-3 px-3.5 text-right">
                           <span
-                            className={
+                            className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-medium border ${
                               stock <= 0
-                                ? 'text-negative font-medium'
-                                : stock <= 10
-                                ? 'text-warning font-medium'
-                                : 'text-positive'
-                            }
+                                ? 'bg-negative/10 text-negative border-negative/25'
+                                : 'bg-positive/10 text-positive border-positive/25'
+                            }`}
                           >
-                            {stock} {prod.sellableType === 'loose_decant' ? 'ml' : 'pcs'}
+                            {stock <= 0 ? 'Out of Stock' : 'In Stock'}
                           </span>
                         </td>
                         <td className="py-3 px-3 text-center">
@@ -547,7 +527,7 @@ export const PriceCheckerScreen: React.FC<PriceCheckerScreenProps> = () => {
                   })}
                   {filteredProducts.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-ink-muted">
+                      <td colSpan={5} className="py-12 text-center text-ink-muted">
                         No products match &ldquo;{searchTerm}&rdquo;. Try another name or clear search.
                       </td>
                     </tr>

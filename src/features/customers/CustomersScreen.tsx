@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { customersRepo } from '@/data/repositories/customersRepo';
 import { useAppStore } from '@/app/store';
+import { canManageUsers, hasPermission } from '@/domain/auth/permissions';
 import { downloadCsv } from '@/features/reports/reportsUtils';
 import { MetricCard } from '@/components/ui';
 import { formatBdtAmount } from '@/lib/money';
@@ -27,7 +28,9 @@ interface CustomersScreenProps {
 }
 
 export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) => {
-  const { currentUser, showToast } = useAppStore();
+  const { currentUser, permissions, showToast } = useAppStore();
+  const canDeleteCustomer =
+    hasPermission(permissions, 'stock.adjust') || canManageUsers(permissions);
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -165,16 +168,28 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
   };
 
   // Delete Customer
-  const handleDeleteCustomer = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to remove customer "${name}"?`)) {
+  const handleDeleteCustomer = async (cust: Customer) => {
+    if (!canDeleteCustomer) return;
+    if (cust.dueBalanceBdt > 0.01) {
+      showToast({
+        type: 'error',
+        message: `Cannot delete customer with an unpaid due balance of ৳${cust.dueBalanceBdt.toFixed(2)}.`,
+      });
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to remove customer "${cust.name}"?`)) {
       return;
     }
     try {
-      await customersRepo.deleteCustomer(id, deviceId);
+      await customersRepo.deleteCustomer(cust.id, deviceId);
       await loadCustomers();
-      if (selectedCustomerId === id) setSelectedCustomerId(null);
+      if (selectedCustomerId === cust.id) setSelectedCustomerId(null);
     } catch (err) {
       console.error('Failed to delete customer:', err);
+      showToast({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Failed to delete customer.',
+      });
     }
   };
 
@@ -492,14 +507,16 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
                           <Edit2 className="w-3.5 h-3.5" strokeWidth={1.5} />
                         </button>
 
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteCustomer(c.id, c.name)}
-                          className="p-1.5 rounded-lg border border-hairline bg-raised text-ink-muted hover:text-negative hover:border-negative/40 transition-colors duration-150 ease-unslop"
-                          title="Delete Customer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
-                        </button>
+                        {canDeleteCustomer && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCustomer(c)}
+                            className="p-1.5 rounded-lg border border-hairline bg-raised text-ink-muted hover:text-negative hover:border-negative/40 transition-colors duration-150 ease-unslop"
+                            title="Delete Customer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

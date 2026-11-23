@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useAppStore, type NavRoute } from '@/app/store';
 import { dashboardRepo } from '@/data/repositories/dashboardRepo';
-import { canViewCost } from '@/domain/auth/permissions';
+import { canViewCost, canViewProfit, hasPermission } from '@/domain/auth/permissions';
 import type {
   DashboardSummary,
   LowStockItem,
@@ -42,7 +42,11 @@ type TimeframePreset = 'today' | 'yesterday' | 'week' | 'month' | 'all';
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   const { currentUser, permissions, setActiveRoute, shopSettings } = useAppStore();
-  const hasCostPermission = canViewCost(permissions);
+  const allowCost = canViewCost(permissions);
+  const allowProfit = canViewProfit(permissions);
+  const allowReports = hasPermission(permissions, 'report.view');
+  const allowPos = hasPermission(permissions, 'pos.access');
+  const allowPriceChecker = hasPermission(permissions, 'price_checker.access');
 
   const [timeframe, setTimeframe] = useState<TimeframePreset>('today');
   const [loading, setLoading] = useState(true);
@@ -64,7 +68,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
         const { startDateIso: start, endDateIso: end, label } = bounds;
 
         const [sum, lowStock, top, recent, shares] = await Promise.all([
-          dashboardRepo.getSummary(start, end, label, hasCostPermission),
+          dashboardRepo.getSummary(start, end, label, allowProfit),
           dashboardRepo.getLowStockAlerts(8),
           dashboardRepo.getTopSelling(start, end, 6),
           dashboardRepo.getRecentSales(8),
@@ -83,7 +87,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
         setRefreshing(false);
       }
     },
-    [timeframe, hasCostPermission]
+    [timeframe, allowProfit]
   );
 
   useEffect(() => {
@@ -165,41 +169,49 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
 
       {/* Quick Action Navigation Hub */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-        <button
-          type="button"
-          onClick={() => handleNavigate('pos')}
-          className="flex flex-col items-center justify-center p-4 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs transition-colors duration-150 ease-unslop"
-        >
-          <ShoppingCart className="w-4 h-4 mb-2" strokeWidth={1.75} />
-          <span>New Sale (POS)</span>
-        </button>
+        {allowPos && (
+          <button
+            type="button"
+            onClick={() => handleNavigate('pos')}
+            className="flex flex-col items-center justify-center p-4 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs transition-colors duration-150 ease-unslop"
+          >
+            <ShoppingCart className="w-4 h-4 mb-2" strokeWidth={1.75} />
+            <span>New Sale (POS)</span>
+          </button>
+        )}
 
-        <button
-          type="button"
-          onClick={() => handleNavigate('price-checker')}
-          className="flex flex-col items-center justify-center p-4 rounded-xl bg-surface hover:bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs transition-colors duration-150 ease-unslop"
-        >
-          <Search className="w-4 h-4 mb-2 text-accent-ink" strokeWidth={1.5} />
-          <span>Price Checker</span>
-        </button>
+        {allowPriceChecker && (
+          <button
+            type="button"
+            onClick={() => handleNavigate('price-checker')}
+            className="flex flex-col items-center justify-center p-4 rounded-xl bg-surface hover:bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs transition-colors duration-150 ease-unslop"
+          >
+            <Search className="w-4 h-4 mb-2 text-accent-ink" strokeWidth={1.5} />
+            <span>Price Checker</span>
+          </button>
+        )}
 
-        <button
-          type="button"
-          onClick={() => handleNavigate('purchases')}
-          className="flex flex-col items-center justify-center p-4 rounded-xl bg-surface hover:bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs transition-colors duration-150 ease-unslop"
-        >
-          <ShoppingBag className="w-4 h-4 mb-2 text-ink-muted" strokeWidth={1.5} />
-          <span>Stock Intake</span>
-        </button>
+        {allowCost && (
+          <button
+            type="button"
+            onClick={() => handleNavigate('purchases')}
+            className="flex flex-col items-center justify-center p-4 rounded-xl bg-surface hover:bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs transition-colors duration-150 ease-unslop"
+          >
+            <ShoppingBag className="w-4 h-4 mb-2 text-ink-muted" strokeWidth={1.5} />
+            <span>Stock Intake</span>
+          </button>
+        )}
 
-        <button
-          type="button"
-          onClick={() => handleNavigate('expenses')}
-          className="flex flex-col items-center justify-center p-4 rounded-xl bg-surface hover:bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs transition-colors duration-150 ease-unslop"
-        >
-          <Wallet className="w-4 h-4 mb-2 text-ink-muted" strokeWidth={1.5} />
-          <span>Daily Expense</span>
-        </button>
+        {allowProfit && (
+          <button
+            type="button"
+            onClick={() => handleNavigate('expenses')}
+            className="flex flex-col items-center justify-center p-4 rounded-xl bg-surface hover:bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs transition-colors duration-150 ease-unslop"
+          >
+            <Wallet className="w-4 h-4 mb-2 text-ink-muted" strokeWidth={1.5} />
+            <span>Daily Expense</span>
+          </button>
+        )}
 
         <button
           type="button"
@@ -210,14 +222,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
           <span>Customer Dues</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => handleNavigate('reports')}
-          className="flex flex-col items-center justify-center p-4 rounded-xl bg-surface hover:bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs transition-colors duration-150 ease-unslop"
-        >
-          <FileText className="w-4 h-4 mb-2 text-ink-muted" strokeWidth={1.5} />
-          <span>Financial Reports</span>
-        </button>
+        {allowReports && (
+          <button
+            type="button"
+            onClick={() => handleNavigate('reports')}
+            className="flex flex-col items-center justify-center p-4 rounded-xl bg-surface hover:bg-raised border border-hairline hover:border-hairline-strong text-ink font-medium text-xs transition-colors duration-150 ease-unslop"
+          >
+            <FileText className="w-4 h-4 mb-2 text-ink-muted" strokeWidth={1.5} />
+            <span>Financial Reports</span>
+          </button>
+        )}
       </div>
 
       {/* KPI Cards Grid */}
@@ -246,16 +260,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-ink-muted">
-                {hasCostPermission ? `Net profit (${summary?.dateRangeLabel})` : 'Items sold'}
+                {allowProfit ? `Net profit (${summary?.dateRangeLabel})` : 'Items sold'}
               </span>
-              {hasCostPermission ? (
+              {allowProfit ? (
                 <DollarSign className="w-4 h-4 text-ink-muted" strokeWidth={1.5} />
               ) : (
                 <Package className="w-4 h-4 text-ink-muted" strokeWidth={1.5} />
               )}
             </div>
             <div className="text-2xl font-medium text-ink font-mono tabular-nums">
-              {hasCostPermission ? (
+              {allowProfit ? (
                 formatBdt(summary?.netProfitBdt || 0)
               ) : (
                 `${summary?.itemsSoldCount || 0} units`
@@ -263,7 +277,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
             </div>
           </div>
           <div className="pt-4 mt-4 border-t border-hairline flex items-center justify-between text-xs text-ink-muted tabular-nums">
-            {hasCostPermission ? (
+            {allowProfit ? (
               <>
                 <span className="text-positive font-medium">
                   Margin {summary?.grossMarginPercent || 0}%
@@ -296,10 +310,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={1.5} />
               In {formatBdt((summary?.cashSalesBdt || 0) + (summary?.customerDuesCollectedCashBdt || 0))}
             </span>
-            <span className="text-negative flex items-center gap-1">
-              <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={1.5} />
-              Out {formatBdt(summary?.cashExpensesBdt || 0)}
-            </span>
+            {allowProfit && (
+              <span className="text-negative flex items-center gap-1">
+                <ArrowDownRight className="w-3.5 h-3.5" strokeWidth={1.5} />
+                Out {formatBdt(summary?.cashExpensesBdt || 0)}
+              </span>
+            )}
           </div>
         </div>
 
@@ -389,13 +405,15 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                           Min {item.minAlertQuantity} {item.unitCode}
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleNavigate('purchases')}
-                        className="px-2.5 py-1.5 rounded-lg bg-raised hover:border-hairline-strong border border-hairline text-accent-ink font-medium text-xs transition-colors duration-150 ease-unslop"
-                      >
-                        + Restock
-                      </button>
+                      {allowCost && (
+                        <button
+                          type="button"
+                          onClick={() => handleNavigate('purchases')}
+                          className="px-2.5 py-1.5 rounded-lg bg-raised hover:border-hairline-strong border border-hairline text-accent-ink font-medium text-xs transition-colors duration-150 ease-unslop"
+                        >
+                          + Restock
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -524,16 +542,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               <span>Quick price lookup</span>
             </div>
             <p className="text-xs text-ink-secondary leading-relaxed">
-              Use the Quick Price Checker to scan bottles, check tola conversions, wholesale margins, and available stock without touching an active cart.
+              Use the Quick Price Checker to scan bottles, check tola conversions, retail prices, and stock availability without touching an active cart.
             </p>
-            <button
-              type="button"
-              onClick={() => handleNavigate('price-checker')}
-              className="w-full py-2.5 px-3 rounded-lg bg-raised hover:border-hairline-strong border border-hairline text-ink font-medium text-xs transition-colors duration-150 ease-unslop flex items-center justify-center gap-2"
-            >
-              <span>Open Price Checker</span>
-              <ChevronRight className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
-            </button>
+            {allowPriceChecker && (
+              <button
+                type="button"
+                onClick={() => handleNavigate('price-checker')}
+                className="w-full py-2.5 px-3 rounded-lg bg-raised hover:border-hairline-strong border border-hairline text-ink font-medium text-xs transition-colors duration-150 ease-unslop flex items-center justify-center gap-2"
+              >
+                <span>Open Price Checker</span>
+                <ChevronRight className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
+              </button>
+            )}
           </div>
         </div>
       </div>

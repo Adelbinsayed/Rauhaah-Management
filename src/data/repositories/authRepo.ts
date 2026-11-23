@@ -391,6 +391,53 @@ export const authRepo = {
     performedByUserId: string,
     performedByUsername: string
   ): Promise<void> {
+    if (id === performedByUserId && updates.isActive === false) {
+      throw new Error('You cannot deactivate your own account.');
+    }
+
+    const targetRows = await dbQuery<{
+      id: string;
+      role_id: string;
+      role_name: RoleName;
+      is_active: number;
+    }>(
+      `SELECT u.id, u.role_id, r.name as role_name, u.is_active
+       FROM users u
+       JOIN roles r ON r.id = u.role_id
+       WHERE u.id = ? AND u.deleted_at IS NULL
+       LIMIT 1`,
+      [id]
+    );
+    const targetUser = targetRows[0];
+    if (!targetUser) {
+      throw new Error('User not found.');
+    }
+
+    if (targetUser.role_name === 'owner' && targetUser.is_active === 1) {
+      let isDemoting = false;
+      if (updates.roleId !== undefined && updates.roleId !== targetUser.role_id) {
+        const newRoleRows = await dbQuery<{ name: RoleName }>(
+          'SELECT name FROM roles WHERE id = ? AND deleted_at IS NULL LIMIT 1',
+          [updates.roleId]
+        );
+        if (newRoleRows[0]?.name !== 'owner') {
+          isDemoting = true;
+        }
+      }
+
+      if (isDemoting || updates.isActive === false) {
+        const ownerCountRows = await dbQuery<{ count: number }>(
+          `SELECT COUNT(*) as count
+           FROM users u
+           JOIN roles r ON r.id = u.role_id
+           WHERE r.name = 'owner' AND u.is_active = 1 AND u.deleted_at IS NULL`
+        );
+        if ((ownerCountRows[0]?.count ?? 0) <= 1) {
+          throw new Error('Cannot deactivate or demote the last active owner.');
+        }
+      }
+    }
+
     const now = nowUtcIso();
     const sets: string[] = ['updated_at = ?', 'device_id = ?'];
     const params: (string | number | null)[] = [now, deviceId];

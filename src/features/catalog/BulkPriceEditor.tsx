@@ -12,12 +12,14 @@ interface BulkPriceEditorProps {
   sellables: Sellable[];
   onSavePrices: (items: BulkPriceUpdateItem[]) => Promise<void>;
   canViewCost: boolean;
+  canEdit: boolean;
 }
 
 export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
   sellables,
   onSavePrices,
   canViewCost,
+  canEdit,
 }) => {
   const [editedPrices, setEditedPrices] = useState<
     Record<
@@ -58,6 +60,7 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
     field: 'retailPrice' | 'wholesalePrice' | 'minPrice',
     val: number
   ) => {
+    if (!canEdit) return;
     setEditedPrices((prev) => {
       const orig = sellables.find((s) => s.id === id);
       if (!orig) return prev;
@@ -82,6 +85,7 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
   };
 
   const applyMarkupToAll = () => {
+    if (!canEdit) return;
     const pct = parseFloat(markupPercent);
     if (isNaN(pct)) return;
 
@@ -133,6 +137,7 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
   };
 
   const handleSave = async () => {
+    if (!canEdit) return;
     const changedItems: BulkPriceUpdateItem[] = [];
     for (const s of sellables) {
       const p = editedPrices[s.id];
@@ -191,7 +196,8 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
           <select
             value={markupTarget}
             onChange={(e) => setMarkupTarget(e.target.value as 'retail' | 'wholesale')}
-            className="px-3 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink focus:outline-none focus:border-accent"
+            disabled={!canEdit}
+            className="px-3 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink focus:outline-none focus:border-accent disabled:opacity-50"
           >
             <option value="retail">Adjust Retail Price</option>
             <option value="wholesale">Adjust Wholesale Price</option>
@@ -201,7 +207,8 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
             <select
               value={markupBase}
               onChange={(e) => setMarkupBase(e.target.value as 'wholesale' | 'current')}
-              className="px-3 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink focus:outline-none focus:border-accent"
+              disabled={!canEdit}
+              className="px-3 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink focus:outline-none focus:border-accent disabled:opacity-50"
             >
               <option value="current">Based on Current Retail</option>
               <option value="wholesale">Based on Wholesale Price</option>
@@ -215,7 +222,8 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
               step="any"
               value={markupPercent}
               onChange={(e) => setMarkupPercent(e.target.value)}
-              className="w-12 bg-transparent text-xs text-ink font-mono tabular-nums focus:outline-none"
+              disabled={!canEdit}
+              className="w-12 bg-transparent text-xs text-ink font-mono tabular-nums focus:outline-none disabled:opacity-50"
             />
             <span className="text-xs text-ink-muted">%</span>
           </div>
@@ -223,7 +231,8 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
           <button
             type="button"
             onClick={applyMarkupToAll}
-            className="px-3 py-1.5 rounded-lg bg-raised hover:border-hairline-strong text-ink text-xs font-medium border border-hairline transition-colors duration-150 ease-unslop"
+            disabled={!canEdit}
+            className="px-3 py-1.5 rounded-lg bg-raised hover:border-hairline-strong text-ink text-xs font-medium border border-hairline transition-colors duration-150 ease-unslop disabled:opacity-40"
           >
             Apply to All
           </button>
@@ -262,8 +271,9 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
             type="text"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
+            disabled={!canEdit}
             placeholder="Reason for revision (saved to audit history)"
-            className="px-3 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink placeholder-ink-muted w-64 focus:outline-none focus:border-accent"
+            className="px-3 py-1.5 bg-raised border border-hairline rounded-lg text-xs text-ink placeholder-ink-muted w-64 focus:outline-none focus:border-accent disabled:opacity-50"
           />
         </div>
 
@@ -271,7 +281,7 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
           <button
             type="button"
             onClick={handleReset}
-            disabled={changedCount === 0 || saving}
+            disabled={!canEdit || changedCount === 0 || saving}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-hairline bg-raised text-ink-secondary hover:text-ink text-xs font-medium disabled:opacity-40"
           >
             <RotateCcw className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -280,7 +290,7 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
           <button
             type="button"
             onClick={handleSave}
-            disabled={changedCount === 0 || saving}
+            disabled={!canEdit || changedCount === 0 || saving}
             className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs disabled:opacity-40 transition-colors duration-150 ease-unslop tabular-nums"
           >
             <Save className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -346,11 +356,12 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
                       type="number"
                       step="any"
                       min="0"
+                      disabled={!canEdit}
                       value={state.retailPrice}
                       onChange={(e) =>
                         handlePriceChange(s.id, 'retailPrice', parseFloat(e.target.value))
                       }
-                      className={`w-24 text-right px-2 py-1 rounded bg-raised border font-mono tabular-nums text-xs focus:outline-none ${
+                      className={`w-24 text-right px-2 py-1 rounded bg-raised border font-mono tabular-nums text-xs focus:outline-none disabled:opacity-50 ${
                         state.retailPrice !== s.retailPriceBdt
                           ? 'border-accent text-accent-ink font-semibold'
                           : 'border-hairline text-ink'
@@ -362,11 +373,12 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
                       type="number"
                       step="any"
                       min="0"
+                      disabled={!canEdit}
                       value={state.wholesalePrice}
                       onChange={(e) =>
                         handlePriceChange(s.id, 'wholesalePrice', parseFloat(e.target.value))
                       }
-                      className={`w-24 text-right px-2 py-1 rounded bg-raised border font-mono tabular-nums text-xs focus:outline-none ${
+                      className={`w-24 text-right px-2 py-1 rounded bg-raised border font-mono tabular-nums text-xs focus:outline-none disabled:opacity-50 ${
                         state.wholesalePrice !== s.wholesalePriceBdt
                           ? 'border-accent text-accent-ink font-semibold'
                           : 'border-hairline text-ink'
@@ -378,11 +390,12 @@ export const BulkPriceEditor: React.FC<BulkPriceEditorProps> = ({
                       type="number"
                       step="any"
                       min="0"
+                      disabled={!canEdit}
                       value={state.minPrice}
                       onChange={(e) =>
                         handlePriceChange(s.id, 'minPrice', parseFloat(e.target.value))
                       }
-                      className="w-24 text-right px-2 py-1 rounded bg-raised border border-hairline font-mono tabular-nums text-xs text-ink-muted focus:outline-none focus:border-accent"
+                      className="w-24 text-right px-2 py-1 rounded bg-raised border border-hairline font-mono tabular-nums text-xs text-ink-muted focus:outline-none focus:border-accent disabled:opacity-50"
                     />
                   </td>
                   {canViewCost && (

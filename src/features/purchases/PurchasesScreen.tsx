@@ -1,5 +1,6 @@
 import { useAppStore } from '@/app/store';
 import { purchasesRepo } from '@/data/repositories/purchasesRepo';
+import { canViewCost } from '@/domain/auth/permissions';
 import type { Purchase, StockItemLookup, Supplier } from '@/domain/purchases/types';
 import { calculateDateRange } from '@/lib/dates';
 import {
@@ -8,6 +9,7 @@ import {
   Layers,
   Plus,
   Search,
+  ShieldAlert,
   ShoppingBag,
   Truck,
 } from 'lucide-react';
@@ -20,7 +22,8 @@ interface PurchasesScreenProps {
 }
 
 export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ deviceId }) => {
-  const { currentUser } = useAppStore();
+  const { currentUser, permissions } = useAppStore();
+  const allowCost = canViewCost(permissions);
 
   // List states
   const [purchases, setPurchases] = useState<Purchase[]>([]);
@@ -67,8 +70,12 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ deviceId }) =>
   };
 
   useEffect(() => {
+    if (!allowCost) {
+      setLoading(false);
+      return;
+    }
     loadData();
-  }, [startDate, endDate, supplierFilter, searchQuery]);
+  }, [startDate, endDate, supplierFilter, searchQuery, allowCost]);
 
   // Handle Preset changes
   const handlePresetChange = (preset: 'today' | '7days' | 'month' | 'all') => {
@@ -99,6 +106,20 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ deviceId }) =>
     const totalDue = totalSpent - totalPaid;
     return { count: purchases.length, totalSpent, totalDue };
   }, [purchases]);
+
+  if (!allowCost) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto">
+        <div className="w-12 h-12 rounded-full bg-negative/15 border border-negative/25 text-negative flex items-center justify-center mb-4">
+          <ShieldAlert className="w-6 h-6" strokeWidth={1.5} />
+        </div>
+        <h2 className="text-lg font-semibold text-ink">Access Denied</h2>
+        <p className="text-xs text-ink-secondary mt-1">
+          Only accounts with the <code>cost.view</code> permission can access purchases and stock intake.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

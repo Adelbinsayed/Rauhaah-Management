@@ -108,8 +108,11 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const allowManageSettings = canManageSettings(permissions);
+
   // Load initial settings
   useEffect(() => {
+    if (!allowManageSettings) return;
     async function load() {
       try {
         const s = await settingsRepo.getSettings();
@@ -144,7 +147,7 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
     }
     load();
     loadPrintersList();
-  }, [setShopSettings]);
+  }, [setShopSettings, allowManageSettings]);
 
   // Load printers
   const loadPrintersList = async () => {
@@ -168,6 +171,7 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
 
   // Load audit or backup when respective tab is active
   useEffect(() => {
+    if (!allowManageSettings) return;
     if (activeTab === 'audit') {
       setLoadingAudit(true);
       authRepo
@@ -178,7 +182,7 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
     } else if (activeTab === 'backup') {
       loadBackupData();
     }
-  }, [activeTab]);
+  }, [activeTab, allowManageSettings]);
 
   const loadBackupData = async () => {
     setLoadingBackups(true);
@@ -196,7 +200,7 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
     }
   };
 
-  if (!canManageSettings(permissions)) {
+  if (!allowManageSettings) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto">
         <div className="w-12 h-12 rounded-full bg-negative/15 border border-negative/25 text-negative flex items-center justify-center mb-4">

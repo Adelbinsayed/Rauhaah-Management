@@ -68,13 +68,13 @@ export const RestockModal: React.FC<RestockModalProps> = ({
 
   // Pricing calculations
   const qty = parseFloat(addedQuantity) || 0;
-  const cost = parseFloat(totalCostPaid) || 0;
+  const cost = canViewCost ? (parseFloat(totalCostPaid) || 0) : 0;
   const overhead = parseFloat(overheadPercent) || 0;
   const margin = parseFloat(marginPercent) || 0;
 
-  const baseRate = qty > 0 ? cost / qty : 0;
-  const trueCostRate = baseRate * (1 + overhead / 100);
-  const recommendedSellRate = Math.round(trueCostRate * (1 + margin / 100));
+  const baseRate = canViewCost && qty > 0 ? cost / qty : 0;
+  const trueCostRate = canViewCost ? baseRate * (1 + overhead / 100) : 0;
+  const recommendedSellRate = canViewCost ? Math.round(trueCostRate * (1 + margin / 100)) : 0;
 
   if (!isOpen) return null;
 
@@ -106,7 +106,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
         selectedSellableId,
         qty,
         cost,
-        updatePrice && recommendedSellRate > 0 ? recommendedSellRate : undefined
+        canViewCost && updatePrice && recommendedSellRate > 0 ? recommendedSellRate : undefined
       );
       onClose();
       // Reset form
@@ -290,24 +290,26 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                   </span>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-ink-secondary mb-1">
-                    Total invoice cost paid (৳) *
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    min="0"
-                    required
-                    value={totalCostPaid}
-                    onChange={(e) => setTotalCostPaid(e.target.value)}
-                    placeholder="10000"
-                    className="w-full px-3 py-2 bg-surface border border-hairline rounded-lg text-sm text-ink font-mono tabular-nums focus:outline-none focus:border-accent"
-                  />
-                  <span className="text-[11px] text-ink-muted mt-0.5 block">
-                    Total paid to supplier for this batch
-                  </span>
-                </div>
+                {canViewCost && (
+                  <div>
+                    <label className="block text-xs font-medium text-ink-secondary mb-1">
+                      Total invoice cost paid (৳) *
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      required
+                      value={totalCostPaid}
+                      onChange={(e) => setTotalCostPaid(e.target.value)}
+                      placeholder="10000"
+                      className="w-full px-3 py-2 bg-surface border border-hairline rounded-lg text-sm text-ink font-mono tabular-nums focus:outline-none focus:border-accent"
+                    />
+                    <span className="text-[11px] text-ink-muted mt-0.5 block">
+                      Total paid to supplier for this batch
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Automatic Math Breakdown (Owner/Manager only) */}
@@ -355,7 +357,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
               )}
 
               {/* Live Price Comparison and Update Toggle */}
-              {recommendedSellRate > 0 && (
+              {canViewCost && recommendedSellRate > 0 && (
                 <div className="p-3 rounded-lg bg-surface border border-hairline space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-ink-muted">Current benchmark price</span>

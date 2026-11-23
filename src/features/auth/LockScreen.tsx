@@ -24,8 +24,9 @@ export function LockScreen({ deviceId: _deviceId }: LockScreenProps) {
 
     try {
       const dbUser = await authRepo.findUserByUsername(currentUser.username);
-      if (!dbUser) {
-        setError('User record not found.');
+      if (!dbUser || dbUser.is_active !== 1) {
+        setError('Account is inactive or unavailable.');
+        setSecret('');
         setLoading(false);
         return;
       }
@@ -40,19 +41,22 @@ export function LockScreen({ deviceId: _deviceId }: LockScreenProps) {
       }
 
       if (ok) {
+        setSecret('');
         unlockSession();
       } else {
         setError('Incorrect PIN or password.');
+        setSecret('');
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
+      setSecret('');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-canvas/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-ink select-none">
+    <div className="fixed inset-0 z-[100] bg-canvas/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-ink select-none">
       <div className="w-full max-w-sm bg-surface border border-hairline-strong rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-none p-7 space-y-6 text-center">
         {/* User Icon & Lock Badge */}
         <div className="relative inline-block mx-auto">

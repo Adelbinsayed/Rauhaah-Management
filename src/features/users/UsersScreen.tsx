@@ -66,11 +66,17 @@ export function UsersScreen({ deviceId }: UsersScreenProps) {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const allowManageUsers = canManageUsers(permissions);
 
-  if (!canManageUsers(permissions)) {
+  useEffect(() => {
+    if (!allowManageUsers) {
+      setLoading(false);
+      return;
+    }
+    loadData();
+  }, [allowManageUsers]);
+
+  if (!allowManageUsers) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto">
         <div className="w-12 h-12 rounded-full bg-negative/15 border border-negative/25 text-negative flex items-center justify-center mb-4">

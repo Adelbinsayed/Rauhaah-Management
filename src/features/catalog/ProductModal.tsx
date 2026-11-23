@@ -66,14 +66,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   // Real-time automatic math
   const qty = parseFloat(quantityBought) || 0;
-  const totalCost = parseFloat(purchaseCostTotal) || 0;
+  const totalCost = canViewCost ? (parseFloat(purchaseCostTotal) || 0) : 0;
   const overhead = parseFloat(overheadPercent) || 0;
   const margin = parseFloat(marginPercent) || 0;
 
-  const baseRate = qty > 0 ? totalCost / qty : 0;
-  const trueCostRate = baseRate * (1 + overhead / 100);
-  const autoIdealSellRate = Math.round(trueCostRate * (1 + margin / 100));
-  const autoWholesaleRate = Math.round(autoIdealSellRate * 0.85);
+  const baseRate = canViewCost && qty > 0 ? totalCost / qty : 0;
+  const trueCostRate = canViewCost ? baseRate * (1 + overhead / 100) : 0;
+  const autoIdealSellRate = canViewCost ? Math.round(trueCostRate * (1 + margin / 100)) : 0;
+  const autoWholesaleRate = canViewCost ? Math.round(autoIdealSellRate * 0.85) : 0;
 
   const displayRetail = customRetailPrice !== null ? customRetailPrice : (autoIdealSellRate > 0 ? String(autoIdealSellRate) : '');
   const displayWholesale = customWholesalePrice !== null ? customWholesalePrice : (autoWholesaleRate > 0 ? String(autoWholesaleRate) : '');
@@ -138,8 +138,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         sellableType,
         retailPriceBdt: rPrice,
         wholesalePriceBdt: wPrice,
-        minPriceBdt: Math.round(trueCostRate),
-        costPriceBdt: Math.round(trueCostRate * 100) / 100,
+        minPriceBdt: canViewCost ? Math.round(trueCostRate) : 0,
+        costPriceBdt: canViewCost ? Math.round(trueCostRate * 100) / 100 : 0,
         initialQuantity: qty,
         minAlertQuantity: productKind === 'oil' ? 20 : 5,
         unitId: selectedUnitId,
@@ -328,22 +328,24 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 <span className="text-[11px] text-ink-muted mt-0.5 block">Quantity added to inventory</span>
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-ink-secondary mb-1">
-                  Total purchase cost paid (৳) *
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  min="0"
-                  required
-                  value={purchaseCostTotal}
-                  onChange={(e) => handleCostChange(e.target.value)}
-                  placeholder="10000"
-                  className="w-full px-3 py-2 bg-surface border border-hairline rounded-lg text-sm text-ink font-mono tabular-nums focus:outline-none focus:border-accent"
-                />
-                <span className="text-[11px] text-ink-muted mt-0.5 block">Total paid to supplier</span>
-              </div>
+              {canViewCost && (
+                <div>
+                  <label className="block text-xs font-medium text-ink-secondary mb-1">
+                    Total purchase cost paid (৳) *
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    min="0"
+                    required
+                    value={purchaseCostTotal}
+                    onChange={(e) => handleCostChange(e.target.value)}
+                    placeholder="10000"
+                    className="w-full px-3 py-2 bg-surface border border-hairline rounded-lg text-sm text-ink font-mono tabular-nums focus:outline-none focus:border-accent"
+                  />
+                  <span className="text-[11px] text-ink-muted mt-0.5 block">Total paid to supplier</span>
+                </div>
+              )}
             </div>
 
             {/* Live Automatic Math Cards (Protected: Owner/Manager only) */}

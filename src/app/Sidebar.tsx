@@ -1,3 +1,4 @@
+import { ROUTE_PERMISSIONS } from '@/domain/auth/permissions';
 import type { PermissionKey } from '@/domain/auth/types';
 import { en } from '@/lib/i18n/en';
 import { cn } from '@/lib/utils';
@@ -64,8 +65,9 @@ export function Sidebar() {
   const { activeRoute, setActiveRoute, currentUser, permissions, lockSession, logout } = useAppStore();
 
   const visibleNavItems = NAV_ITEMS.filter((item) => {
-    if (!item.requiredPermission) return true;
-    return permissions.includes(item.requiredPermission);
+    const requiredPerm = item.requiredPermission ?? ROUTE_PERMISSIONS[item.id];
+    if (!requiredPerm) return true;
+    return permissions.includes(requiredPerm);
   });
 
   return (

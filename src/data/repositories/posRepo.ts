@@ -274,6 +274,7 @@ export const posRepo = {
   async getSales(options?: {
     startDate?: string;
     endDate?: string;
+    cashierId?: string;
     limit?: number;
   }): Promise<Sale[]> {
     let sql = `
@@ -292,6 +293,11 @@ export const posRepo = {
     if (options?.endDate) {
       sql += ` AND s.created_at <= ?`;
       params.push(`${options.endDate}T23:59:59.999Z`);
+    }
+
+    if (options?.cashierId) {
+      sql += ` AND s.cashier_id = ?`;
+      params.push(options.cashierId);
     }
 
     sql += ` ORDER BY s.created_at DESC LIMIT ?`;

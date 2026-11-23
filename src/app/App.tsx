@@ -7,12 +7,14 @@ import { LoginScreen } from '@/features/auth/LoginScreen';
 import { SetupScreen } from '@/features/auth/SetupScreen';
 import { ExportSuccessModal } from '@/components/ExportSuccessModal';
 import { ToastContainer } from '@/components/ui/ToastContainer';
+import { ROUTE_PERMISSIONS } from '@/domain/auth/permissions';
 import { en } from '@/lib/i18n/en';
 import {
   Lock,
   Moon,
   Package,
   Shield,
+  ShieldAlert,
   Sun,
 } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
@@ -72,9 +74,11 @@ function ScreenFallback() {
 export function App() {
   const {
     activeRoute,
+    setActiveRoute,
     theme,
     toggleTheme,
     currentUser,
+    permissions,
     isLocked,
     shopSettings,
     setSession,
@@ -173,16 +177,19 @@ export function App() {
     );
   }
 
+  const requiredPerm = ROUTE_PERMISSIONS[activeRoute];
+  const isAuthorized = !requiredPerm || permissions.includes(requiredPerm);
+
   return (
     <div className="flex h-screen bg-canvas text-ink overflow-hidden">
-      {/* Auto-Lock Screen Overlay */}
-      {isLocked && <LockScreen deviceId={deviceId} />}
-
       {/* Global CSV Export Success Popup Modal */}
       <ExportSuccessModal />
 
       {/* Global Floating Toast Notifications Container */}
       <ToastContainer />
+
+      {/* Auto-Lock Screen Overlay */}
+      {isLocked && <LockScreen deviceId={deviceId} />}
 
       <Sidebar />
 
@@ -235,62 +242,81 @@ export function App() {
 
         {/* Main Content Area with Route Suspense */}
         <main className="flex-1 overflow-y-auto p-6">
-          <Suspense fallback={<ScreenFallback />}>
-            {activeRoute === 'dashboard' && <DashboardScreen deviceId={deviceId} />}
-
-            {activeRoute === 'price-checker' && <PriceCheckerScreen deviceId={deviceId} />}
-
-            {activeRoute === 'users' && <UsersScreen deviceId={deviceId} />}
-
-            {activeRoute === 'settings' && <SettingsScreen deviceId={deviceId} />}
-
-            {(activeRoute === 'products' || activeRoute === 'price-list' || activeRoute === 'stock') && (
-              <CatalogScreen deviceId={deviceId} />
-            )}
-
-            {activeRoute === 'pos' && <PosScreen deviceId={deviceId} />}
-
-            {activeRoute === 'sales' && <SalesListScreen deviceId={deviceId} />}
-
-            {activeRoute === 'purchases' && <PurchasesScreen deviceId={deviceId} />}
-
-            {activeRoute === 'suppliers' && <SuppliersScreen deviceId={deviceId} />}
-
-            {activeRoute === 'customers' && <CustomersScreen deviceId={deviceId} />}
-
-            {activeRoute === 'expenses' && <ExpensesScreen deviceId={deviceId} />}
-
-            {activeRoute === 'reports' && <ReportsScreen deviceId={deviceId} />}
-
-            {activeRoute === 'import' && <ImportScreen deviceId={deviceId} />}
-
-            {/* Placeholder for future phases */}
-            {activeRoute !== 'dashboard' &&
-              activeRoute !== 'price-checker' &&
-              activeRoute !== 'users' &&
-              activeRoute !== 'settings' &&
-              activeRoute !== 'products' &&
-              activeRoute !== 'price-list' &&
-              activeRoute !== 'stock' &&
-              activeRoute !== 'import' &&
-              activeRoute !== 'pos' &&
-              activeRoute !== 'sales' &&
-              activeRoute !== 'purchases' &&
-              activeRoute !== 'suppliers' &&
-              activeRoute !== 'customers' &&
-              activeRoute !== 'expenses' &&
-              activeRoute !== 'reports' && (
-              <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
-                <div className="w-12 h-12 rounded-full bg-accent/15 border border-accent/25 flex items-center justify-center text-accent-ink mb-4">
-                  <Package className="w-5 h-5" strokeWidth={1.5} />
-                </div>
-                <h2 className="text-lg font-semibold text-ink capitalize">{activeRoute.replace('-', ' ')}</h2>
-                <p className="text-xs text-ink-secondary mt-1">
-                  {en.common.comingSoon}. This module is scheduled for development in its upcoming phase.
-                </p>
+          {!isAuthorized ? (
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto">
+              <div className="w-12 h-12 rounded-full bg-negative/15 border border-negative/25 text-negative flex items-center justify-center mb-4">
+                <ShieldAlert className="w-6 h-6" strokeWidth={1.5} />
               </div>
-            )}
-          </Suspense>
+              <h2 className="text-lg font-semibold text-ink">Access Denied</h2>
+              <p className="text-xs text-ink-secondary mt-1">
+                Your role does not have permission (<code>{requiredPerm}</code>) to access this module.
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveRoute('dashboard')}
+                className="mt-5 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-xs font-semibold transition-colors duration-150 ease-unslop cursor-pointer"
+              >
+                Return to Dashboard
+              </button>
+            </div>
+          ) : (
+            <Suspense fallback={<ScreenFallback />}>
+              {activeRoute === 'dashboard' && <DashboardScreen deviceId={deviceId} />}
+
+              {activeRoute === 'price-checker' && <PriceCheckerScreen deviceId={deviceId} />}
+
+              {activeRoute === 'users' && <UsersScreen deviceId={deviceId} />}
+
+              {activeRoute === 'settings' && <SettingsScreen deviceId={deviceId} />}
+
+              {(activeRoute === 'products' || activeRoute === 'price-list' || activeRoute === 'stock') && (
+                <CatalogScreen deviceId={deviceId} />
+              )}
+
+              {activeRoute === 'pos' && <PosScreen deviceId={deviceId} />}
+
+              {activeRoute === 'sales' && <SalesListScreen deviceId={deviceId} />}
+
+              {activeRoute === 'purchases' && <PurchasesScreen deviceId={deviceId} />}
+
+              {activeRoute === 'suppliers' && <SuppliersScreen deviceId={deviceId} />}
+
+              {activeRoute === 'customers' && <CustomersScreen deviceId={deviceId} />}
+
+              {activeRoute === 'expenses' && <ExpensesScreen deviceId={deviceId} />}
+
+              {activeRoute === 'reports' && <ReportsScreen deviceId={deviceId} />}
+
+              {activeRoute === 'import' && <ImportScreen deviceId={deviceId} />}
+
+              {/* Placeholder for future phases */}
+              {activeRoute !== 'dashboard' &&
+                activeRoute !== 'price-checker' &&
+                activeRoute !== 'users' &&
+                activeRoute !== 'settings' &&
+                activeRoute !== 'products' &&
+                activeRoute !== 'price-list' &&
+                activeRoute !== 'stock' &&
+                activeRoute !== 'import' &&
+                activeRoute !== 'pos' &&
+                activeRoute !== 'sales' &&
+                activeRoute !== 'purchases' &&
+                activeRoute !== 'suppliers' &&
+                activeRoute !== 'customers' &&
+                activeRoute !== 'expenses' &&
+                activeRoute !== 'reports' && (
+                <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
+                  <div className="w-12 h-12 rounded-full bg-accent/15 border border-accent/25 flex items-center justify-center text-accent-ink mb-4">
+                    <Package className="w-5 h-5" strokeWidth={1.5} />
+                  </div>
+                  <h2 className="text-lg font-semibold text-ink capitalize">{activeRoute.replace('-', ' ')}</h2>
+                  <p className="text-xs text-ink-secondary mt-1">
+                    {en.common.comingSoon}. This module is scheduled for development in its upcoming phase.
+                  </p>
+                </div>
+              )}
+            </Suspense>
+          )}
         </main>
       </div>
     </div>

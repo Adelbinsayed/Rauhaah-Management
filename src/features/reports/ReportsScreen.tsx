@@ -12,7 +12,7 @@ import type {
   PnLSummary,
   TopSellingProduct,
 } from '@/domain/reports/types';
-import { canViewCost, canViewProfit } from '@/domain/auth/permissions';
+import { canViewCost, canViewProfit, hasPermission } from '@/domain/auth/permissions';
 import { reportsRepo } from '@/data/repositories/reportsRepo';
 import { cn } from '@/lib/utils';
 import {
@@ -32,6 +32,7 @@ import {
   Lock,
   Printer,
   RefreshCw,
+  ShieldAlert,
   ShoppingBag,
   TrendingDown,
   TrendingUp,
@@ -55,6 +56,7 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
 
   const allowCost = canViewCost(permissions);
   const allowProfit = canViewProfit(permissions);
+  const canViewReports = hasPermission(permissions, 'report.view');
 
   // Date range state
   const [activePreset, setActivePreset] = useState<DateRangePreset>('this_month');
@@ -154,6 +156,10 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
 
   // Load report data
   const loadReports = async () => {
+    if (!canViewReports) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -197,9 +203,27 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
   };
 
   useEffect(() => {
+    if (!canViewReports) {
+      setLoading(false);
+      return;
+    }
     loadReports();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentFilter]);
+  }, [currentFilter, canViewReports]);
+
+  if (!canViewReports) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto">
+        <div className="w-12 h-12 rounded-full bg-negative/15 border border-negative/25 text-negative flex items-center justify-center mb-4">
+          <ShieldAlert className="w-6 h-6" strokeWidth={1.5} />
+        </div>
+        <h2 className="text-lg font-semibold text-ink">Access Denied</h2>
+        <p className="text-xs text-ink-secondary mt-1">
+          Only accounts with the <code>report.view</code> permission can access financial and sales reports.
+        </p>
+      </div>
+    );
+  }
 
   // CSV Export Handlers
   const handleExportPnL = async () => {
@@ -214,13 +238,13 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
       [
         'Gross Profit',
         allowProfit ? pnl.grossProfitBdt : 'Hidden',
-        `Gross Margin: ${pnl.grossMarginPercent}%`,
+        allowProfit ? `Gross Margin: ${pnl.grossMarginPercent}%` : 'Hidden',
       ],
-      ['Operating Expenses', pnl.operatingExpensesBdt, 'Shop overheads, utilities, tea'],
+      ['Operating Expenses', allowProfit ? pnl.operatingExpensesBdt : 'Hidden', 'Shop overheads, utilities, tea'],
       [
         'Net Profit',
         allowProfit ? pnl.netProfitBdt : 'Hidden',
-        `Net Margin: ${pnl.netMarginPercent}%`,
+        allowProfit ? `Net Margin: ${pnl.netMarginPercent}%` : 'Hidden',
       ],
       ['Total Orders Count', pnl.ordersCount, 'Completed transactions'],
       ['Total Units Sold', pnl.itemsSoldCount, 'Bottles, tolas, items'],
@@ -325,6 +349,7 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
   };
 
   const handleExportExpenses = async () => {
+    if (!allowProfit) return;
     try {
       const expRows = await reportsRepo.getExpensesExportRows(
         currentFilter.startDateIso,
@@ -569,10 +594,16 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
             <Wallet className="w-4 h-4 text-warning" strokeWidth={1.5} />
           </div>
           <div className="text-xl font-bold font-mono tabular-nums text-warning tracking-tight">
-            {formatBdt(pnl?.operatingExpensesBdt || 0)}
+            {allowProfit ? formatBdt(pnl?.operatingExpensesBdt || 0) : '••••••'}
           </div>
           <div className="text-[11px] text-ink-secondary pt-1">
-            <span>Shop rent, tea, packaging, bills</span>
+            {allowProfit ? (
+              <span>Shop rent, tea, packaging, bills</span>
+            ) : (
+              <span className="flex items-center gap-1 text-warning">
+                <Lock className="w-3 h-3" /> Expenses hidden from role
+              </span>
+            )}
           </div>
         </div>
 
@@ -580,7 +611,9 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
         <div className="rounded-xl border border-accent/35 bg-accent/10 p-4 space-y-1 relative overflow-hidden">
           <div className="flex items-center justify-between text-accent-ink">
             <span className="text-xs font-medium">Net Profit</span>
-            {(pnl?.netProfitBdt || 0) >= 0 ? (
+            {!allowProfit ? (
+              <Lock className="w-4 h-4 text-ink-muted" strokeWidth={1.5} />
+            ) : (pnl?.netProfitBdt || 0) >= 0 ? (
               <ArrowUpRight className="w-4 h-4 text-accent-ink" strokeWidth={1.5} />
             ) : (
               <ArrowDownRight className="w-4 h-4 text-negative" strokeWidth={1.5} />
@@ -589,7 +622,11 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
           <div
             className={cn(
               'text-xl font-bold font-mono tabular-nums tracking-tight',
-              (pnl?.netProfitBdt || 0) >= 0 ? 'text-accent-ink' : 'text-negative'
+              !allowProfit
+                ? 'text-ink'
+                : (pnl?.netProfitBdt || 0) >= 0
+                ? 'text-accent-ink'
+                : 'text-negative'
             )}
           >
             {allowProfit ? formatBdt(pnl?.netProfitBdt || 0) : '••••••'}
@@ -725,15 +762,21 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                 <div className="space-y-1.5 pb-2 border-b border-hairline">
                   <div className="flex items-center justify-between font-semibold text-ink-secondary text-[11px]">
                     <span>3. Operating Expenses</span>
-                    <button
-                      type="button"
-                      onClick={handleExportExpenses}
-                      className="text-accent-ink hover:underline font-medium flex items-center gap-1"
-                    >
-                      <Download className="w-2.5 h-2.5" /> CSV
-                    </button>
+                    {allowProfit && (
+                      <button
+                        type="button"
+                        onClick={handleExportExpenses}
+                        className="text-accent-ink hover:underline font-medium flex items-center gap-1"
+                      >
+                        <Download className="w-2.5 h-2.5" /> CSV
+                      </button>
+                    )}
                   </div>
-                  {expenseCats.length === 0 ? (
+                  {!allowProfit ? (
+                    <div className="text-ink-muted text-[11px] py-1 flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> Expenses hidden from role
+                    </div>
+                  ) : expenseCats.length === 0 ? (
                     <div className="text-ink-muted text-[11px] py-1">
                       No expenses logged during this period.
                     </div>
@@ -752,7 +795,9 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                   )}
                   <div className="flex justify-between items-center font-semibold text-warning pt-1">
                     <span>Total Operating Expenses</span>
-                    <span className="font-mono tabular-nums">− {formatBdt(pnl?.operatingExpensesBdt || 0)}</span>
+                    <span className="font-mono tabular-nums">
+                      {allowProfit ? `− ${formatBdt(pnl?.operatingExpensesBdt || 0)}` : '••••••'}
+                    </span>
                   </div>
                 </div>
 
@@ -796,7 +841,7 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                         <th className="py-2 px-2 text-right">Orders</th>
                         <th className="py-2 px-2 text-right">Revenue</th>
                         {allowCost && <th className="py-2 px-2 text-right">COGS</th>}
-                        <th className="py-2 px-2 text-right">Expenses</th>
+                        {allowProfit && <th className="py-2 px-2 text-right">Expenses</th>}
                         {allowProfit && <th className="py-2 px-2.5 text-right">Net Profit</th>}
                       </tr>
                     </thead>
@@ -821,9 +866,11 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                               {formatBdt(dt.cogsBdt)}
                             </td>
                           )}
-                          <td className="py-2 px-2 text-right text-warning">
-                            {dt.expensesBdt > 0 ? `− ${formatBdt(dt.expensesBdt)}` : '—'}
-                          </td>
+                          {allowProfit && (
+                            <td className="py-2 px-2 text-right text-warning">
+                              {dt.expensesBdt > 0 ? `− ${formatBdt(dt.expensesBdt)}` : '—'}
+                            </td>
+                          )}
                           {allowProfit && (
                             <td
                               className={cn(
@@ -1243,19 +1290,21 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                   <div className="flex justify-between items-center text-ink-secondary">
                     <span>Cash Expenses</span>
                     <span className="font-mono font-semibold tabular-nums text-ink">
-                      − {formatBdt(cashFlow?.cashExpensesBdt || 0)}
+                      {allowProfit ? `− ${formatBdt(cashFlow?.cashExpensesBdt || 0)}` : '••••••'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-ink-secondary">
                     <span>Supplier Stock Cash Purchases</span>
                     <span className="font-mono font-semibold tabular-nums text-ink">
-                      − {formatBdt(cashFlow?.cashSupplierPurchasesBdt || 0)}
+                      {allowCost ? `− ${formatBdt(cashFlow?.cashSupplierPurchasesBdt || 0)}` : '••••••'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center font-semibold text-negative border-t border-negative/20 pt-1">
                     <span>Total Cash Outflow</span>
                     <span className="font-mono font-bold tabular-nums">
-                      − {formatBdt(cashFlow?.totalCashOutflowBdt || 0)}
+                      {allowProfit && allowCost
+                        ? `− ${formatBdt(cashFlow?.totalCashOutflowBdt || 0)}`
+                        : '••••••'}
                     </span>
                   </div>
                 </div>
@@ -1265,10 +1314,14 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
                   <span
                     className={cn(
                       'font-mono font-bold tabular-nums text-base',
-                      (cashFlow?.netCashFlowBdt || 0) >= 0 ? 'text-accent-ink' : 'text-negative'
+                      !(allowProfit && allowCost)
+                        ? 'text-ink'
+                        : (cashFlow?.netCashFlowBdt || 0) >= 0
+                        ? 'text-accent-ink'
+                        : 'text-negative'
                     )}
                   >
-                    {formatBdt(cashFlow?.netCashFlowBdt || 0)}
+                    {allowProfit && allowCost ? formatBdt(cashFlow?.netCashFlowBdt || 0) : '••••••'}
                   </span>
                 </div>
               </div>

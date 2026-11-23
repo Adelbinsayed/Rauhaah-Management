@@ -26,15 +26,17 @@ import { RestockModal } from './RestockModal';
 import { BulkPriceEditor } from './BulkPriceEditor';
 import { PriceHistoryModal } from './PriceHistoryModal';
 import { useAppStore } from '../../app/store';
+import { canEditPrices, canViewCost, hasPermission } from '../../domain/auth/permissions';
 
 interface CatalogScreenProps {
   deviceId?: string;
 }
 
 export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-device' }) => {
-  const { currentUser } = useAppStore();
-  const canViewCost = Boolean(currentUser && currentUser.roleName !== 'staff');
-  const canEdit = Boolean(currentUser && currentUser.roleName !== 'staff');
+  const { currentUser, permissions } = useAppStore();
+  const allowCost = canViewCost(permissions);
+  const allowPriceEdit = canEditPrices(permissions);
+  const allowStockAdjust = hasPermission(permissions, 'stock.adjust');
 
   const [activeTab, setActiveTab] = useState<'sellables' | 'bulk_prices' | 'taxonomy'>('sellables');
 
@@ -83,7 +85,7 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
         catalogRepo.getUnits(),
         catalogRepo.getCategories(),
         catalogRepo.getBrands(),
-        catalogRepo.getSellables(undefined, canViewCost),
+        catalogRepo.getSellables(undefined, allowCost),
       ]);
       setUnits(u);
       setCategories(c);
@@ -98,10 +100,16 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
 
   useEffect(() => {
     loadData();
-  }, [canViewCost]);
+  }, [allowCost]);
+
+  useEffect(() => {
+    if (!allowPriceEdit && activeTab === 'bulk_prices') {
+      setActiveTab('sellables');
+    }
+  }, [allowPriceEdit, activeTab]);
 
   const handleCreateProduct = async (data: CreateProductInput) => {
-    if (!currentUser) return;
+    if (!currentUser || !allowStockAdjust) return;
     await catalogRepo.createProduct(data, currentUser.id, deviceId);
     await loadData();
 
@@ -127,7 +135,7 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
     totalCostPaid: number,
     updateRetailPrice?: number
   ) => {
-    if (!currentUser) return;
+    if (!currentUser || !allowStockAdjust) return;
     const target = sellables.find((s) => s.id === sellableId);
     await catalogRepo.restockProduct(
       sellableId,
@@ -162,7 +170,7 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
             ? `৳${updateRetailPrice.toFixed(2)} / ${unit}`
             : `৳${target?.retailPriceBdt.toFixed(2) ?? '0.00'} / ${unit}`,
         },
-        ...(totalCostPaid > 0
+        ...(allowCost && totalCostPaid > 0
           ? [{ label: 'Total Purchase Cost', value: `৳${totalCostPaid.toFixed(2)}` }]
           : []),
       ],
@@ -170,7 +178,7 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
   };
 
   const handleSaveBulkPrices = async (items: BulkPriceUpdateItem[]) => {
-    if (!currentUser) return;
+    if (!currentUser || !allowPriceEdit) return;
     await catalogRepo.bulkUpdatePrices(items, currentUser.id, deviceId);
     await loadData();
   };
@@ -209,7 +217,7 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
           </p>
         </div>
 
-        {canEdit && (
+        {allowStockAdjust && (
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => {
@@ -275,7 +283,7 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
       <div className="flex items-center gap-2 border-b border-hairline pb-2">
         {[
           { id: 'sellables', label: 'All Products & Stock', count: sellables.length },
-          { id: 'bulk_prices', label: 'Price List & Bulk Editor' },
+          ...(allowPriceEdit ? [{ id: 'bulk_prices', label: 'Price List & Bulk Editor' }] : []),
           { id: 'taxonomy', label: 'Brands & Categories' },
         ].map((tab) => (
           <button
@@ -369,7 +377,7 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
                   ? 'Your product catalog is empty. Click + New Product to add your first perfume, attar, or accessory'
                   : 'No products match your current search and category filters'}
               </p>
-              {sellables.length === 0 && canEdit && (
+              {sellables.length === 0 && allowStockAdjust && (
                 <button
                   onClick={() => setIsProductModalOpen(true)}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent text-accent-fg text-xs font-semibold"
@@ -390,15 +398,15 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
                     <th className="py-3 px-3 text-right">Stock in hand</th>
                     <th className="py-3 px-3 text-right">Retail (৳)</th>
                     <th className="py-3 px-3 text-right">Wholesale (৳)</th>
-                    {canViewCost && <th className="py-3 px-3 text-right">Unit cost (৳)</th>}
-                    {canViewCost && <th className="py-3 px-3 text-right">Margin</th>}
+                    {allowCost && <th className="py-3 px-3 text-right">Unit cost (৳)</th>}
+                    {allowCost && <th className="py-3 px-3 text-right">Margin</th>}
                     <th className="py-3 px-3 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-hairline text-ink-secondary">
                   {filteredSellables.map((s) => {
                     let marginPct: string | null = null;
-                    if (canViewCost && s.calculatedCostBdt && s.retailPriceBdt > 0) {
+                    if (allowCost && s.calculatedCostBdt && s.retailPriceBdt > 0) {
                       const margin =
                         ((s.retailPriceBdt - s.calculatedCostBdt) / s.retailPriceBdt) * 100;
                       marginPct = `${margin.toFixed(1)}%`;
@@ -449,14 +457,14 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
                         <td className="py-3 px-3 text-right font-mono tabular-nums text-ink-secondary">
                           ৳{s.wholesalePriceBdt.toFixed(2)}
                         </td>
-                        {canViewCost && (
+                        {allowCost && (
                           <td className="py-3 px-3 text-right font-mono tabular-nums text-ink-muted">
                             {s.calculatedCostBdt != null
                               ? `৳${s.calculatedCostBdt.toFixed(2)}`
                               : '—'}
                           </td>
                         )}
-                        {canViewCost && (
+                        {allowCost && (
                           <td className="py-3 px-3 text-right font-mono tabular-nums">
                             {marginPct ? (
                               <span
@@ -473,7 +481,7 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
                         )}
                         <td className="py-3 px-3 text-center">
                           <div className="flex items-center justify-center gap-1">
-                            {canEdit && (
+                            {allowStockAdjust && (
                               <button
                                 onClick={() => {
                                   setRestockTargetProduct(s);
@@ -506,11 +514,12 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
         </div>
       )}
 
-      {activeTab === 'bulk_prices' && (
+      {activeTab === 'bulk_prices' && allowPriceEdit && (
         <BulkPriceEditor
           sellables={sellables}
           onSavePrices={handleSaveBulkPrices}
-          canViewCost={canViewCost}
+          canViewCost={allowCost}
+          canEdit={allowPriceEdit}
         />
       )}
 
@@ -568,27 +577,31 @@ export const CatalogScreen: React.FC<CatalogScreenProps> = ({ deviceId = 'local-
       )}
 
       {/* Modals */}
-      <ProductModal
-        isOpen={isProductModalOpen}
-        onClose={() => setIsProductModalOpen(false)}
-        onSaveProduct={handleCreateProduct}
-        categories={categories}
-        brands={brands}
-        units={units}
-        canViewCost={canViewCost}
-      />
+      {allowStockAdjust && (
+        <ProductModal
+          isOpen={isProductModalOpen}
+          onClose={() => setIsProductModalOpen(false)}
+          onSaveProduct={handleCreateProduct}
+          categories={categories}
+          brands={brands}
+          units={units}
+          canViewCost={allowCost}
+        />
+      )}
 
-      <RestockModal
-        isOpen={isRestockModalOpen}
-        initialProduct={restockTargetProduct}
-        onClose={() => {
-          setIsRestockModalOpen(false);
-          setRestockTargetProduct(null);
-        }}
-        sellables={sellables}
-        onRestock={handleRestock}
-        canViewCost={canViewCost}
-      />
+      {allowStockAdjust && (
+        <RestockModal
+          isOpen={isRestockModalOpen}
+          initialProduct={restockTargetProduct}
+          onClose={() => {
+            setIsRestockModalOpen(false);
+            setRestockTargetProduct(null);
+          }}
+          sellables={sellables}
+          onRestock={handleRestock}
+          canViewCost={allowCost}
+        />
+      )}
 
       <PriceHistoryModal
         isOpen={Boolean(priceHistorySellable)}

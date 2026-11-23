@@ -9,10 +9,12 @@ import {
   CheckCircle2,
   TrendingDown,
   Lock,
+  ShieldAlert,
   Unlock,
 } from 'lucide-react';
 import { expensesRepo } from '@/data/repositories/expensesRepo';
 import { useAppStore } from '@/app/store';
+import { canViewProfit } from '@/domain/auth/permissions';
 import type { Expense, ExpenseCategory, CashDrawerSummary } from '@/domain/expenses/types';
 import { calculateDateRange } from '@/lib/dates';
 
@@ -21,7 +23,8 @@ interface ExpensesScreenProps {
 }
 
 export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
-  const { currentUser } = useAppStore();
+  const { currentUser, permissions } = useAppStore();
+  const allowProfit = canViewProfit(permissions);
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
@@ -86,8 +89,12 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
   };
 
   useEffect(() => {
+    if (!allowProfit) {
+      setLoading(false);
+      return;
+    }
     loadData();
-  }, [startDate, endDate, categoryFilter, searchQuery]);
+  }, [startDate, endDate, categoryFilter, searchQuery, allowProfit]);
 
   // Handle Date Presets
   const handlePresetChange = (preset: 'today' | '7days' | 'month' | 'all') => {
@@ -202,6 +209,20 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
     const digitalExpenses = totalAmount - cashExpenses;
     return { totalAmount, cashExpenses, digitalExpenses, count: expenses.length };
   }, [expenses]);
+
+  if (!allowProfit) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto">
+        <div className="w-12 h-12 rounded-full bg-negative/15 border border-negative/25 text-negative flex items-center justify-center mb-4">
+          <ShieldAlert className="w-6 h-6" strokeWidth={1.5} />
+        </div>
+        <h2 className="text-lg font-semibold text-ink">Access Denied</h2>
+        <p className="text-xs text-ink-secondary mt-1">
+          Only accounts with the <code>profit.view</code> permission can access daily expenses and cash drawer reconciliation.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
