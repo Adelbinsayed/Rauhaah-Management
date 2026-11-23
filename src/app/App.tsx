@@ -5,6 +5,7 @@ import { systemRepo } from '@/data/repositories/systemRepo';
 import { LockScreen } from '@/features/auth/LockScreen';
 import { LoginScreen } from '@/features/auth/LoginScreen';
 import { SetupScreen } from '@/features/auth/SetupScreen';
+import { SplashScreen } from '@/features/splash/SplashScreen';
 import { ExportSuccessModal } from '@/components/ExportSuccessModal';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { en } from '@/lib/i18n/en';
@@ -85,6 +86,7 @@ export function App() {
   const [dbInfo, setDbInfo] = useState<DbInfo | null>(null);
   const [hasUsers, setHasUsers] = useState<boolean | null>(null);
   const [initLoading, setInitLoading] = useState(true);
+  const [splashFinished, setSplashFinished] = useState(false);
 
   const initSystem = useCallback(async () => {
     setInitLoading(true);
@@ -137,13 +139,9 @@ export function App() {
 
   const deviceId = dbInfo?.deviceId || 'DEV-FALLBACK';
 
-  if (initLoading) {
-    return (
-      <div className="h-screen w-screen bg-canvas text-ink flex flex-col items-center justify-center p-6 space-y-4">
-        <div className="w-7 h-7 rounded-full border-2 border-accent border-t-transparent animate-spin" />
-        <p className="text-xs text-ink-muted font-mono">Connecting database…</p>
-      </div>
-    );
+  // Show luxury branded splash screen during cold boot
+  if (!splashFinished || initLoading) {
+    return <SplashScreen onFinish={() => setSplashFinished(true)} />;
   }
 
   // 1. First-Run Setup Screen

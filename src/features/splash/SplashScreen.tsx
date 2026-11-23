@@ -11,25 +11,30 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
 }) => {
   const [progress, setProgress] = useState(15);
   const [msg, setMsg] = useState('Starting Rauhaah Management…');
+  const [activeBadges, setActiveBadges] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const steps = [
-      { pct: 35, delay: 200, text: 'Initialising portable database…' },
-      { pct: 65, delay: 500, text: 'Checking workspace & security…' },
-      { pct: 85, delay: 800, text: 'Loading catalog & settings…' },
-      { pct: 100, delay: 1100, text: 'Ready' },
+      { pct: 25, delay: 300,  text: 'Connecting offline SQLite database…', badge: 'Inventory' },
+      { pct: 50, delay: 900,  text: 'Verifying security credentials & session…', badge: 'Inventory' },
+      { pct: 75, delay: 1500, text: 'Loading luxury catalog & pricing…', badge: 'POS' },
+      { pct: 90, delay: 2100, text: 'Preparing POS counter register & reports…', badge: 'Reports' },
+      { pct: 100, delay: 2600, text: 'Welcome back to Rauhaah. Live Peaceful.', badge: 'Blends' },
     ];
 
     const timers = steps.map((s) =>
       setTimeout(() => {
         setProgress(s.pct);
         setMsg(s.text);
+        if (s.badge) {
+          setActiveBadges((prev) => new Set([...prev, s.badge]));
+        }
       }, s.delay)
     );
 
     const finishTimer = setTimeout(() => {
       onFinish?.();
-    }, 1350);
+    }, 3100);
 
     return () => {
       timers.forEach(clearTimeout);
@@ -38,8 +43,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   }, [onFinish]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-canvas select-none overflow-hidden">
-      <div className="w-full max-w-[580px] h-[360px] mx-4 bg-surface border border-hairline rounded-2xl flex flex-col relative overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-canvas select-none overflow-hidden animate-fade-in">
+      <div className="w-full max-w-[580px] h-[360px] mx-4 bg-surface border border-hairline rounded-2xl flex flex-col relative overflow-hidden shadow-2xl">
         <div className="h-[2px] bg-accent shrink-0" />
 
         <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
@@ -59,14 +64,21 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
           <div className="w-9 h-[1px] bg-hairline-strong mb-5" />
 
           <div className="flex gap-2">
-            {['Inventory', 'POS', 'Reports', 'Blends'].map((b) => (
-              <span
-                key={b}
-                className="px-3 py-1 border border-hairline bg-raised rounded-md text-xs text-ink-muted font-medium"
-              >
-                {b}
-              </span>
-            ))}
+            {['Inventory', 'POS', 'Reports', 'Blends'].map((b) => {
+              const active = activeBadges.has(b);
+              return (
+                <span
+                  key={b}
+                  className={`px-3 py-1 border rounded-md text-xs font-medium transition-colors duration-200 ${
+                    active
+                      ? 'border-accent/40 bg-accent/10 text-accent font-semibold'
+                      : 'border-hairline bg-raised text-ink-muted'
+                  }`}
+                >
+                  {b}
+                </span>
+              );
+            })}
           </div>
         </div>
 
