@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeHeader, parseNumberField, computeStringHash, parseCsvContent } from './csvParser';
 import { validateCsvImport } from './importValidator';
+import { escapeCsvCell } from '../../lib/csvExport';
 import type { Sellable } from '../catalog/types';
 
 describe('CSV Parser domain logic', () => {
@@ -18,6 +19,9 @@ describe('CSV Parser domain logic', () => {
     expect(parseNumberField('25%')).toBe(25);
     expect(parseNumberField('')).toBeNull();
     expect(parseNumberField('abc')).toBeNull();
+    expect(parseNumberField('12abc')).toBeNull();
+    expect(parseNumberField('12.34xyz')).toBeNull();
+    expect(parseNumberField('-50.25')).toBe(-50.25);
   });
 
   it('computes stable deterministic hash for content', () => {
@@ -39,6 +43,19 @@ RAU-002, White Musk, 250
     expect(res.rows[0].product_sku).toBe('RAU-001');
     expect(res.rows[0].product_name).toBe('Black Oud');
     expect(res.rows[0].selling_price).toBe('৳1,500.00');
+  });
+
+  it('auto-detects semicolon-delimited CSV files', () => {
+    const csv = `sku;name;selling_price
+RAU-001;"Black; Oud";1500
+RAU-002;White Musk;250
+`;
+    const res = parseCsvContent(csv);
+    expect(res.headers).toEqual(['sku', 'name', 'selling_price']);
+    expect(res.rows).toHaveLength(2);
+    expect(res.rows[0].sku).toBe('RAU-001');
+    expect(res.rows[0].name).toBe('Black; Oud');
+    expect(res.rows[0].selling_price).toBe('1500');
   });
 });
 
@@ -174,5 +191,38 @@ describe('Import Validator domain rules', () => {
     expect(row.status).toBe('update');
     expect(row.changes[0].oldValue).toBe(40);
     expect(row.changes[0].newValue).toBe(75);
+  });
+
+  it('flags duplicate barcodes within the same file', () => {
+    const rows: Record<string, string>[] = [
+      { sku: 'PRD-1', barcode: '890111222', name: 'Item A', selling_price: '100' },
+      { sku: 'PRD-2', barcode: '890111222', name: 'Item B', selling_price: '120' },
+    ];
+
+    const result = validateCsvImport({
+      importType: 'products',
+      fileName: 'dup_barcodes.csv',
+      rawContent: 'sample',
+      rows,
+      existingProducts: [],
+      categories: [],
+      brands: [],
+    });
+
+    expect(result.summary.errorRows).toBe(1);
+    expect(result.rows[1].errors[0]).toContain('Duplicate Barcode "890111222" found in file');
+  });
+});
+
+describe('CSV Export formula injection protection', () => {
+  it('prefixes dangerous formula starters with a single quote while preserving negative numbers', () => {
+    expect(escapeCsvCell('=SUM(A1)')).toBe(`"'=SUM(A1)"`);
+    expect(escapeCsvCell('+cmd|calc')).toBe(`"'+cmd|calc"`);
+    expect(escapeCsvCell('@SUM(1,2)')).toBe(`"'@SUM(1,2)"`);
+    expect(escapeCsvCell('\t123')).toBe(`"'\t123"`);
+    expect(escapeCsvCell('-cmd')).toBe(`"'-cmd"`);
+    expect(escapeCsvCell('-123.45')).toBe('"-123.45"');
+    expect(escapeCsvCell(-123.45)).toBe('"-123.45"');
+    expect(escapeCsvCell('Normal "Text"')).toBe('"Normal ""Text"""');
   });
 });

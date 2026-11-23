@@ -14,11 +14,15 @@ export interface CsvExportResult {
 }
 
 /**
- * Escapes a single CSV cell value according to RFC 4180 rules.
+ * Escapes a single CSV cell value according to RFC 4180 rules and neutralizes CSV formula injection.
  */
 export function escapeCsvCell(val: string | number | boolean | null | undefined): string {
   if (val === null || val === undefined) return '""';
-  const str = String(val).replace(/"/g, '""');
+  let raw = String(val);
+  if (typeof val === 'string' && (/^[=+@\t\r]/.test(raw) || /^-[^0-9.]/.test(raw) || raw === '-')) {
+    raw = `'${raw}`;
+  }
+  const str = raw.replace(/"/g, '""');
   return `"${str}"`;
 }
 
@@ -93,18 +97,25 @@ export async function downloadCsv(
     }
   }
 
-  const finalPath = savedPath || targetFilename;
+  if (!savedPath) {
+    useAppStore.getState().showToast({
+      type: 'error',
+      title: 'CSV Export Failed',
+      message: 'Could not save or download the CSV file.',
+    });
+    return { success: false, path: '' };
+  }
 
   // Trigger global success popup dialog
   if (options?.showModal !== false) {
     useAppStore.getState().showExportSuccess({
       filename: targetFilename,
-      filePath: finalPath,
+      filePath: savedPath,
       title: options?.title || 'CSV Export Successful!',
       message: options?.message || 'Your file has been downloaded and saved to your computer.',
       rowCount: rows.length,
     });
   }
 
-  return { success: true, path: finalPath };
+  return { success: true, path: savedPath };
 }

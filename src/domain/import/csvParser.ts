@@ -44,8 +44,9 @@ export function parseNumberField(val: unknown): number | null {
     .replace(/\s+/g, '')
     .replace(/%/g, '');
 
-  const num = parseFloat(cleaned);
-  return isNaN(num) ? null : num;
+  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return null;
+  const num = Number(cleaned);
+  return Number.isFinite(num) ? num : null;
 }
 
 /**
@@ -67,10 +68,47 @@ export function computeStringHash(text: string): string {
 }
 
 /**
+ * Auto-detects delimiter (comma vs semicolon) from the first unquoted header line.
+ */
+function detectCsvDelimiter(text: string): ',' | ';' {
+  let commaCount = 0;
+  let semicolonCount = 0;
+  let insideQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+
+    if (insideQuotes) {
+      if (char === '"') {
+        if (nextChar === '"') {
+          i++;
+        } else {
+          insideQuotes = false;
+        }
+      }
+    } else {
+      if (char === '"') {
+        insideQuotes = true;
+      } else if (char === '\r' || char === '\n') {
+        break;
+      } else if (char === ',') {
+        commaCount++;
+      } else if (char === ';') {
+        semicolonCount++;
+      }
+    }
+  }
+
+  return semicolonCount > commaCount ? ';' : ',';
+}
+
+/**
  * RFC 4180 lexer: parses raw text into a 2D array of string cells.
  */
 export function parseCsvRows(text: string): string[][] {
   const cleanText = text.replace(/^\uFEFF/, '');
+  const delimiter = detectCsvDelimiter(cleanText);
   const rows: string[][] = [];
   let currentRow: string[] = [];
   let currentCell = '';
@@ -96,7 +134,7 @@ export function parseCsvRows(text: string): string[][] {
     } else {
       if (char === '"') {
         insideQuotes = true;
-      } else if (char === ',') {
+      } else if (char === delimiter) {
         currentRow.push(currentCell.trim());
         currentCell = '';
       } else if (char === '\r') {

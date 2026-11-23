@@ -42,6 +42,7 @@ export function validateCsvImport(ctx: ValidationContext): ValidationResult {
   }
 
   const seenSkusInFile = new Map<string, number>();
+  const seenBarcodesInFile = new Map<string, number>();
   const previewRows: CsvPreviewRow[] = [];
 
   const summary: ValidationSummary = {
@@ -75,6 +76,17 @@ export function validateCsvImport(ctx: ValidationContext): ValidationResult {
         );
       } else {
         seenSkusInFile.set(skuKey, rowNumber);
+      }
+    }
+
+    const barcodeKey = barcodeRaw.toLowerCase();
+    if (barcodeRaw) {
+      if (seenBarcodesInFile.has(barcodeKey)) {
+        errors.push(
+          `Duplicate Barcode "${barcodeRaw}" found in file (first appeared on row ${seenBarcodesInFile.get(barcodeKey)}).`
+        );
+      } else {
+        seenBarcodesInFile.set(barcodeKey, rowNumber);
       }
     }
 
@@ -158,11 +170,38 @@ export function validateCsvImport(ctx: ValidationContext): ValidationResult {
       const categoryName = (row.category || row.category_name || '').trim();
       const brandName = (row.brand || row.brand_name || '').trim();
       const typeRaw = (row.type || row.product_type || row.kind || '').trim().toLowerCase();
-      const isOil = typeRaw.includes('oil') || typeRaw.includes('attar') || typeRaw.includes('decant');
-      const sellableType = isOil ? 'loose_decant' : 'sealed_product';
+      const isOil =
+        typeRaw.includes('oil') ||
+        typeRaw.includes('attar') ||
+        typeRaw.includes('decant') ||
+        typeRaw === 'loose_decant';
+      const isAccessory = typeRaw.includes('accessory') || typeRaw === 'accessories';
+      const isBlend = typeRaw.includes('blend') || typeRaw === 'custom_blend';
+      const sellableType: Sellable['sellableType'] = isOil
+        ? 'loose_decant'
+        : isAccessory
+        ? 'accessory'
+        : isBlend
+        ? 'custom_blend'
+        : 'sealed_product';
 
+      const UNIT_ID_MAP: Record<string, string> = {
+        ml: 'unit-vol-ml',
+        l: 'unit-vol-l',
+        tola: 'unit-vol-tola',
+        g: 'unit-wt-g',
+        kg: 'unit-wt-kg',
+        tola_g: 'unit-wt-tola',
+        pcs: 'unit-cnt-pcs',
+        pc: 'unit-cnt-pcs',
+        piece: 'unit-cnt-pcs',
+        pieces: 'unit-cnt-pcs',
+        bottle: 'unit-cnt-btl',
+        btl: 'unit-cnt-btl',
+        box: 'unit-cnt-box',
+      };
       const unitRaw = (row.unit || row.uom || '').trim().toLowerCase();
-      const unitId = isOil || unitRaw === 'ml' ? 'unit-vol-ml' : 'unit-cnt-pcs';
+      const unitId = UNIT_ID_MAP[unitRaw] || (isOil || isBlend ? 'unit-vol-ml' : 'unit-cnt-pcs');
 
       const sellingPrice = parseNumberField(row.selling_price || row.retail_price || row.price);
       const wholesalePrice = parseNumberField(row.wholesale_price || row.wholesale);
@@ -223,6 +262,24 @@ export function validateCsvImport(ctx: ValidationContext): ValidationResult {
           });
         }
 
+        if (categoryName && categoryName.toLowerCase() !== (existing.categoryName || '').trim().toLowerCase()) {
+          changes.push({
+            field: 'category_name',
+            label: 'Category',
+            oldValue: existing.categoryName || null,
+            newValue: categoryName,
+          });
+        }
+
+        if (brandName && brandName.toLowerCase() !== (existing.brandName || '').trim().toLowerCase()) {
+          changes.push({
+            field: 'brand_name',
+            label: 'Brand',
+            oldValue: existing.brandName || null,
+            newValue: brandName,
+          });
+        }
+
         if (sellingPrice !== null && sellingPrice !== existing.retailPriceBdt) {
           if (sellingPrice < 0) {
             errors.push('Selling price cannot be negative.');
@@ -251,7 +308,7 @@ export function validateCsvImport(ctx: ValidationContext): ValidationResult {
           }
         }
 
-        if (costPrice !== null && costPrice !== existing.calculatedCostBdt) {
+        if (costPrice !== null && costPrice !== (existing.calculatedCostBdt ?? 0)) {
           if (costPrice < 0) {
             errors.push('Cost price cannot be negative.');
           } else {

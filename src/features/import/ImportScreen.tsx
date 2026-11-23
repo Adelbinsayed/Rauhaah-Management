@@ -13,11 +13,13 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { useAppStore } from '../../app/store';
+import { canViewCost, hasPermission } from '../../domain/auth/permissions';
 import { catalogRepo } from '../../data/repositories/catalogRepo';
 import { importRepo } from '../../data/repositories/importRepo';
 import { parseCsvContent } from '../../domain/import/csvParser';
 import { validateCsvImport } from '../../domain/import/importValidator';
 import { CSV_TEMPLATES, downloadCsvFile } from '../../domain/import/templates';
+import { downloadCsv } from '../../lib/csvExport';
 import type {
   ImportLogEntry,
   ImportType,
@@ -30,7 +32,8 @@ interface ImportScreenProps {
 }
 
 export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-device' }) => {
-  const { currentUser } = useAppStore();
+  const { currentUser, permissions, showToast } = useAppStore();
+  const canRunImport = hasPermission(permissions, 'import.run');
   const [activeTab, setActiveTab] = useState<'wizard' | 'folder' | 'logs'>('wizard');
 
   // Catalogs for validation
@@ -47,6 +50,8 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
   const [previewFilter, setPreviewFilter] = useState<'all' | 'new' | 'update' | 'unchanged' | 'error'>('all');
   const [previewSearch, setPreviewSearch] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   // Audit Logs state
   const [logs, setLogs] = useState<ImportLogEntry[]>([]);
@@ -66,7 +71,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
   const loadCatalogData = async () => {
     try {
       const [p, c, b] = await Promise.all([
-        catalogRepo.getSellables(undefined, true),
+        catalogRepo.getSellables(undefined, canViewCost(permissions)),
         catalogRepo.getCategories(),
         catalogRepo.getBrands(),
       ]);
@@ -91,48 +96,60 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
   };
 
   useEffect(() => {
+    if (!canRunImport) return;
     loadCatalogData();
-  }, []);
+  }, [canRunImport]);
 
   useEffect(() => {
+    if (!canRunImport) return;
     if (activeTab === 'logs') {
       loadLogs();
     }
-  }, [activeTab]);
+  }, [activeTab, canRunImport]);
 
   // Handle file selection
   const handleFileSelect = (file: File) => {
     if (!file) return;
     setFileName(file.name);
+    setFileError(null);
 
     // Auto-detect import type from filename if matching convention
+    let detectedType: ImportType = selectedType;
     const lowerName = file.name.toLowerCase();
     if (lowerName.startsWith('price') || lowerName.includes('prices')) {
-      setSelectedType('prices');
+      detectedType = 'prices';
     } else if (lowerName.startsWith('stock') || lowerName.includes('inventory')) {
-      setSelectedType('stock');
+      detectedType = 'stock';
     } else if (lowerName.startsWith('prod') || lowerName.includes('products')) {
-      setSelectedType('products');
+      detectedType = 'products';
     }
+    setSelectedType(detectedType);
 
     const reader = new FileReader();
+    reader.onerror = () => {
+      const msg = 'Failed to read the selected CSV file.';
+      setFileError(msg);
+      showToast({ type: 'error', title: 'File Read Error', message: msg });
+    };
     reader.onload = async (e) => {
       const text = String(e.target?.result || '');
       setRawCsvText(text);
-      await processCsvFile(text, file.name);
+      await processCsvFile(text, file.name, detectedType);
     };
     reader.readAsText(file, 'UTF-8');
   };
 
-  const processCsvFile = async (text: string, name: string) => {
+  const processCsvFile = async (text: string, name: string, importType: ImportType = selectedType) => {
     const parseOut = parseCsvContent(text);
     if (parseOut.rows.length === 0) {
-      alert('The selected CSV file appears to be empty.');
+      const msg = 'The selected CSV file appears to be empty.';
+      setFileError(msg);
+      showToast({ type: 'error', title: 'Empty CSV File', message: msg });
       return;
     }
 
     const validated = validateCsvImport({
-      importType: selectedType,
+      importType,
       fileName: name,
       rawContent: text,
       rows: parseOut.rows,
@@ -144,13 +161,18 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
     setValidationResult(validated);
 
     // Check duplicate file hash
-    const dup = await importRepo.checkDuplicateFileHash(validated.fileHash);
-    setDuplicateWarning(dup);
+    try {
+      const dup = await importRepo.checkDuplicateFileHash(validated.fileHash);
+      setDuplicateWarning(dup);
+    } catch (err) {
+      console.warn('Failed to check duplicate file hash:', err);
+      setDuplicateWarning(null);
+    }
   };
 
-  // Re-validate if user changes the import type
+  // Re-validate if user changes the import type or catalog loads
   useEffect(() => {
-    if (rawCsvText && fileName && products.length >= 0) {
+    if (rawCsvText && fileName) {
       const parseOut = parseCsvContent(rawCsvText);
       const validated = validateCsvImport({
         importType: selectedType,
@@ -163,7 +185,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
       });
       setValidationResult(validated);
     }
-  }, [selectedType]);
+  }, [selectedType, products, categories, brands]);
 
   const handleExecuteImport = async () => {
     if (!validationResult || !currentUser) return;
@@ -186,26 +208,36 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
       setFileName('');
       setDuplicateWarning(null);
     } catch (err: unknown) {
-      alert(`Import failed: ${err instanceof Error ? err.message : String(err)}`);
+      showToast({
+        type: 'error',
+        title: 'Import Failed',
+        message: err instanceof Error ? err.message : String(err),
+      });
     } finally {
       setIsExecuting(false);
     }
   };
 
-  const handleDownloadErrorReport = () => {
+  const handleDownloadErrorReport = async () => {
     if (!validationResult) return;
     const errorRows = validationResult.rows.filter((r) => r.status === 'error');
     if (errorRows.length === 0) return;
 
-    const errorCsvContent = [
-      'Row_Number,SKU,Barcode,Product_Name,Error_Messages',
-      ...errorRows.map(
-        (r) =>
-          `${r.rowNumber},"${r.sku}","${r.barcode || ''}","${r.name || ''}","${r.errors.join('; ')}"`
-      ),
-    ].join('\r\n');
-
-    downloadCsvFile(`import_errors_${validationResult.fileName}`, errorCsvContent);
+    await downloadCsv(
+      `import_errors_${validationResult.fileName}`,
+      ['Row_Number', 'SKU', 'Barcode', 'Product_Name', 'Error_Messages'],
+      errorRows.map((r) => [
+        r.rowNumber,
+        r.sku,
+        r.barcode || '',
+        r.name || '',
+        r.errors.join('; '),
+      ]),
+      {
+        title: 'Error Report Exported',
+        message: 'CSV validation error report has been saved.',
+      }
+    );
   };
 
   // Filtered rows for the preview table
@@ -222,6 +254,20 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
       return matchesFilter && matchesSearch;
     });
   }, [validationResult, previewFilter, previewSearch]);
+
+  if (!canRunImport) {
+    return (
+      <div className="p-6 max-w-3xl mx-auto">
+        <div className="p-6 rounded-xl bg-surface border border-hairline text-center space-y-2">
+          <AlertTriangle className="w-8 h-8 text-warning mx-auto" strokeWidth={1.5} />
+          <h2 className="text-base font-semibold text-ink">Access Denied</h2>
+          <p className="text-xs text-ink-secondary">
+            You do not have permission to run CSV imports.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -295,7 +341,21 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
               {(['products', 'prices', 'stock'] as ImportType[]).map((type) => {
                 const tmpl = CSV_TEMPLATES[type];
                 const isSelected = selectedType === type;
-                return (
+                if (!canRunImport) {
+    return (
+      <div className="p-6 max-w-3xl mx-auto">
+        <div className="p-6 rounded-xl bg-surface border border-hairline text-center space-y-2">
+          <AlertTriangle className="w-8 h-8 text-warning mx-auto" strokeWidth={1.5} />
+          <h2 className="text-base font-semibold text-ink">Access Denied</h2>
+          <p className="text-xs text-ink-secondary">
+            You do not have permission to run CSV imports.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
                   <div
                     key={type}
                     onClick={() => setSelectedType(type)}
@@ -337,16 +397,39 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
 
           {/* Step 2: Upload Dropzone */}
           {!validationResult && (
-            <div className="p-8 rounded-xl bg-surface border-2 border-dashed border-hairline hover:border-accent/50 transition-colors text-center space-y-4">
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+                const f = e.dataTransfer.files?.[0];
+                if (f) handleFileSelect(f);
+              }}
+              className={`p-8 rounded-xl bg-surface border-2 border-dashed transition-colors text-center space-y-4 ${
+                isDragging ? 'border-accent bg-accent/5' : 'border-hairline hover:border-accent/50'
+              }`}
+            >
               <input
                 ref={fileInputRef}
                 type="file"
                 accept=".csv"
                 onChange={(e) => {
                   if (e.target.files?.[0]) handleFileSelect(e.target.files[0]);
+                  e.target.value = '';
                 }}
                 className="hidden"
               />
+
+              {fileError && (
+                <div className="max-w-md mx-auto flex items-center gap-2 p-3 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs text-left">
+                  <XCircle className="w-4 h-4 shrink-0" />
+                  <span>{fileError}</span>
+                </div>
+              )}
 
               <div className="w-14 h-14 rounded-xl bg-accent/15 border border-accent/25 flex items-center justify-center text-accent-ink mx-auto">
                 <UploadCloud className="w-7 h-7" strokeWidth={1.5} />
@@ -658,24 +741,27 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({ deviceId = 'local-de
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-canvas border border-hairline flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-canvas border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="text-xs font-semibold text-ink">Folder Destination Pipeline</div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-ink">Folder Destination Pipeline</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-warning/15 text-warning border border-warning/25">
+                  Coming Soon
+                </span>
+              </div>
               <div className="text-[11px] text-ink-secondary mt-0.5">
-                Processed files automatically move to <code className="text-positive font-mono">Import/Processed/</code>.
-                Any failed files move to <code className="text-negative font-mono">Import/Failed/</code> with an error report.
+                Automatic folder watching is planned for a future release. For now, please use the{' '}
+                <strong className="text-ink">Import Wizard</strong> tab to upload CSV files directly.
               </div>
             </div>
 
             <button
               type="button"
-              onClick={() => {
-                alert('Scan Folder executed: checked Import/ directory for queued batch files.');
-              }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-xs font-semibold transition-colors"
+              disabled
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-subtle text-ink-muted border border-hairline text-xs font-semibold cursor-not-allowed opacity-60 shrink-0"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>Scan Folder Now</span>
+              <span>Coming Soon</span>
             </button>
           </div>
         </div>

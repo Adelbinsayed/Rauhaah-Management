@@ -1,4 +1,4 @@
-import { dbBatchTx, dbQuery, type BatchStatement } from '@/data/db';
+import { createChangeLogStatement, dbBatchTx, dbQuery, type BatchStatement } from '@/data/db';
 import { nowUtcIso } from '@/lib/dates';
 import { uuidv7 } from '@/lib/ids';
 import type { ImportLogEntry, ValidationResult } from '@/domain/import/types';
@@ -71,13 +71,17 @@ export const importRepo = {
     let successCount = 0;
 
     // Cache existing categories and brands for on-the-fly resolution
-    const existingCats = await dbQuery<{ id: string; name: string }>(`SELECT id, name FROM categories`);
+    const existingCats = await dbQuery<{ id: string; name: string }>(
+      `SELECT id, name FROM categories WHERE deleted_at IS NULL`
+    );
     const catMap = new Map<string, string>();
     for (const c of existingCats) {
       catMap.set(c.name.trim().toLowerCase(), c.id);
     }
 
-    const existingBrands = await dbQuery<{ id: string; name: string }>(`SELECT id, name FROM brands`);
+    const existingBrands = await dbQuery<{ id: string; name: string }>(
+      `SELECT id, name FROM brands WHERE deleted_at IS NULL`
+    );
     const brandMap = new Map<string, string>();
     for (const b of existingBrands) {
       brandMap.set(b.name.trim().toLowerCase(), b.id);
@@ -106,15 +110,33 @@ export const importRepo = {
           });
 
           // Price history log
-          if (retailPrice !== undefined) {
+          const retailChange = row.changes.find((c) => c.field === 'retail_price_bdt');
+          if (retailPrice !== undefined && retailChange) {
             statements.push({
-              sql: `INSERT INTO price_history (id, sellable_id, price_type, old_price, new_price, change_reason, changed_by, created_at, device_id)
+              sql: `INSERT INTO price_history (id, sellable_id, price_type, old_price, new_price, change_reason, changed_by_user_id, created_at, device_id)
                     VALUES (?, ?, 'retail', ?, ?, 'CSV Price Import', ?, ?, ?)`,
               params: [
                 uuidv7(),
                 sellableId,
-                row.changes.find((c) => c.field === 'retail_price_bdt')?.oldValue ?? retailPrice,
+                retailChange.oldValue ?? retailPrice,
                 retailPrice,
+                userId,
+                now,
+                deviceId,
+              ],
+            });
+          }
+
+          const wholesaleChange = row.changes.find((c) => c.field === 'wholesale_price_bdt');
+          if (wholesalePrice !== undefined && wholesaleChange) {
+            statements.push({
+              sql: `INSERT INTO price_history (id, sellable_id, price_type, old_price, new_price, change_reason, changed_by_user_id, created_at, device_id)
+                    VALUES (?, ?, 'wholesale', ?, ?, 'CSV Price Import', ?, ?, ?)`,
+              params: [
+                uuidv7(),
+                sellableId,
+                wholesaleChange.oldValue ?? wholesalePrice,
+                wholesalePrice,
                 userId,
                 now,
                 deviceId,
@@ -123,21 +145,26 @@ export const importRepo = {
           }
         }
 
-        // 2. Update stock item cost if provided
+        // 2. Update primary stock item cost if provided (divide by sc.quantity for pre-sized decants)
         if (costPrice !== undefined) {
           statements.push({
             sql: `UPDATE stock_items
-                  SET cost_price_bdt = ?, updated_at = ?
-                  WHERE id IN (SELECT stock_item_id FROM sellable_components WHERE sellable_id = ?)`,
-            params: [costPrice, now, sellableId],
+                  SET cost_price_bdt = COALESCE(
+                    (SELECT ? / NULLIF(sc.quantity, 0)
+                     FROM sellable_components sc
+                     WHERE sc.sellable_id = ? AND sc.stock_item_id = stock_items.id AND sc.is_primary = 1
+                     LIMIT 1),
+                    cost_price_bdt
+                  ),
+                  updated_at = ?
+                  WHERE id IN (
+                    SELECT stock_item_id FROM sellable_components WHERE sellable_id = ? AND is_primary = 1
+                  )`,
+            params: [costPrice, sellableId, now, sellableId],
           });
         }
 
-        statements.push({
-          sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
-                VALUES (?, 'sellables', ?, 'update', ?, 0)`,
-          params: [uuidv7(), sellableId, now],
-        });
+        statements.push(createChangeLogStatement('sellables', sellableId, 'update', now));
 
         successCount++;
       } else if (result.importType === 'products') {
@@ -151,10 +178,11 @@ export const importRepo = {
           } else {
             categoryId = uuidv7();
             catMap.set(key, categoryId);
+            const slug = key.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || uuidv7().slice(0, 8);
             statements.push({
               sql: `INSERT INTO categories (id, name, slug, sort_order, is_active, created_at, updated_at, device_id)
                     VALUES (?, ?, ?, 0, 1, ?, ?, ?)`,
-              params: [categoryId, catName.trim(), key.replace(/\s+/g, '-'), now, now, deviceId],
+              params: [categoryId, catName.trim(), slug, now, now, deviceId],
             });
           }
         }
@@ -179,7 +207,9 @@ export const importRepo = {
 
         if (row.status === 'new') {
           const sellableId = uuidv7();
-          const sku = String(row.payload.sku).trim() || `PRD-${Math.floor(100000 + Math.random() * 900000)}`;
+          const sku =
+            (row.payload.sku ? String(row.payload.sku).trim() : '') ||
+            `PRD-${Math.floor(100000 + Math.random() * 900000)}`;
           const barcode = row.payload.barcode ? String(row.payload.barcode).trim() : null;
           const name = String(row.payload.name).trim();
           const sellableType = String(row.payload.sellableType);
@@ -208,7 +238,7 @@ export const importRepo = {
               sellableType,
               retailPrice,
               wholesalePrice,
-              costPrice,
+              wholesalePrice,
               now,
               now,
               deviceId,
@@ -250,11 +280,13 @@ export const importRepo = {
           // Price history initial entry
           if (retailPrice > 0) {
             statements.push({
-              sql: `INSERT INTO price_history (id, sellable_id, price_type, old_price, new_price, change_reason, changed_by, created_at, device_id)
+              sql: `INSERT INTO price_history (id, sellable_id, price_type, old_price, new_price, change_reason, changed_by_user_id, created_at, device_id)
                     VALUES (?, ?, 'retail', 0, ?, 'CSV Initial Product Import', ?, ?, ?)`,
               params: [uuidv7(), sellableId, retailPrice, userId, now, deviceId],
             });
           }
+
+          statements.push(createChangeLogStatement('sellables', sellableId, 'insert', now));
 
           successCount++;
         } else if (row.status === 'update') {
@@ -287,11 +319,22 @@ export const importRepo = {
           if (costPrice !== undefined) {
             statements.push({
               sql: `UPDATE stock_items
-                    SET cost_price_bdt = ?, updated_at = ?
-                    WHERE id IN (SELECT stock_item_id FROM sellable_components WHERE sellable_id = ?)`,
-              params: [costPrice, now, sellableId],
+                    SET cost_price_bdt = COALESCE(
+                      (SELECT ? / NULLIF(sc.quantity, 0)
+                       FROM sellable_components sc
+                       WHERE sc.sellable_id = ? AND sc.stock_item_id = stock_items.id AND sc.is_primary = 1
+                       LIMIT 1),
+                      cost_price_bdt
+                    ),
+                    updated_at = ?
+                    WHERE id IN (
+                      SELECT stock_item_id FROM sellable_components WHERE sellable_id = ? AND is_primary = 1
+                    )`,
+              params: [costPrice, sellableId, now, sellableId],
             });
           }
+
+          statements.push(createChangeLogStatement('sellables', sellableId, 'update', now));
 
           successCount++;
         }
@@ -303,17 +346,24 @@ export const importRepo = {
         statements.push({
           sql: `UPDATE stock_items
                 SET current_quantity = ?,
-                    cost_price_bdt = CASE WHEN ? IS NOT NULL THEN ? ELSE cost_price_bdt END,
+                    cost_price_bdt = CASE
+                      WHEN ? IS NOT NULL THEN COALESCE(
+                        (SELECT ? / NULLIF(sc.quantity, 0)
+                         FROM sellable_components sc
+                         WHERE sc.sellable_id = ? AND sc.stock_item_id = stock_items.id AND sc.is_primary = 1
+                         LIMIT 1),
+                        cost_price_bdt
+                      )
+                      ELSE cost_price_bdt
+                    END,
                     updated_at = ?
-                WHERE id IN (SELECT stock_item_id FROM sellable_components WHERE sellable_id = ?)`,
-          params: [qty, cost ?? null, cost ?? null, now, sellableId],
+                WHERE id IN (
+                  SELECT stock_item_id FROM sellable_components WHERE sellable_id = ? AND is_primary = 1
+                )`,
+          params: [qty, cost ?? null, cost ?? null, sellableId, now, sellableId],
         });
 
-        statements.push({
-          sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
-                VALUES (?, 'stock_items', ?, 'update', ?, 0)`,
-          params: [uuidv7(), sellableId, now],
-        });
+        statements.push(createChangeLogStatement('sellables', sellableId, 'update', now));
 
         successCount++;
       }
