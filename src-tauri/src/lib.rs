@@ -12,9 +12,6 @@ fn close_splashscreen(app: tauri::AppHandle) {
         let _ = main.unminimize();
         let _ = main.set_focus();
     }
-    if let Some(splash) = app.get_webview_window("splash") {
-        let _ = splash.hide();
-    }
 }
 
 #[tauri::command]
@@ -83,23 +80,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(db_state)
-        .setup(|app| {
-            let app_handle = app.handle().clone();
-            std::thread::spawn(move || {
-                // Safety net: if splash.html doesn't close within 8 seconds, automatically reveal main
-                std::thread::sleep(std::time::Duration::from_millis(8000));
-                let main_opt = app_handle.get_webview_window("main");
-                let splash_opt = app_handle.get_webview_window("splash");
-
-                if let Some(main) = main_opt {
-                    let _ = main.show();
-                    let _ = main.unminimize();
-                    let _ = main.set_focus();
-                }
-                if let Some(splash) = splash_opt {
-                    let _ = splash.hide();
-                }
-            });
+        .setup(|_app| {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

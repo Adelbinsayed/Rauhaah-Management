@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Rauhaah Management",
   "version": "1.0.0",
-  "identifier": "com.sooktec.rauhaah",
+  "identifier": "com.sooktec.rauhaahpos",
   "build": {
     "beforeDevCommand": "npm.cmd run dev",
     "devUrl": "http://localhost:1420",
@@ -19,19 +19,8 @@
         "height": 800,
         "minWidth": 1024,
         "minHeight": 680,
-        "visible": false,
+        "visible": true,
         "center": true
-      },
-      {
-        "label": "splash",
-        "title": "Rauhaah",
-        "url": "splash.html",
-        "width": 620,
-        "height": 380,
-        "resizable": false,
-        "decorations": false,
-        "center": true,
-        "alwaysOnTop": true
       }
     ],
     "security": {
