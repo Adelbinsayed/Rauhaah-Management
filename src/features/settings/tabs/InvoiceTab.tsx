@@ -401,6 +401,7 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
               ]}
               cashierName={cashierName}
               shopSettings={previewShopSettings}
+              isPreview={true}
             />
           </div>
         </div>

@@ -12,6 +12,7 @@ export interface PrintableReceiptProps {
   payments: SalePayment[];
   shopSettings?: ShopSettings | null;
   paperWidth?: '80mm' | '58mm' | 'a4';
+  isPreview?: boolean;
 }
 
 export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
@@ -24,6 +25,7 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
   payments,
   shopSettings,
   paperWidth,
+  isPreview = false,
 }) => {
   const widthMode = paperWidth || shopSettings?.invoicePaperWidth || '80mm';
   const showLogo = shopSettings?.showLogoOnInvoice !== false;
@@ -56,19 +58,17 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
 
   return (
     <div
-      id="printable-receipt"
+      id={isPreview ? undefined : 'printable-receipt'}
       style={widthStyle}
       className="bg-white text-black p-3 font-mono text-[11px] leading-tight select-none"
     >
       {/* Brand Header */}
       <div className="text-center pb-2 border-b border-dashed border-black/40">
-        {showLogo && (
-          <div className="flex justify-center mb-1">
-            <span className="text-base font-extrabold tracking-widest uppercase">
-              ✦ {shopName} ✦
-            </span>
-          </div>
-        )}
+        <div className="flex justify-center mb-1">
+          <span className="text-base font-extrabold tracking-widest uppercase">
+            {showLogo ? `✦ ${shopName} ✦` : shopName}
+          </span>
+        </div>
 
         <div className="text-[10px] text-gray-700 italic mb-0.5">{subtitle}</div>
         {shopAddress && <div className="text-[10px] text-gray-800">{shopAddress}</div>}

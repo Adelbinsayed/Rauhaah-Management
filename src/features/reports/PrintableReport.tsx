@@ -30,22 +30,26 @@ export interface PrintableReportProps {
   currentUser?: User | null;
   allowCost?: boolean;
   allowProfit?: boolean;
+  isPreview?: boolean;
 }
 
 export const PrintableReport: React.FC<PrintableReportProps> = ({
   reportType,
   filter,
   pnl,
+  dailyTrends,
   topProducts,
   categorySales,
   paymentMethods,
   cashierStats,
   expenseCats,
+  cashFlow,
   inventoryVal,
   shopSettings,
   currentUser,
   allowCost = false,
   allowProfit = false,
+  isPreview = false,
 }) => {
   const shopName = shopSettings?.shopName || 'RAUHAAH';
   const subtitle = shopSettings?.invoiceSubtitle || 'Live Peaceful • Luxury Fragrances & Lifestyle';
@@ -76,9 +80,8 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
 
   return (
     <div
-      id="printable-report"
+      id={isPreview ? undefined : 'printable-report'}
       className="bg-white text-black font-sans leading-normal text-xs p-6 md:p-8 max-w-[210mm] mx-auto select-text"
-      style={{ minHeight: '297mm' }}
     >
       {/* 1. Executive Brand Letterhead */}
       <div className="border-b-2 border-black pb-4 mb-6">
@@ -303,6 +306,51 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
               </table>
             </div>
           )}
+
+          {/* Daily Revenue & Profit Trends */}
+          {dailyTrends.length > 0 && (
+            <div className="pt-2">
+              <h3 className="text-[11px] font-bold text-gray-700 uppercase tracking-wide mb-1.5">
+                Daily Revenue & Profit Trend
+              </h3>
+              <table className="w-full text-left border-collapse border border-gray-300 text-[10px]">
+                <thead>
+                  <tr className="bg-gray-100 text-gray-800 border-b border-gray-300">
+                    <th className="py-1.5 px-2 font-bold">Date</th>
+                    <th className="py-1.5 px-2 text-right font-bold">Orders</th>
+                    <th className="py-1.5 px-2 text-right font-bold">Revenue</th>
+                    <th className="py-1.5 px-2 text-right font-bold">COGS</th>
+                    <th className="py-1.5 px-2 text-right font-bold">Gross Profit</th>
+                    <th className="py-1.5 px-2 text-right font-bold">Expenses</th>
+                    <th className="py-1.5 px-2 text-right font-bold">Net Profit</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 font-mono">
+                  {dailyTrends.map((dt) => (
+                    <tr key={dt.date}>
+                      <td className="py-1 px-2 font-sans font-semibold text-black">
+                        {dt.date} ({dt.dayLabel})
+                      </td>
+                      <td className="py-1 px-2 text-right">{dt.ordersCount}</td>
+                      <td className="py-1 px-2 text-right font-bold">{formatBdt(dt.revenueBdt)}</td>
+                      <td className="py-1 px-2 text-right text-gray-600">
+                        {allowCost ? formatBdt(dt.cogsBdt) : 'Hidden'}
+                      </td>
+                      <td className="py-1 px-2 text-right">
+                        {allowProfit ? formatBdt(dt.grossProfitBdt) : 'Hidden'}
+                      </td>
+                      <td className="py-1 px-2 text-right text-red-600">
+                        {allowProfit ? formatBdt(dt.expensesBdt) : 'Hidden'}
+                      </td>
+                      <td className="py-1 px-2 text-right font-bold">
+                        {allowProfit ? formatBdt(dt.netProfitBdt) : 'Hidden'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
@@ -330,8 +378,15 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 font-mono">
-              {topProducts.slice(0, 25).map((p, idx) => (
-                <tr key={p.productId || idx} className={idx % 2 === 1 ? 'bg-gray-50/50' : ''}>
+              {topProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="py-4 px-2 text-center font-sans text-gray-500 italic">
+                    No records for this period
+                  </td>
+                </tr>
+              ) : (
+                topProducts.slice(0, 25).map((p, idx) => (
+                  <tr key={`${p.productId}-${p.sku}`} className={idx % 2 === 1 ? 'bg-gray-50/50' : ''}>
                   <td className="py-1 px-2 text-center text-gray-500">{idx + 1}</td>
                   <td className="py-1 px-2 font-sans font-semibold text-black">{p.productName}</td>
                   <td className="py-1 px-2 text-gray-600 text-[9px]">{p.sku}</td>
@@ -352,7 +407,8 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                     {allowProfit ? `${p.marginPercent}%` : 'Hidden'}
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
           {topProducts.length > 25 && (
@@ -380,7 +436,7 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                   {categorySales.map((cs, idx) => (
                     <tr key={cs.categoryId || idx}>
                       <td className="py-1 px-2 font-sans font-semibold text-black">{cs.categoryName}</td>
-                      <td className="py-1 px-2 text-right">{cs.itemsSold}</td>
+                      <td className="py-1 px-2 text-right">{formatQty(cs.itemsSold)}</td>
                       <td className="py-1 px-2 text-right font-bold">{formatBdt(cs.revenueBdt)}</td>
                       <td className="py-1 px-2 text-right">{cs.revenuePercentage}%</td>
                     </tr>
@@ -411,18 +467,75 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 font-mono">
-              {paymentMethods.map((pm, idx) => (
-                <tr key={pm.paymentMethod || idx} className={idx % 2 === 1 ? 'bg-gray-50/50' : ''}>
-                  <td className="py-1.5 px-3 font-sans font-bold text-black">{pm.displayName || pm.paymentMethod}</td>
-                  <td className="py-1.5 px-3 text-right">{pm.count}</td>
-                  <td className="py-1.5 px-3 text-right font-bold text-black">
-                    {formatBdt(pm.amountBdt)}
+              {paymentMethods.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="py-4 px-3 text-center font-sans text-gray-500 italic">
+                    No records for this period
                   </td>
-                  <td className="py-1.5 px-3 text-right font-bold">{pm.percentage}%</td>
                 </tr>
-              ))}
+              ) : (
+                paymentMethods.map((pm, idx) => (
+                  <tr key={pm.paymentMethod || idx} className={idx % 2 === 1 ? 'bg-gray-50/50' : ''}>
+                    <td className="py-1.5 px-3 font-sans font-bold text-black">{pm.displayName || pm.paymentMethod}</td>
+                    <td className="py-1.5 px-3 text-right">{pm.count}</td>
+                    <td className="py-1.5 px-3 text-right font-bold text-black">
+                      {formatBdt(pm.amountBdt)}
+                    </td>
+                    <td className="py-1.5 px-3 text-right font-bold">{pm.percentage}%</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Cash Flow Summary (PnL, Payments, or Complete Summary) */}
+      {(reportType === 'pnl' || reportType === 'payments' || reportType === 'all') && cashFlow && (
+        <div className="mb-6 space-y-3">
+          <div className="border-b border-black pb-1">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-black">
+              Cash Flow Summary
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-[10px]">
+            <div className="border border-gray-300 rounded p-2.5 space-y-1">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Cash Sales</span>
+                <span className="font-mono font-semibold">{formatBdt(cashFlow.cashSalesBdt)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Customer Due Collections (Cash)</span>
+                <span className="font-mono font-semibold">{formatBdt(cashFlow.customerDueCollectionsCashBdt)}</span>
+              </div>
+              <div className="flex justify-between pt-1 border-t border-gray-200 font-bold text-black">
+                <span>Total Cash Inflow</span>
+                <span className="font-mono">{formatBdt(cashFlow.totalCashInflowBdt)}</span>
+              </div>
+            </div>
+
+            <div className="border border-gray-300 rounded p-2.5 space-y-1">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Cash Expenses</span>
+                <span className="font-mono font-semibold">
+                  {allowProfit ? formatBdt(cashFlow.cashExpensesBdt) : 'Hidden'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Cash Supplier Purchases</span>
+                <span className="font-mono font-semibold">
+                  {allowCost ? formatBdt(cashFlow.cashSupplierPurchasesBdt) : 'Hidden'}
+                </span>
+              </div>
+              <div className="flex justify-between pt-1 border-t border-gray-200 font-bold text-black">
+                <span>Net Cash Flow</span>
+                <span className="font-mono">
+                  {allowProfit && allowCost ? formatBdt(cashFlow.netCashFlowBdt) : 'Hidden'}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -445,18 +558,26 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 font-mono">
-              {cashierStats.map((c, idx) => (
-                <tr key={c.cashierId || idx} className={idx % 2 === 1 ? 'bg-gray-50/50' : ''}>
-                  <td className="py-1.5 px-3 font-sans font-bold text-black">
-                    {c.cashierName}
+              {cashierStats.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="py-4 px-3 text-center font-sans text-gray-500 italic">
+                    No records for this period
                   </td>
-                  <td className="py-1.5 px-3 text-right">{c.ordersCount}</td>
-                  <td className="py-1.5 px-3 text-right font-bold text-black">
-                    {formatBdt(c.totalSalesBdt)}
-                  </td>
-                  <td className="py-1.5 px-3 text-right font-bold">{formatBdt(c.avgTicketBdt)}</td>
                 </tr>
-              ))}
+              ) : (
+                cashierStats.map((c, idx) => (
+                  <tr key={c.cashierId || idx} className={idx % 2 === 1 ? 'bg-gray-50/50' : ''}>
+                    <td className="py-1.5 px-3 font-sans font-bold text-black">
+                      {c.cashierName}
+                    </td>
+                    <td className="py-1.5 px-3 text-right">{c.ordersCount}</td>
+                    <td className="py-1.5 px-3 text-right font-bold text-black">
+                      {formatBdt(c.totalSalesBdt)}
+                    </td>
+                    <td className="py-1.5 px-3 text-right font-bold">{formatBdt(c.avgTicketBdt)}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -499,7 +620,7 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
       )}
 
       {/* 4. Formal Executive Signature Footer */}
-      <div className="mt-12 pt-6 border-t-2 border-black/80 flex justify-between items-end text-[10px] text-gray-700">
+      <div className="mt-12 pt-6 border-t-2 border-black/80 flex justify-between items-end text-[10px] text-gray-700 break-inside-avoid">
         <div className="space-y-1">
           <p className="font-semibold text-black">RAUHAAH MANAGEMENT POS SYSTEM</p>
           <p className="text-[9px] text-gray-500">

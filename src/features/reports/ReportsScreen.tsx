@@ -42,7 +42,7 @@ import {
 import { useEffect, useState, useMemo } from 'react';
 import { downloadCsv, formatBdt, formatQty, getDateRangeForPreset } from './reportsUtils';
 import { PrintableReport } from './PrintableReport';
-import { PrintPreviewModal } from './PrintPreviewModal';
+import { PrintPreviewModal, type PrintReportType } from './PrintPreviewModal';
 
 interface ReportsScreenProps {
   deviceId: string;
@@ -53,6 +53,7 @@ type ReportTab = 'pnl' | 'products' | 'payments' | 'staff' | 'inventory';
 export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
   const { permissions, currentUser, shopSettings, showToast } = useAppStore();
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [previewReportType, setPreviewReportType] = useState<PrintReportType>('pnl');
 
   const allowCost = canViewCost(permissions);
   const allowProfit = canViewProfit(permissions);
@@ -423,7 +424,10 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
 
           <button
             type="button"
-            onClick={() => setIsPrintModalOpen(true)}
+            onClick={() => {
+              setPreviewReportType(activeTab);
+              setIsPrintModalOpen(true);
+            }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-hairline text-xs font-medium hover:border-accent/50 bg-surface text-ink transition-colors"
             title="Open printable document preview or save as PDF"
           >
@@ -1479,7 +1483,7 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
       {/* Printable Report for Direct System Print (Ctrl+P) */}
       <div className="hidden print:block">
         <PrintableReport
-          reportType={activeTab}
+          reportType={isPrintModalOpen ? previewReportType : activeTab}
           filter={currentFilter}
           pnl={pnl}
           dailyTrends={dailyTrends}
@@ -1502,6 +1506,8 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
         isOpen={isPrintModalOpen}
         onClose={() => setIsPrintModalOpen(false)}
         defaultReportType={activeTab}
+        reportType={previewReportType}
+        onReportTypeChange={setPreviewReportType}
         filter={currentFilter}
         pnl={pnl}
         dailyTrends={dailyTrends}
