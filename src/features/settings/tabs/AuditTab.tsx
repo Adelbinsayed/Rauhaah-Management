@@ -1,6 +1,6 @@
 import type { AuditLogEntry } from '@/domain/auth/types';
 import { formatDhakaDateTime } from '@/lib/dates';
-import React from 'react';
+import React, { useState } from 'react';
 
 interface AuditTabProps {
   auditLogs: AuditLogEntry[];
@@ -8,11 +8,29 @@ interface AuditTabProps {
   onRefresh: () => void;
 }
 
+function formatAuditDetails(details: string): string {
+  try {
+    return JSON.stringify(JSON.parse(details), null, 2);
+  } catch {
+    return details;
+  }
+}
+
 export const AuditTab: React.FC<AuditTabProps> = ({
   auditLogs,
   loadingAudit,
   onRefresh,
 }) => {
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const toggleExpanded = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
   return (
     <div className="rounded-xl border border-hairline bg-surface overflow-hidden">
       <div className="p-4 border-b border-hairline flex items-center justify-between">
@@ -57,22 +75,44 @@ export const AuditTab: React.FC<AuditTabProps> = ({
                 </td>
               </tr>
             ) : (
-              auditLogs.map((log) => (
+              auditLogs.map((log) => {
+                const isExpanded = expandedIds.has(log.id);
+                return (
                 <tr key={log.id} className="hover:bg-subtle/60 transition-colors">
-                  <td className="px-4 py-2.5 text-ink-muted font-mono tabular-nums text-[11px] whitespace-nowrap">
+                  <td className="px-4 py-2.5 text-ink-muted font-mono tabular-nums text-[11px] whitespace-nowrap align-top">
                     {formatDhakaDateTime(log.createdAt)}
                   </td>
-                  <td className="px-4 py-2.5 font-medium text-ink">
+                  <td className="px-4 py-2.5 font-medium text-ink align-top">
                     {log.username ? `@${log.username}` : 'System'}
                   </td>
-                  <td className="px-4 py-2.5 font-mono text-accent-ink text-[11px]">
+                  <td className="px-4 py-2.5 font-mono text-accent-ink text-[11px] align-top">
                     {log.action}
                   </td>
-                  <td className="px-4 py-2.5 text-ink-secondary text-[11px] max-w-xs truncate">
-                    {log.details || '—'}
+                  <td
+                    title={log.details || ''}
+                    className="px-4 py-2.5 text-ink-secondary text-[11px] max-w-md align-top"
+                  >
+                    {log.details ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleExpanded(log.id)}
+                        className="text-left w-full cursor-pointer hover:text-ink transition-colors"
+                      >
+                        {isExpanded ? (
+                          <pre className="whitespace-pre-wrap break-all font-mono text-[11px] bg-canvas p-2 rounded border border-hairline">
+                            {formatAuditDetails(log.details)}
+                          </pre>
+                        ) : (
+                          <div className="truncate max-w-xs">{log.details}</div>
+                        )}
+                      </button>
+                    ) : (
+                      '—'
+                    )}
                   </td>
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>

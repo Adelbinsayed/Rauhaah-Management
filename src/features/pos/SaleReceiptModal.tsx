@@ -50,7 +50,9 @@ export const SaleReceiptModal: React.FC<SaleReceiptModalProps> = ({
           shopSettings,
           paperWidth: pWidth,
           autoCut: shopSettings?.autoCutReceipt !== false,
-          kickDrawer: shopSettings?.kickCashDrawer === true,
+          kickDrawer:
+            shopSettings?.kickCashDrawer === true &&
+            payments.some((p) => p.method === 'cash'),
         });
 
         const res = await printDirectEscpos(data, shopSettings?.selectedPrinter);

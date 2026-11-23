@@ -117,7 +117,8 @@ export function App() {
   // Terminal Idle Lock Timer
   useEffect(() => {
     if (!currentUser || isLocked) return;
-    const timeoutMinutes = shopSettings?.idleLockMinutes ?? 5;
+    const parsedIdle = Number(shopSettings?.idleLockMinutes);
+    const timeoutMinutes = Number.isFinite(parsedIdle) ? parsedIdle : 5;
     if (timeoutMinutes <= 0) return; // 0 = Never lock
 
     let timer: ReturnType<typeof setTimeout>;

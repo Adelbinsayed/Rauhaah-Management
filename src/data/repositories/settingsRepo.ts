@@ -8,7 +8,7 @@ const DEFAULT_SETTINGS: ShopSettings = {
   phone: '01970084325',
   address: 'Shop #G-04, Ground Floor, Dhaka, Bangladesh',
   currency: 'BDT',
-  invoicePrefix: 'INV-',
+  invoicePrefix: 'INV',
   negativeStockPolicy: 'warn_allow',
   tolaConvention: 'volume_12ml',
   idleLockMinutes: 5,
@@ -56,7 +56,10 @@ export const settingsRepo = {
       tolaConvention:
         (map.get('tola_convention') as ShopSettings['tolaConvention']) ??
         DEFAULT_SETTINGS.tolaConvention,
-      idleLockMinutes: Number(map.get('idle_lock_minutes') ?? DEFAULT_SETTINGS.idleLockMinutes),
+      idleLockMinutes: (() => {
+        const parsed = Number(map.get('idle_lock_minutes') ?? DEFAULT_SETTINGS.idleLockMinutes);
+        return Number.isFinite(parsed) ? parsed : DEFAULT_SETTINGS.idleLockMinutes;
+      })(),
       paymentMethods,
       invoiceSubtitle: map.get('invoice_subtitle') ?? DEFAULT_SETTINGS.invoiceSubtitle,
       invoiceFooterNote: map.get('invoice_footer_note') ?? DEFAULT_SETTINGS.invoiceFooterNote,
@@ -117,22 +120,41 @@ export const settingsRepo = {
     if (settings.kickCashDrawer !== undefined)
       pairs.push(['kick_cash_drawer', String(settings.kickCashDrawer)]);
 
+    const existingRows = await dbQuery<{ id: string; key: string }>(
+      'SELECT id, key FROM settings'
+    );
+    const existingIdMap = new Map<string, string>();
+    for (const row of existingRows) {
+      existingIdMap.set(row.key, row.id);
+    }
+
     for (const [key, value] of pairs) {
-      batch.push({
-        sql: `INSERT INTO settings (id, key, value, created_at, updated_at, device_id)
-              VALUES (?, ?, ?, ?, ?, ?)
-              ON CONFLICT(key) DO UPDATE SET
-                value = excluded.value,
-                updated_at = excluded.updated_at,
-                deleted_at = NULL,
-                device_id = excluded.device_id`,
-        params: [uuidv7(), key, value, now, now, deviceId],
-      });
-      batch.push({
-        sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
-              VALUES (?, 'settings', ?, 'update', ?, 0)`,
-        params: [uuidv7(), key, now],
-      });
+      const existingId = existingIdMap.get(key);
+      if (existingId) {
+        batch.push({
+          sql: `UPDATE settings
+                SET value = ?, updated_at = ?, deleted_at = NULL, device_id = ?
+                WHERE id = ?`,
+          params: [value, now, deviceId, existingId],
+        });
+        batch.push({
+          sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
+                VALUES (?, 'settings', ?, 'update', ?, 0)`,
+          params: [uuidv7(), existingId, now],
+        });
+      } else {
+        const newId = uuidv7();
+        batch.push({
+          sql: `INSERT INTO settings (id, key, value, created_at, updated_at, device_id)
+                VALUES (?, ?, ?, ?, ?, ?)`,
+          params: [newId, key, value, now, now, deviceId],
+        });
+        batch.push({
+          sql: `INSERT INTO change_log (id, table_name, row_id, operation, changed_at, synced)
+                VALUES (?, 'settings', ?, 'insert', ?, 0)`,
+          params: [uuidv7(), newId, now],
+        });
+      }
     }
 
     batch.push({

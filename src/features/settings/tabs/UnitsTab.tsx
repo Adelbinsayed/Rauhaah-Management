@@ -56,7 +56,7 @@ export const UnitsTab: React.FC<UnitsTabProps> = ({
           </label>
         </div>
         <p className="text-[11px] text-ink-secondary mt-2">
-          Note: You can also specify an individual oil&apos;s specific density in the product catalog for exact gram-to-ml conversion.
+          Controls the default 1 Tola preset in POS Decant Pouring and Purchase Order receiving. You can also specify an individual oil&apos;s specific density in the product catalog for exact gram-to-ml conversion.
         </p>
       </div>
     </div>

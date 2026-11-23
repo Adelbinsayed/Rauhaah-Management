@@ -1,3 +1,4 @@
+import { Modal } from '@/components/ui/Modal';
 import type { BackupItem, DbHealthStats } from '@/data/repositories/backupRepo';
 import { formatDhakaDateTime } from '@/lib/dates';
 import {
@@ -14,7 +15,7 @@ import {
   Scale,
   Trash2,
 } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface BackupTabProps {
   dbHealth: DbHealthStats | null;
@@ -32,6 +33,10 @@ interface BackupTabProps {
   onOpenRestoreModal: (item: BackupItem) => void;
   onCloseRestoreModal: () => void;
   onExecuteRestore: () => void;
+  deletingBackup: boolean;
+  deleteConfirmFilename: string | null;
+  onCloseDeleteModal: () => void;
+  onExecuteDelete: () => void;
 }
 
 export const BackupTab: React.FC<BackupTabProps> = ({
@@ -50,7 +55,17 @@ export const BackupTab: React.FC<BackupTabProps> = ({
   onOpenRestoreModal,
   onCloseRestoreModal,
   onExecuteRestore,
+  deletingBackup,
+  deleteConfirmFilename,
+  onCloseDeleteModal,
+  onExecuteDelete,
 }) => {
+  const [restoreConfirmText, setRestoreConfirmText] = useState('');
+
+  useEffect(() => {
+    setRestoreConfirmText('');
+  }, [restoreConfirmModal]);
+
   return (
     <div className="space-y-6">
       {/* Health Summary Cards */}
@@ -65,13 +80,34 @@ export const BackupTab: React.FC<BackupTabProps> = ({
           </div>
         </div>
 
-        <div className="p-3.5 rounded-xl border border-hairline bg-surface">
+        <div
+          className="p-3.5 rounded-xl border border-hairline bg-surface"
+          title={dbHealth?.integrityStatus}
+        >
           <div className="flex items-center gap-1.5 text-ink-secondary text-[11px] font-medium mb-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-positive" strokeWidth={1.5} />
+            {!dbHealth ? (
+              <Clock className="w-3.5 h-3.5 text-ink-muted" strokeWidth={1.5} />
+            ) : dbHealth.integrityStatus === 'ok' ? (
+              <CheckCircle2 className="w-3.5 h-3.5 text-positive" strokeWidth={1.5} />
+            ) : (
+              <AlertCircle className="w-3.5 h-3.5 text-negative" strokeWidth={1.5} />
+            )}
             <span>Integrity</span>
           </div>
-          <div className="text-base font-bold text-positive">
-            {dbHealth?.integrityStatus === 'ok' ? 'Verified OK' : dbHealth?.integrityStatus || 'Checking'}
+          <div
+            className={`text-base font-bold ${
+              !dbHealth
+                ? 'text-ink-muted'
+                : dbHealth.integrityStatus === 'ok'
+                ? 'text-positive'
+                : 'text-negative'
+            }`}
+          >
+            {!dbHealth
+              ? 'Checking…'
+              : dbHealth.integrityStatus === 'ok'
+              ? 'Verified OK'
+              : 'Attention Needed'}
           </div>
         </div>
 
@@ -166,7 +202,7 @@ export const BackupTab: React.FC<BackupTabProps> = ({
               Available Database Snapshots ({backups.length})
             </h3>
             <p className="text-[11px] text-ink-secondary">
-              Stored safely in local app directory <code>data/backups/</code>
+              Stored safely in local app directory <code>backups/</code>
             </p>
           </div>
         </div>
@@ -257,16 +293,22 @@ export const BackupTab: React.FC<BackupTabProps> = ({
       </div>
 
       {/* Restore Confirmation Modal */}
-      {restoreConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-surface border border-warning/40 rounded-2xl shadow-lg p-6 text-center space-y-4">
-            <div className="mx-auto w-12 h-12 rounded-full bg-warning/15 border border-warning/30 flex items-center justify-center text-warning">
+      <Modal
+        isOpen={Boolean(restoreConfirmModal)}
+        onClose={() => {
+          if (!restoringBackup) onCloseRestoreModal();
+        }}
+        title="Confirm Database Restore"
+        maxWidth="md"
+      >
+        {restoreConfirmModal && (
+          <div className="text-center space-y-4">
+            <div className="mx-auto w-12 h-12 rounded-full bg-negative/15 border border-negative/30 flex items-center justify-center text-negative">
               <RotateCcw className="w-6 h-6" strokeWidth={1.5} />
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-ink">Confirm Database Restore</h3>
-              <p className="text-xs text-ink-secondary mt-1">
+              <p className="text-xs text-ink-secondary">
                 Are you sure you want to restore the system database to snapshot:
               </p>
               <div className="mt-2 p-2.5 bg-canvas border border-hairline rounded-lg font-mono text-xs text-accent-ink break-all">
@@ -284,9 +326,28 @@ export const BackupTab: React.FC<BackupTabProps> = ({
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
                 <span>
-                  Any sales or inventory adjustments created after this snapshot&apos;s timestamp ({formatDhakaDateTime(restoreConfirmModal.createdAt)}) will be overwritten.
+                  Any sales or inventory adjustments created after this snapshot&apos;s timestamp ({formatDhakaDateTime(restoreConfirmModal.createdAt)}) will be overwritten, and all users will be signed out.
                 </span>
               </div>
+            </div>
+
+            <div className="text-left space-y-1.5">
+              <label className="block text-xs font-medium text-ink-secondary">
+                Type{' '}
+                <code className="px-1.5 py-0.5 rounded bg-canvas border border-hairline font-mono text-negative font-semibold">
+                  RESTORE
+                </code>{' '}
+                to confirm
+              </label>
+              <input
+                type="text"
+                value={restoreConfirmText}
+                onChange={(e) => setRestoreConfirmText(e.target.value)}
+                placeholder="RESTORE"
+                autoFocus
+                disabled={restoringBackup}
+                className="w-full px-3 py-2 bg-canvas border border-hairline rounded-lg text-xs font-mono text-ink placeholder:text-ink-muted focus:outline-none focus:border-negative"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-2">
@@ -294,23 +355,70 @@ export const BackupTab: React.FC<BackupTabProps> = ({
                 type="button"
                 onClick={onCloseRestoreModal}
                 disabled={restoringBackup}
-                className="py-2.5 px-4 rounded-lg bg-canvas border border-hairline hover:border-hairline-strong text-ink-secondary hover:text-ink font-medium text-xs transition-colors cursor-pointer"
+                className="py-2.5 px-4 rounded-lg bg-canvas border border-hairline hover:border-hairline-strong text-ink-secondary hover:text-ink font-medium text-xs transition-colors cursor-pointer disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={onExecuteRestore}
-                disabled={restoringBackup}
-                className="py-2.5 px-4 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                disabled={restoringBackup || restoreConfirmText.trim() !== 'RESTORE'}
+                className="py-2.5 px-4 rounded-lg bg-negative hover:opacity-90 text-white font-semibold text-xs transition-opacity flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <RotateCcw className={`w-3.5 h-3.5 ${restoringBackup ? 'animate-spin' : ''}`} />
-                <span>{restoringBackup ? 'Restoring…' : 'Yes, Restore Now'}</span>
+                <span>{restoringBackup ? 'Restoring…' : 'Restore Database'}</span>
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
+
+      {/* Delete Snapshot Confirmation Modal */}
+      <Modal
+        isOpen={Boolean(deleteConfirmFilename)}
+        onClose={() => {
+          if (!deletingBackup) onCloseDeleteModal();
+        }}
+        title="Delete Backup Snapshot"
+        maxWidth="sm"
+      >
+        {deleteConfirmFilename && (
+          <div className="text-center space-y-4">
+            <div className="mx-auto w-12 h-12 rounded-full bg-negative/15 border border-negative/30 flex items-center justify-center text-negative">
+              <Trash2 className="w-5 h-5" strokeWidth={1.5} />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs text-ink-secondary">
+                Permanently delete this backup snapshot? This action cannot be undone.
+              </p>
+              <div className="p-2.5 bg-canvas border border-hairline rounded-lg font-mono text-xs text-ink break-all">
+                {deleteConfirmFilename}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={onCloseDeleteModal}
+                disabled={deletingBackup}
+                className="py-2.5 px-4 rounded-lg bg-canvas border border-hairline hover:border-hairline-strong text-ink-secondary hover:text-ink font-medium text-xs transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={onExecuteDelete}
+                disabled={deletingBackup}
+                className="py-2.5 px-4 rounded-lg bg-negative hover:opacity-90 text-white font-semibold text-xs transition-opacity flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{deletingBackup ? 'Deleting…' : 'Delete Snapshot'}</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

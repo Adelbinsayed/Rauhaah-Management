@@ -16,8 +16,6 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   onShopNameChange,
   phone,
   onPhoneChange,
-  currency,
-  onCurrencyChange,
   address,
   onAddressChange,
 }) => {
@@ -51,14 +49,19 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         </div>
         <div>
           <label className="block text-xs font-medium text-ink-secondary mb-1.5">
-            Currency Code
+            Currency
           </label>
           <input
             type="text"
-            value={currency}
-            onChange={(e) => onCurrencyChange(e.target.value.toUpperCase())}
-            className="w-full px-3.5 py-2.5 bg-canvas border border-hairline rounded-lg text-sm text-ink focus:outline-none focus:border-accent font-mono"
+            value="BDT (৳)"
+            readOnly
+            disabled
+            aria-label="Currency (read-only for v1)"
+            className="w-full px-3.5 py-2.5 bg-subtle border border-hairline rounded-lg text-sm text-ink-muted font-mono cursor-not-allowed select-none"
           />
+          <p className="text-[11px] text-ink-muted mt-1">
+            Fixed to Bangladeshi Taka (BDT) for v1.
+          </p>
         </div>
       </div>
 

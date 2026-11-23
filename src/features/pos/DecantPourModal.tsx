@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { X, Droplet, ArrowRight, AlertTriangle } from 'lucide-react';
+import { X, Droplet, ArrowRight, AlertTriangle, AlertCircle } from 'lucide-react';
+import { useAppStore } from '../../app/store';
+import { STANDARD_TOLA_GRAMS } from '../../domain/catalog/units';
 import type { Sellable } from '../../domain/catalog/types';
 
 interface DecantPourModalProps {
@@ -13,18 +15,13 @@ interface DecantPourModalProps {
   }) => void;
 }
 
-const PRESET_BOTTLE_SIZES = [
-  { size: 3, label: '3 ml' },
-  { size: 6, label: '6 ml' },
-  { size: 12, label: '12 ml (1 Tola)' },
-];
-
 export const DecantPourModal: React.FC<DecantPourModalProps> = ({
   isOpen,
   onClose,
   product,
   onConfirm,
 }) => {
+  const { shopSettings } = useAppStore();
   const [selectedSize, setSelectedSize] = useState<number>(3);
   const [isCustom, setIsCustom] = useState(false);
   const [customMl, setCustomMl] = useState('10');
@@ -43,15 +40,33 @@ export const DecantPourModal: React.FC<DecantPourModalProps> = ({
 
   if (!isOpen || !product) return null;
 
+  const isWeightTola = (shopSettings?.tolaConvention ?? 'volume_12ml') === 'weight_11g';
+  const baseUnit = product.primaryUnitCode || 'ml';
+  const presetBottleSizes = isWeightTola
+    ? [
+        { size: 3, label: `3 ${baseUnit}` },
+        { size: 6, label: `6 ${baseUnit}` },
+        { size: STANDARD_TOLA_GRAMS, label: `${STANDARD_TOLA_GRAMS} g (1 Tola)` },
+      ]
+    : [
+        { size: 3, label: `3 ${baseUnit}` },
+        { size: 6, label: `6 ${baseUnit}` },
+        { size: 12, label: '12 ml (1 Tola)' },
+      ];
+
   const currentMl = isCustom ? parseFloat(customMl) || 0 : selectedSize;
   const parsedRate = parseFloat(unitRate) || 0;
   const lineTotal = Math.round(currentMl * parsedRate);
   const idealTotal = Math.round(currentMl * product.retailPriceBdt);
   const stockAvailable = product.primaryStockQuantity ?? 0;
   const isOverStock = currentMl > stockAvailable;
+  const policy = shopSettings?.negativeStockPolicy ?? 'warn_allow';
+  const isStrictBlock = policy === 'block' && isOverStock;
+  const showWarnAllow = policy === 'warn_allow' && isOverStock;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isStrictBlock) return;
     if (
       !Number.isFinite(currentMl) ||
       currentMl <= 0 ||
@@ -105,7 +120,7 @@ export const DecantPourModal: React.FC<DecantPourModalProps> = ({
               1. Pouring volume (bottle size)
             </label>
             <div className="grid grid-cols-4 gap-2">
-              {PRESET_BOTTLE_SIZES.map((b) => (
+              {presetBottleSizes.map((b) => (
                 <button
                   key={b.size}
                   type="button"
@@ -193,12 +208,20 @@ export const DecantPourModal: React.FC<DecantPourModalProps> = ({
             </p>
           </div>
 
-          {/* Overstock Warning */}
-          {isOverStock && (
+          {/* Stock Policy Feedback */}
+          {isStrictBlock && (
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+              <span className="tabular-nums">
+                Insufficient stock (strict block policy enabled: {currentMl} {baseUnit} requested, {stockAvailable} {baseUnit} available)
+              </span>
+            </div>
+          )}
+          {showWarnAllow && (
             <div className="flex items-center gap-2 p-2.5 rounded-lg bg-warning/10 border border-warning/25 text-warning text-xs">
               <AlertTriangle className="w-4 h-4 shrink-0" strokeWidth={1.5} />
               <span className="tabular-nums">
-                {currentMl} ml exceeds current stock ({stockAvailable} ml)
+                {currentMl} {baseUnit} exceeds current stock ({stockAvailable} {baseUnit})
               </span>
             </div>
           )}
@@ -235,7 +258,8 @@ export const DecantPourModal: React.FC<DecantPourModalProps> = ({
             </button>
             <button
               type="submit"
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-xs font-semibold transition-colors duration-150 ease-unslop"
+              disabled={isStrictBlock}
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-xs font-semibold transition-colors duration-150 ease-unslop disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               <span>Add to Cart</span>
               <ArrowRight className="w-4 h-4" strokeWidth={1.75} />

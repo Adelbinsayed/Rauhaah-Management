@@ -33,21 +33,21 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
 
   const dateStr = createdAt
     ? new Date(createdAt).toLocaleString('en-GB', {
+        timeZone: 'Asia/Dhaka',
         dateStyle: 'medium',
         timeStyle: 'short',
       })
     : new Date().toLocaleString('en-GB', {
+        timeZone: 'Asia/Dhaka',
         dateStyle: 'medium',
         timeStyle: 'short',
       });
 
-  const shopName = shopSettings?.shopName || 'RAUHAAH';
-  const shopPhone = shopSettings?.phone || '01970084325';
-  const shopAddress = shopSettings?.address || 'Dhaka, Bangladesh';
-  const subtitle = shopSettings?.invoiceSubtitle || 'Live Peaceful • Luxury Fragrances & Lifestyle';
-  const footerNote =
-    shopSettings?.invoiceFooterNote ||
-    'Items can be exchanged within 7 days with original invoice & intact seal. Poured oils are non-exchangeable.';
+  const shopName = shopSettings?.shopName || 'Shop';
+  const shopPhone = shopSettings?.phone ?? '';
+  const shopAddress = shopSettings?.address ?? '';
+  const subtitle = shopSettings?.invoiceSubtitle ?? '';
+  const footerNote = shopSettings?.invoiceFooterNote ?? '';
 
   const widthStyle =
     widthMode === '58mm'
@@ -70,7 +70,7 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
           </span>
         </div>
 
-        <div className="text-[10px] text-gray-700 italic mb-0.5">{subtitle}</div>
+        {subtitle && <div className="text-[10px] text-gray-700 italic mb-0.5">{subtitle}</div>}
         {shopAddress && <div className="text-[10px] text-gray-800">{shopAddress}</div>}
         {shopPhone && <div className="text-[10px] font-bold">Hotline: {shopPhone}</div>}
       </div>
@@ -179,12 +179,12 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
 
       {/* Footer Notes & Policy */}
       <div className="pt-2 text-center text-[9px] space-y-1 text-gray-700">
-        <p className="leading-tight px-1">{footerNote}</p>
+        {footerNote && <p className="leading-tight px-1">{footerNote}</p>}
         <div className="font-bold text-[10px] tracking-widest uppercase text-black pt-1">
           *** THANK YOU • VISIT AGAIN ***
         </div>
         <div className="text-[8px] text-gray-500 pt-0.5">
-          Powered by Rauhaah Management &bull; Sooktec
+          {shopName} &bull; Receipt
         </div>
       </div>
     </div>

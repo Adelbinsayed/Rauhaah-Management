@@ -11,6 +11,8 @@ import {
   Percent,
   ArrowRight,
   X,
+  AlertCircle,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAppStore } from '../../app/store';
 import { canViewCost } from '../../domain/auth/permissions';
@@ -29,8 +31,11 @@ interface PosScreenProps {
 }
 
 export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
-  const { currentUser, permissions } = useAppStore();
+  const { currentUser, permissions, shopSettings } = useAppStore();
   const allowCost = canViewCost(permissions);
+  const negativeStockPolicy = shopSettings?.negativeStockPolicy ?? 'warn_allow';
+  const isStrictBlock = negativeStockPolicy === 'block';
+  const isWarnAllow = negativeStockPolicy === 'warn_allow';
 
   // Catalog State
   const [products, setProducts] = useState<Sellable[]>([]);
@@ -44,6 +49,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
 
   // Cart State
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [stockError, setStockError] = useState<string | null>(null);
   const [cartDiscountPercent, setCartDiscountPercent] = useState<number>(0);
   const [cartDiscountAmount, setCartDiscountAmount] = useState<number>(0);
   const [cartDiscountReason, setCartDiscountReason] = useState<string>('');
@@ -172,8 +178,47 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
     setShowCustomerDropdown(false);
   };
 
+  const getItemStockConsumption = (item: CartItem) =>
+    item.sellableType === 'loose_decant' && item.unitCode === 'bottle' && item.bottleSizeMl
+      ? item.quantity * item.bottleSizeMl
+      : item.quantity;
+
+  const getSellableConsumptionInCart = (sellableId: string, items: CartItem[] = cartItems) =>
+    items
+      .filter((i) => i.sellableId === sellableId)
+      .reduce((sum, i) => sum + getItemStockConsumption(i), 0);
+
+  const hasOverstockInCart = (items: CartItem[] = cartItems) => {
+    const bySellable = new Map<string, { consumed: number; stockInHand: number; name: string }>();
+    for (const item of items) {
+      const prev = bySellable.get(item.sellableId);
+      const consumed = getItemStockConsumption(item);
+      if (prev) {
+        prev.consumed += consumed;
+      } else {
+        bySellable.set(item.sellableId, {
+          consumed,
+          stockInHand: item.stockInHand,
+          name: item.productName,
+        });
+      }
+    }
+    for (const entry of bySellable.values()) {
+      if (entry.consumed > entry.stockInHand) return entry.name;
+    }
+    return null;
+  };
+
   const handleProceedToCheckout = () => {
     if (cartItems.length === 0) return;
+
+    if (isStrictBlock) {
+      const blockedItem = hasOverstockInCart(cartItems);
+      if (blockedItem) {
+        setStockError(`Insufficient stock for ${blockedItem} (strict block policy enabled).`);
+        return;
+      }
+    }
 
     // Customer Name is mandatory if a phone number has been entered
     if (customerPhone.trim() && !customerName.trim() && !selectedCustomer) {
@@ -182,6 +227,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
       return;
     }
 
+    setStockError(null);
     setCustomerNameError(false);
     setIsCheckoutOpen(true);
   };
@@ -234,9 +280,22 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
 
     if (product.sellableType === 'loose_decant' && !isPreSizedDecant) {
       // Per-1ml bulk pour: Open Decant / Pouring Modal to select bottle size (3ml, 6ml, 12ml) and price
+      setStockError(null);
       setDecantProduct(product);
     } else {
       // Packaged product, accessory, or pre-sized decant bottle: Add 1 unit directly
+      const unitConsumption = isPreSizedDecant && primaryComp ? primaryComp.quantity : 1;
+      const currentConsumption = getSellableConsumptionInCart(product.id);
+      const stockAvailable = product.primaryStockQuantity ?? 0;
+
+      if (isStrictBlock && currentConsumption + unitConsumption > stockAvailable) {
+        setStockError(
+          `Insufficient stock for ${product.name} (strict block policy enabled: ${stockAvailable} ${product.primaryUnitCode || 'pcs'} available).`
+        );
+        return;
+      }
+
+      setStockError(null);
       const existingIdx = cartItems.findIndex(
         (item) =>
           item.sellableId === product.id &&
@@ -300,6 +359,16 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
   }) => {
     if (!decantProduct) return;
 
+    const currentConsumption = getSellableConsumptionInCart(decantProduct.id);
+    const stockAvailable = decantProduct.primaryStockQuantity ?? 0;
+    if (isStrictBlock && currentConsumption + params.bottleSizeMl > stockAvailable) {
+      setStockError(
+        `Insufficient stock for ${decantProduct.name} (strict block policy enabled: ${stockAvailable} ${decantProduct.primaryUnitCode || 'ml'} available).`
+      );
+      return;
+    }
+
+    setStockError(null);
     const finalTotal =
       params.customLineTotalBdt ?? Math.round(params.bottleSizeMl * params.unitPriceBdt);
 
@@ -310,7 +379,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
       sku: decantProduct.sku,
       barcode: decantProduct.barcode,
       sellableType: 'loose_decant',
-      unitCode: 'ml',
+      unitCode: decantProduct.primaryUnitCode || 'ml',
       bottleSizeMl: params.bottleSizeMl,
       quantity: params.bottleSizeMl,
       unitPriceBdt: params.unitPriceBdt,
@@ -319,7 +388,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
       discountPercent: 0,
       discountAmountBdt: 0,
       lineTotalBdt: finalTotal,
-      stockInHand: decantProduct.primaryStockQuantity ?? 0,
+      stockInHand: stockAvailable,
     };
 
     setCartItems((prev) => [newItem, ...prev]);
@@ -327,15 +396,38 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
 
   // Update Item Quantity
   const handleUpdateQuantity = (itemId: string, delta: number) => {
+    const targetItem = cartItems.find((item) => item.id === itemId);
+    if (!targetItem) return;
+
+    const step =
+      targetItem.sellableType === 'loose_decant' && targetItem.unitCode !== 'bottle'
+        ? targetItem.bottleSizeMl || 1
+        : 1;
+    const newQty = targetItem.quantity + delta * step;
+
+    if (delta > 0 && isStrictBlock) {
+      const otherConsumption = cartItems
+        .filter((i) => i.sellableId === targetItem.sellableId && i.id !== itemId)
+        .reduce((sum, i) => sum + getItemStockConsumption(i), 0);
+      const updatedConsumption =
+        targetItem.sellableType === 'loose_decant' &&
+        targetItem.unitCode === 'bottle' &&
+        targetItem.bottleSizeMl
+          ? newQty * targetItem.bottleSizeMl
+          : newQty;
+      if (otherConsumption + updatedConsumption > targetItem.stockInHand) {
+        setStockError(
+          `Insufficient stock for ${targetItem.productName} (strict block policy enabled).`
+        );
+        return;
+      }
+    }
+
+    setStockError(null);
     setCartItems((prev) =>
       prev
         .map((item) => {
           if (item.id === itemId) {
-            const step =
-              item.sellableType === 'loose_decant' && item.unitCode !== 'bottle'
-                ? item.bottleSizeMl || 1
-                : 1;
-            const newQty = item.quantity + delta * step;
             if (newQty <= 0) return null;
 
             const { lineTotalBdt } = calculateLineTotal({
@@ -354,6 +446,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
 
   // Remove Item
   const handleRemoveItem = (itemId: string) => {
+    setStockError(null);
     setCartItems((prev) => prev.filter((item) => item.id !== itemId));
   };
 
@@ -370,6 +463,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
     setHeldCarts((prev) => [newHold, ...prev]);
     // Clear current cart
     setCartItems([]);
+    setStockError(null);
     setSelectedCustomer(null);
     setCustomerPhone('');
     setCustomerName('');
@@ -382,6 +476,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
   // Resume Held Cart
   const handleResumeCart = (hold: HeldCart) => {
     setCartItems(hold.items);
+    setStockError(null);
     setSelectedCustomer(hold.customer);
     setCustomerPhone(hold.customer ? hold.customer.phone : '');
     setCustomerName(
@@ -404,6 +499,12 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
     }
     if (cartItems.length === 0) {
       throw new Error('Your cart is empty.');
+    }
+    if (isStrictBlock) {
+      const blockedItem = hasOverstockInCart(cartItems);
+      if (blockedItem) {
+        throw new Error(`Insufficient stock for ${blockedItem} (strict block policy enabled).`);
+      }
     }
 
     // Customer name is mandatory if phone is entered
@@ -435,7 +536,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
       }
     }
 
-    const invoiceNumber = await posRepo.getNextInvoiceNumber('INV');
+    const invoiceNumber = await posRepo.getNextInvoiceNumber(shopSettings?.invoicePrefix || 'INV');
     const finalTotals = calculateCartTotals(
       cartItems,
       cartDiscountPercent,
@@ -470,6 +571,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
 
     // Reset register for next sale
     setCartItems([]);
+    setStockError(null);
     setSelectedCustomer(null);
     setCustomerPhone('');
     setCustomerName('');
@@ -768,6 +870,21 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
 
         {/* Active Cart Items List */}
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          {stockError && (
+            <div className="flex items-start gap-2 p-2.5 rounded-lg bg-negative/10 border border-negative/25 text-negative text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={1.5} />
+              <span className="flex-1">{stockError}</span>
+              <button
+                type="button"
+                onClick={() => setStockError(null)}
+                className="text-negative/70 hover:text-negative"
+                aria-label="Dismiss stock error"
+              >
+                <X className="w-3.5 h-3.5" strokeWidth={1.5} />
+              </button>
+            </div>
+          )}
+
           {cartItems.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-6 text-ink-muted">
               <ShoppingCart className="w-7 h-7 mb-2 opacity-40" strokeWidth={1.5} />
@@ -775,7 +892,23 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
               <p className="text-xs text-ink-muted mt-0.5">Select products on the left to add items</p>
             </div>
           ) : (
-            cartItems.map((item) => (
+            cartItems.map((item) => {
+              const totalConsumed = getSellableConsumptionInCart(item.sellableId);
+              const isOverStock = totalConsumed > item.stockInHand;
+              const step =
+                item.sellableType === 'loose_decant' && item.unitCode !== 'bottle'
+                  ? item.bottleSizeMl || 1
+                  : 1;
+              const stepConsumption =
+                item.sellableType === 'loose_decant' &&
+                item.unitCode === 'bottle' &&
+                item.bottleSizeMl
+                  ? step * item.bottleSizeMl
+                  : step;
+              const wouldIncrementExceed =
+                isStrictBlock && totalConsumed + stepConsumption > item.stockInHand;
+
+              return (
               <div
                 key={item.id}
                 className="p-2.5 rounded-lg bg-raised/70 border border-hairline space-y-1.5"
@@ -785,7 +918,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                     <h5 className="text-xs font-medium text-ink leading-tight">
                       {item.productName}
                     </h5>
-                    <div className="flex items-center gap-1.5 mt-1 text-[11px] text-ink-muted">
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[11px] text-ink-muted">
                       {item.bottleSizeMl ? (
                         <span className="px-1.5 py-0.5 rounded bg-accent/12 text-accent-ink border border-accent/25 font-medium font-mono tabular-nums">
                           {item.bottleSizeMl} ml
@@ -794,6 +927,12 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                       <span className="font-mono tabular-nums">
                         ৳{item.unitPriceBdt} / {item.unitCode}
                       </span>
+                      {isWarnAllow && isOverStock && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-warning/15 text-warning border border-warning/30 text-[10px] font-medium">
+                          <AlertTriangle className="w-3 h-3" strokeWidth={1.5} />
+                          <span>Exceeds stock ({item.stockInHand})</span>
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -819,8 +958,9 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                     </span>
                     <button
                       type="button"
+                      disabled={wouldIncrementExceed}
                       onClick={() => handleUpdateQuantity(item.id, 1)}
-                      className="w-6 h-6 rounded-md bg-surface border border-hairline hover:border-hairline-strong text-ink-secondary flex items-center justify-center"
+                      className="w-6 h-6 rounded-md bg-surface border border-hairline hover:border-hairline-strong text-ink-secondary flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <Plus className="w-3 h-3" strokeWidth={1.5} />
                     </button>
@@ -835,7 +975,8 @@ export const PosScreen: React.FC<PosScreenProps> = ({ deviceId }) => {
                   </button>
                 </div>
               </div>
-            ))
+              );
+            })
           )}
         </div>
 

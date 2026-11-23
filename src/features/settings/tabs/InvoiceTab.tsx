@@ -87,8 +87,13 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
           <button
             type="button"
             onClick={onTestPrintSlip}
-            disabled={testingPrinter}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-accent/40 bg-surface hover:border-accent text-xs font-medium text-accent-ink hover:text-ink transition-colors cursor-pointer disabled:opacity-50"
+            disabled={testingPrinter || printerEngine !== 'direct_escpos'}
+            title={
+              printerEngine !== 'direct_escpos'
+                ? 'Select Direct ESC/POS Thermal engine to run hardware test print'
+                : undefined
+            }
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-accent/40 bg-surface hover:border-accent text-xs font-medium text-accent-ink hover:text-ink transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Printer className="w-3.5 h-3.5" strokeWidth={1.5} />
             <span>{testingPrinter ? 'Printing Slip…' : 'Test Direct Thermal Print'}</span>
@@ -235,11 +240,11 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
               type="text"
               value={invoiceSubtitle}
               onChange={(e) => onInvoiceSubtitleChange(e.target.value)}
-              placeholder="Live Peaceful • Luxury Fragrances & Lifestyle"
+              placeholder="Optional receipt tagline or subtitle"
               className="w-full px-3.5 py-2.5 bg-canvas border border-hairline rounded-lg text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent"
             />
             <p className="text-[11px] text-ink-muted mt-1">
-              Printed directly under the Rauhaah logo header.
+              Printed directly under the shop header. Leave blank to omit.
             </p>
           </div>
 
@@ -297,7 +302,7 @@ export const InvoiceTab: React.FC<InvoiceTabProps> = ({
                   Show Brand Logo on Receipt
                 </div>
                 <div className="text-[11px] text-ink-secondary">
-                  Prints the clean monochrome vector Rauhaah logo at the top of the invoice.
+                  Prints the decorative brand emblem beside your shop name at the top of the invoice.
                 </div>
               </div>
             </label>

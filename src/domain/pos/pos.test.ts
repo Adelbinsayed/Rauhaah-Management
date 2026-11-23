@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { calculateLineTotal, calculateCartTotals, formatInvoiceNumber } from './posCalculations';
+import { EscposBuilder, buildEscposReceipt, buildEscposTestSlip } from './escpos';
 import type { CartItem } from './types';
+import type { ShopSettings } from '../auth/types';
 
 describe('POS Domain Calculations', () => {
   it('calculates oil line total with custom ml and per-ml price', () => {
@@ -160,5 +162,89 @@ describe('POS Domain Calculations', () => {
     expect(underCart.cartDiscountPercent).toBe(0);
     expect(underCart.cartDiscountBdt).toBe(0);
     expect(underCart.totalAmountBdt).toBe(1000);
+  });
+
+  it('strips ESC/POS control characters (< 0x20) from builder text', () => {
+    const b = new EscposBuilder('80mm');
+    b.text('Safe\x1b\x1d\x07Text');
+    const bytes = Array.from(b.toBytes());
+    // Init is [0x1b, 0x40]; after that, no 0x1b/0x1d/0x07 control bytes from text
+    const textBytes = bytes.slice(2);
+    expect(textBytes).toEqual(Array.from('SafeText').map((c) => c.charCodeAt(0)));
+  });
+
+  it('respects showCashierOnInvoice, includes itemDiscountBdt, and avoids hardcoded Rauhaah fallbacks', () => {
+    const settings: ShopSettings = {
+      shopName: 'Test Boutique',
+      phone: '',
+      address: '',
+      currency: 'BDT',
+      invoicePrefix: 'TB',
+      negativeStockPolicy: 'warn_allow',
+      tolaConvention: 'volume_12ml',
+      idleLockMinutes: 5,
+      paymentMethods: ['Cash'],
+      invoiceSubtitle: '',
+      invoiceFooterNote: '',
+      showCashierOnInvoice: false,
+    };
+
+    const items: CartItem[] = [
+      {
+        id: 'line-1',
+        sellableId: 'prd-1',
+        productName: 'Sample Oil',
+        sku: 'SO-1',
+        sellableType: 'sealed_product',
+        unitCode: 'pcs',
+        quantity: 1,
+        unitPriceBdt: 500,
+        idealRetailPriceBdt: 500,
+        costPriceBdt: 300,
+        discountPercent: 0,
+        discountAmountBdt: 50,
+        lineTotalBdt: 450,
+        stockInHand: 10,
+      },
+    ];
+
+    const totals = calculateCartTotals(items, 0, 25, 425);
+    const bytes = buildEscposReceipt({
+      invoiceNumber: 'TB-202611-0001',
+      createdAt: '2026-11-24T00:00:00.000Z',
+      cashierName: 'HiddenCashier',
+      customer: null,
+      items,
+      totals,
+      payments: [{ method: 'cash', amountBdt: 425 }],
+      shopSettings: settings,
+      autoCut: false,
+      kickDrawer: false,
+    });
+
+    const text = new TextDecoder('ascii').decode(bytes);
+    expect(text).toContain('Test Boutique');
+    expect(text).toContain('Thank you for shopping with Test Boutique!');
+    expect(text).toContain('Total Discount:');
+    expect(text).toContain('-Tk 75.00');
+    expect(text).not.toContain('HiddenCashier');
+    expect(text).not.toContain('Rauhaah');
+    expect(text).not.toContain('LIVE PEACEFUL');
+  });
+
+  it('respects autoCut and kickDrawer options in buildEscposTestSlip', () => {
+    const withBoth = Array.from(
+      buildEscposTestSlip(null, '80mm', { autoCut: true, kickDrawer: true })
+    );
+    // Kick drawer: [0x1b, 0x70, 0x00, 0x19, 0xfa]
+    expect(withBoth.slice(2, 7)).toEqual([0x1b, 0x70, 0x00, 0x19, 0xfa]);
+    // Auto cut: [0x1d, 0x56, 0x41, 0x03] at end
+    expect(withBoth.slice(-4)).toEqual([0x1d, 0x56, 0x41, 0x03]);
+
+    const withoutBoth = Array.from(
+      buildEscposTestSlip(null, '80mm', { autoCut: false, kickDrawer: false })
+    );
+    expect(withoutBoth.slice(2, 7)).not.toEqual([0x1b, 0x70, 0x00, 0x19, 0xfa]);
+    expect(withoutBoth.slice(-4)).not.toEqual([0x1d, 0x56, 0x41, 0x03]);
   });
 });

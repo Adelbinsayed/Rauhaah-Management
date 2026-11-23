@@ -1,6 +1,6 @@
 export type SellableKind = 'loose_decant' | 'sealed_product' | 'accessory' | 'custom_blend';
 
-export type PaymentMethod = 'cash' | 'bkash' | 'nagad' | 'card' | 'split';
+export type PaymentMethod = 'cash' | 'bkash' | 'nagad' | 'card' | 'bank' | 'split';
 
 export interface CartItem {
   id: string; // unique item line id in cart

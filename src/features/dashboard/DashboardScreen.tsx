@@ -118,7 +118,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               {currentUser?.roleDisplayName || 'Staff'} active
             </span>
             <span className="text-xs text-ink-muted font-mono">
-              Terminal: {shopSettings?.shopName || 'Rauhaah Flagship'} · {currentUser?.displayName}
+              Terminal: {shopSettings?.shopName || 'Shop'} · {currentUser?.displayName}
             </span>
           </div>
           <h1 className="text-2xl font-medium text-ink">

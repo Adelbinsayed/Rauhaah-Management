@@ -1,5 +1,6 @@
 import type { CartItem, CartTotals, Customer, SalePayment } from './types';
 import type { ShopSettings } from '../auth/types';
+import { formatDhakaDateTime } from '../../lib/dates';
 import { invoke } from '@tauri-apps/api/core';
 
 export async function getAvailablePrinters(): Promise<string[]> {
@@ -125,7 +126,9 @@ export class EscposBuilder {
 
     for (let i = 0; i < safeStr.length; i++) {
       const code = safeStr.charCodeAt(i);
-      if (code < 128) {
+      if (code < 0x20) {
+        continue; // strip control characters to prevent ESC/POS command injection
+      } else if (code < 128) {
         this.buffer.push(code);
       } else {
         this.buffer.push(0x20); // fallback space
@@ -234,23 +237,13 @@ export function buildEscposReceipt(options: EscposReceiptOptions): Uint8Array {
     b.kickDrawer();
   }
 
-  const shopName = shopSettings?.shopName || 'RAUHAAH';
-  const subtitle = shopSettings?.invoiceSubtitle || 'Live Peaceful * Luxury Fragrances';
-  const address = shopSettings?.address || 'Dhaka, Bangladesh';
-  const phone = shopSettings?.phone || '01970084325';
-  const footerNote =
-    shopSettings?.invoiceFooterNote ||
-    'Items can be exchanged within 7 days with original invoice & intact seal. Poured oils are non-exchangeable.';
+  const shopName = shopSettings?.shopName || 'Shop';
+  const subtitle = shopSettings?.invoiceSubtitle ?? '';
+  const address = shopSettings?.address ?? '';
+  const phone = shopSettings?.phone ?? '';
+  const footerNote = shopSettings?.invoiceFooterNote ?? '';
 
-  const dateStr = createdAt
-    ? new Date(createdAt).toLocaleString('en-GB', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-      })
-    : new Date().toLocaleString('en-GB', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-      });
+  const dateStr = formatDhakaDateTime(createdAt || new Date().toISOString());
 
   // 1. Header: Brand
   b.align('center');
@@ -267,7 +260,7 @@ export function buildEscposReceipt(options: EscposReceiptOptions): Uint8Array {
 
   // 2. Metadata
   b.twoCol(`INVOICE: ${invoiceNumber}`, dateStr);
-  if (cashierName) {
+  if (shopSettings?.showCashierOnInvoice !== false && cashierName) {
     b.twoCol(`Cashier: ${cashierName}`, '');
   }
   const custName = customer ? `${customer.name} (${customer.phone})` : 'Walk-in Customer';
@@ -300,8 +293,9 @@ export function buildEscposReceipt(options: EscposReceiptOptions): Uint8Array {
   // 5. Financial Totals
   b.twoCol('Gross Subtotal:', `Tk ${totals.subtotalBdt.toFixed(2)}`);
 
-  if (totals.cartDiscountBdt > 0) {
-    b.twoCol('Special Discount:', `-Tk ${totals.cartDiscountBdt.toFixed(2)}`);
+  const totalDiscount = (totals.itemDiscountBdt || 0) + (totals.cartDiscountBdt || 0);
+  if (totalDiscount > 0) {
+    b.twoCol('Total Discount:', `-Tk ${totalDiscount.toFixed(2)}`);
   }
 
   b.divider('-');
@@ -337,14 +331,14 @@ export function buildEscposReceipt(options: EscposReceiptOptions): Uint8Array {
 
   // 7. Policy & Footer
   b.align('center');
-  b.line('Thank you for shopping with Rauhaah!');
+  b.line(`Thank you for shopping with ${shopName}!`);
   b.feed(1);
   if (footerNote) {
     b.line(footerNote);
   }
 
   b.feed(1);
-  b.line('*** LIVE PEACEFUL ***');
+  b.line(subtitle || 'THANK YOU');
 
   // 8. Auto-Cut
   if (autoCut) {
@@ -357,17 +351,27 @@ export function buildEscposReceipt(options: EscposReceiptOptions): Uint8Array {
 /**
  * Builds a fast test slip to verify printer communication, cutter, and drawer
  */
-export function buildEscposTestSlip(settings?: ShopSettings | null, widthMode: '80mm' | '58mm' = '80mm'): Uint8Array {
+export function buildEscposTestSlip(
+  settings?: ShopSettings | null,
+  widthMode: '80mm' | '58mm' = '80mm',
+  options?: { autoCut?: boolean; kickDrawer?: boolean }
+): Uint8Array {
   const b = new EscposBuilder(widthMode);
+  const shouldKick = options?.kickDrawer ?? settings?.kickCashDrawer ?? false;
+  const shouldCut = options?.autoCut ?? settings?.autoCutReceipt ?? true;
+
+  if (shouldKick) {
+    b.kickDrawer();
+  }
 
   b.align('center');
   b.bold(true);
   b.textSize('double_both');
-  b.line(settings?.shopName || 'RAUHAAH');
+  b.line(settings?.shopName || 'Shop');
   b.textSize('normal');
   b.bold(false);
   b.line('DIRECT ESC/POS TEST PRINT');
-  b.line(new Date().toLocaleString());
+  b.line(formatDhakaDateTime(new Date().toISOString()));
   b.divider('=');
 
   b.align('left');
@@ -384,9 +388,11 @@ export function buildEscposTestSlip(settings?: ShopSettings | null, widthMode: '
 
   b.align('center');
   b.line('Direct ESC/POS is fully operational!');
-  b.line('Bypassing Windows print dialog active.');
+  b.line('Bypassing print dialog active.');
   b.feed(2);
-  b.cut();
+  if (shouldCut) {
+    b.cut();
+  }
 
   return b.toBytes();
 }

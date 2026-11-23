@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   X,
   CreditCard,
@@ -9,8 +9,35 @@ import {
   AlertCircle,
   ArrowRight,
   User,
+  Landmark,
+  Wallet,
+  type LucideIcon,
 } from 'lucide-react';
+import { useAppStore } from '../../app/store';
 import type { CartTotals, Customer, PaymentMethod, SalePayment } from '../../domain/pos/types';
+
+function resolvePaymentMethodOption(raw: string): {
+  id: PaymentMethod;
+  label: string;
+  icon: LucideIcon;
+} {
+  const trimmed = raw.trim();
+  const lower = trimmed.toLowerCase();
+  if (lower === 'cash') return { id: 'cash', label: 'Cash', icon: Banknote };
+  if (lower === 'bkash') return { id: 'bkash', label: 'bKash', icon: Smartphone };
+  if (lower === 'nagad') return { id: 'nagad', label: 'Nagad', icon: Smartphone };
+  if (lower === 'card' || lower === 'card / pos') {
+    return { id: 'card', label: 'Card / POS', icon: CreditCard };
+  }
+  if (lower === 'bank' || lower === 'bank transfer') {
+    return { id: 'bank', label: 'Bank', icon: Landmark };
+  }
+  return {
+    id: lower.replace(/\s+/g, '_') as PaymentMethod,
+    label: trimmed,
+    icon: Wallet,
+  };
+}
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -27,16 +54,56 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   customer,
   onCompleteSale,
 }) => {
+  const { shopSettings } = useAppStore();
+
+  const { methodButtons, splitDigitalOptions } = useMemo(() => {
+    const rawMethods =
+      shopSettings?.paymentMethods && shopSettings.paymentMethods.length > 0
+        ? shopSettings.paymentMethods
+        : ['Cash', 'bKash', 'Nagad', 'Card', 'Bank'];
+
+    const seen = new Set<string>();
+    const singleMethods: Array<{
+      id: PaymentMethod;
+      label: string;
+      icon: LucideIcon;
+    }> = [];
+
+    for (const pm of rawMethods) {
+      const opt = resolvePaymentMethodOption(pm);
+      if (opt.id && opt.id !== 'split' && !seen.has(opt.id)) {
+        seen.add(opt.id);
+        singleMethods.push(opt);
+      }
+    }
+
+    if (singleMethods.length === 0) {
+      singleMethods.push({ id: 'cash', label: 'Cash', icon: Banknote });
+    }
+
+    const buttons =
+      singleMethods.length >= 2
+        ? [...singleMethods, { id: 'split' as PaymentMethod, label: 'Split Pay', icon: Split }]
+        : singleMethods;
+
+    const digitalOpts = singleMethods.filter((m) => m.id !== 'cash');
+    return {
+      methodButtons: buttons,
+      splitDigitalOptions:
+        digitalOpts.length > 0
+          ? digitalOpts
+          : [{ id: 'bkash' as PaymentMethod, label: 'bKash', icon: Smartphone }],
+    };
+  }, [shopSettings?.paymentMethods]);
+
   const [method, setMethod] = useState<PaymentMethod>('cash');
   const [tenderAmount, setTenderAmount] = useState<string>(String(totals.totalAmountBdt));
-  const [bkashRef, setBkashRef] = useState('');
-  const [nagadRef, setNagadRef] = useState('');
-  const [cardRef, setCardRef] = useState('');
+  const [digitalRefs, setDigitalRefs] = useState<Record<string, string>>({});
 
   // Split payment amounts
   const [splitCash, setSplitCash] = useState<string>('0');
   const [splitDigital, setSplitDigital] = useState<string>(String(totals.totalAmountBdt));
-  const [splitDigitalMethod, setSplitDigitalMethod] = useState<'bkash' | 'nagad' | 'card'>('bkash');
+  const [splitDigitalMethod, setSplitDigitalMethod] = useState<PaymentMethod>('bkash');
   const [splitRef, setSplitRef] = useState('');
 
   const [loading, setLoading] = useState(false);
@@ -51,14 +118,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
+      const defaultMethod =
+        methodButtons.find((m) => m.id === 'cash')?.id ?? methodButtons[0]?.id ?? 'cash';
+      setMethod(defaultMethod);
+      setSplitDigitalMethod(splitDigitalOptions[0]?.id ?? 'bkash');
       setTenderAmount(String(totals.totalAmountBdt));
+      setDigitalRefs({});
       setSplitCash('0');
       setSplitDigital(String(totals.totalAmountBdt));
+      setSplitRef('');
       setError(null);
       setLoading(false);
       setPendingDueSale(null);
     }
-  }, [isOpen, totals.totalAmountBdt]);
+  }, [isOpen, totals.totalAmountBdt, methodButtons, splitDigitalOptions]);
 
   if (!isOpen) return null;
 
@@ -99,27 +172,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         amountBdt: Math.min(parsedTender, totals.totalAmountBdt),
       });
       finalPaid = parsedTender;
-    } else if (method === 'bkash') {
-      payments.push({
-        method: 'bkash',
-        amountBdt: totals.totalAmountBdt,
-        reference: bkashRef.trim() || undefined,
-      });
-      finalPaid = totals.totalAmountBdt;
-    } else if (method === 'nagad') {
-      payments.push({
-        method: 'nagad',
-        amountBdt: totals.totalAmountBdt,
-        reference: nagadRef.trim() || undefined,
-      });
-      finalPaid = totals.totalAmountBdt;
-    } else if (method === 'card') {
-      payments.push({
-        method: 'card',
-        amountBdt: totals.totalAmountBdt,
-        reference: cardRef.trim() || undefined,
-      });
-      finalPaid = totals.totalAmountBdt;
     } else if (method === 'split') {
       if (
         !Number.isFinite(splitCashNum) ||
@@ -147,6 +199,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         });
       }
       finalPaid = splitTotal;
+    } else {
+      payments.push({
+        method,
+        amountBdt: totals.totalAmountBdt,
+        reference: (digitalRefs[method] || '').trim() || undefined,
+      });
+      finalPaid = totals.totalAmountBdt;
     }
 
     const finalDue = Math.max(0, totals.totalAmountBdt - finalPaid);
@@ -260,14 +319,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <label className="block text-xs font-medium text-ink-secondary">
               Select payment method
             </label>
-            <div className="grid grid-cols-5 gap-2">
-              {[
-                { id: 'cash', label: 'Cash', icon: Banknote },
-                { id: 'bkash', label: 'bKash', icon: Smartphone },
-                { id: 'nagad', label: 'Nagad', icon: Smartphone },
-                { id: 'card', label: 'Card / POS', icon: CreditCard },
-                { id: 'split', label: 'Split Pay', icon: Split },
-              ].map((m) => {
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {methodButtons.map((m) => {
                 const Icon = m.icon;
                 const isSelected = method === m.id;
                 return (
@@ -275,10 +328,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     key={m.id}
                     type="button"
                     onClick={() => {
-                      setMethod(m.id as PaymentMethod);
+                      setMethod(m.id);
                       setError(null);
                     }}
-                    className={`p-2.5 rounded-lg border flex flex-col items-center justify-center gap-1.5 transition-colors duration-150 ease-unslop text-xs font-medium ${
+                    className={`p-2.5 rounded-lg border flex flex-col items-center justify-center gap-1.5 transition-colors duration-150 ease-unslop text-xs font-medium cursor-pointer ${
                       isSelected
                         ? 'bg-accent text-accent-fg border-accent font-semibold'
                         : 'bg-raised border-hairline text-ink-secondary hover:border-hairline-strong hover:text-ink'
@@ -356,12 +409,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
           )}
 
-          {/* BKASH / NAGAD / CARD SECTION */}
-          {(method === 'bkash' || method === 'nagad' || method === 'card') && (
+          {/* DIGITAL / BANK PAYMENT SECTION */}
+          {method !== 'cash' && method !== 'split' && (
             <div className="p-4 rounded-xl bg-raised/70 border border-hairline space-y-3">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-ink-muted font-medium uppercase">
-                  {method.toUpperCase()} digital payment
+                  {methodButtons.find((b) => b.id === method)?.label || method.toUpperCase()} payment
                 </span>
                 <span className="font-mono tabular-nums text-accent-ink font-medium">
                   ৳{totals.totalAmountBdt.toFixed(2)}
@@ -375,16 +428,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <input
                   type="text"
                   autoFocus
-                  value={
-                    method === 'bkash' ? bkashRef : method === 'nagad' ? nagadRef : cardRef
-                  }
+                  value={digitalRefs[method] || ''}
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (method === 'bkash') setBkashRef(val);
-                    else if (method === 'nagad') setNagadRef(val);
-                    else setCardRef(val);
+                    setDigitalRefs((prev) => ({ ...prev, [method]: val }));
                   }}
-                  placeholder="9J47AB12XY"
+                  placeholder={method === 'bank' ? 'Bank slip / Trx Ref' : '9J47AB12XY'}
                   className="w-full px-3 py-2 bg-surface border border-hairline rounded-lg text-xs text-ink font-mono placeholder-ink-muted focus:outline-none focus:border-accent uppercase"
                 />
               </div>
@@ -425,13 +474,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     <select
                       value={splitDigitalMethod}
                       onChange={(e) =>
-                        setSplitDigitalMethod(e.target.value as 'bkash' | 'nagad' | 'card')
+                        setSplitDigitalMethod(e.target.value as PaymentMethod)
                       }
                       className="bg-surface border border-hairline text-[11px] text-accent-ink rounded px-1.5 py-0.5 focus:outline-none"
                     >
-                      <option value="bkash">bKash</option>
-                      <option value="nagad">Nagad</option>
-                      <option value="card">Card</option>
+                      {splitDigitalOptions.map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                          {opt.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <input

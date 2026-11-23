@@ -35,11 +35,11 @@ export const SalesTab: React.FC<SalesTabProps> = ({
           required
           value={invoicePrefix}
           onChange={(e) => onInvoicePrefixChange(e.target.value.toUpperCase())}
-          placeholder="MAIN-"
+          placeholder="INV"
           className="w-full px-3.5 py-2.5 bg-canvas border border-hairline rounded-lg text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent font-mono"
         />
         <p className="text-[11px] text-ink-muted mt-1">
-          Prefix used to generate branch/device safe invoice numbers (e.g. <code>MAIN-S-000123</code>).
+          Prefix used to generate branch/device safe invoice numbers (e.g. <code>INV-202611-0001</code>).
         </p>
       </div>
 
@@ -59,7 +59,7 @@ export const SalesTab: React.FC<SalesTabProps> = ({
             />
             <div>
               <div className="font-semibold text-ink">
-                Warn &amp; Allow (Recommended for Rauhaah)
+                Warn &amp; Allow (Recommended)
               </div>
               <div className="text-[11px] text-ink-secondary">
                 Cashier is shown a prominent warning badge at the POS, but the sale is not blocked.
@@ -132,6 +132,12 @@ export const SalesTab: React.FC<SalesTabProps> = ({
             type="text"
             value={newPaymentMethod}
             onChange={(e) => onNewPaymentMethodChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                onAddPaymentMethod();
+              }
+            }}
             placeholder="Add method (e.g. Upay)"
             className="flex-1 px-3 py-1.5 bg-canvas border border-hairline rounded-lg text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent"
           />

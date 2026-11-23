@@ -1,4 +1,6 @@
+import { useAppStore } from '@/app/store';
 import { purchasesRepo } from '@/data/repositories/purchasesRepo';
+import { STANDARD_TOLA_GRAMS, STANDARD_TOLA_ML } from '@/domain/catalog/units';
 import type { StockItemLookup, Supplier } from '@/domain/purchases/types';
 import { convertToBaseQuantity } from '@/domain/purchases/types';
 import {
@@ -59,6 +61,10 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
   onSuppliersUpdated,
   onStockItemsUpdated,
 }) => {
+  const { shopSettings } = useAppStore();
+  const tolaConvention = shopSettings?.tolaConvention ?? 'volume_12ml';
+  const defaultTolaUnit = tolaConvention === 'weight_11g' ? 'tola_g' : 'tola';
+
   // New Purchase Form state
   const [purchaseNumber, setPurchaseNumber] = useState('');
   const [selectedSupplierId, setSelectedSupplierId] = useState('');
@@ -74,7 +80,7 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
 
   // Item row input form
   const [rowStockItemId, setRowStockItemId] = useState('');
-  const [rowUnit, setRowUnit] = useState('tola');
+  const [rowUnit, setRowUnit] = useState(defaultTolaUnit);
   const [rowQuantity, setRowQuantity] = useState<number>(1);
   const [rowRate, setRowRate] = useState<number>(0);
   const [rowNotes, setRowNotes] = useState('');
@@ -142,7 +148,12 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
     setItemSearchQuery('');
     setIsItemSearchOpen(false);
 
-    const defaultUnit = item.unitCode === 'ml' ? 'tola' : item.unitCode;
+    const defaultUnit =
+      item.unitCode === 'ml'
+        ? defaultTolaUnit
+        : item.unitCode === 'g' && tolaConvention === 'weight_11g'
+        ? 'tola_g'
+        : item.unitCode;
     setRowUnit(defaultUnit);
     const factor = convertToBaseQuantity(defaultUnit, 1, item.unitCode, item.densityGPerMl);
     setRowRate(Math.round((item.costPriceBdt || 0) * factor * 100) / 100);
@@ -268,7 +279,12 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
     onStockItemsUpdated(updatedStockList);
     selectStockItem(createdItem);
     if (costPrice > 0) {
-      const defaultUnit = createdItem.unitCode === 'ml' ? 'tola' : createdItem.unitCode;
+      const defaultUnit =
+        createdItem.unitCode === 'ml'
+          ? defaultTolaUnit
+          : createdItem.unitCode === 'g' && tolaConvention === 'weight_11g'
+          ? 'tola_g'
+          : createdItem.unitCode;
       const factor = convertToBaseQuantity(
         defaultUnit,
         1,
@@ -667,23 +683,32 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                   >
                     {selectedRowStockItem?.unitCode === 'ml' ? (
                       <>
-                        <option value="tola">Tola (12 ml - Standard)</option>
+                        {tolaConvention === 'weight_11g' ? (
+                          <>
+                            <option value="tola_g">Tola Weight ({STANDARD_TOLA_GRAMS} g - Active)</option>
+                            <option value="tola">Tola Volume ({STANDARD_TOLA_ML} ml)</option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="tola">Tola ({STANDARD_TOLA_ML} ml - Standard)</option>
+                            <option value="tola_g">Tola Weight ({STANDARD_TOLA_GRAMS} g)</option>
+                          </>
+                        )}
                         <option value="ml">Millilitres (ml)</option>
                         <option value="l">Litres (L - 1000ml)</option>
                         <option value="g">Grams (g)</option>
                         <option value="kg">Kilograms (kg)</option>
-                        <option value="tola_g">Tola Weight (11.664 g)</option>
                       </>
                     ) : selectedRowStockItem?.unitCode === 'g' ? (
                       <>
                         <option value="g">Grams (g)</option>
                         <option value="kg">Kilograms (kg - 1000g)</option>
-                        <option value="tola_g">Tola Weight (11.664 g)</option>
+                        <option value="tola_g">Tola Weight ({STANDARD_TOLA_GRAMS} g)</option>
                         {(selectedRowStockItem.densityGPerMl ?? 0) > 0 && (
                           <>
                             <option value="ml">Millilitres (ml)</option>
                             <option value="l">Litres (L - 1000ml)</option>
-                            <option value="tola">Tola (12 ml)</option>
+                            <option value="tola">Tola ({STANDARD_TOLA_ML} ml)</option>
                           </>
                         )}
                       </>

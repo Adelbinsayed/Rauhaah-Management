@@ -10,14 +10,12 @@ import {
   getDefaultPrinter,
   printDirectEscpos,
 } from '@/domain/pos/escpos';
-import { invoke } from '@tauri-apps/api/core';
 import {
   AlertCircle,
   Building,
   CheckCircle2,
   CreditCard,
   Database,
-  FolderOpen,
   History,
   Lock,
   Receipt,
@@ -40,7 +38,7 @@ interface SettingsScreenProps {
 }
 
 export function SettingsScreen({ deviceId }: SettingsScreenProps) {
-  const { currentUser, permissions, setShopSettings } = useAppStore();
+  const { currentUser, permissions, setShopSettings, showToast, logout } = useAppStore();
   const [activeTab, setActiveTab] = useState<
     'profile' | 'sales' | 'invoice' | 'units' | 'security' | 'backup' | 'audit'
   >('profile');
@@ -50,7 +48,7 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [currency, setCurrency] = useState('BDT');
-  const [invoicePrefix, setInvoicePrefix] = useState('MAIN-');
+  const [invoicePrefix, setInvoicePrefix] = useState('INV');
   const [negativeStockPolicy, setNegativeStockPolicy] =
     useState<ShopSettings['negativeStockPolicy']>('warn_allow');
   const [tolaConvention, setTolaConvention] =
@@ -95,10 +93,8 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
   const [backupLabel, setBackupLabel] = useState('');
   const [restoringBackup, setRestoringBackup] = useState(false);
   const [restoreConfirmModal, setRestoreConfirmModal] = useState<BackupItem | null>(null);
-  const [backupToast, setBackupToast] = useState<{
-    message: string;
-    path?: string;
-  } | null>(null);
+  const [deletingBackup, setDeletingBackup] = useState(false);
+  const [deleteConfirmFilename, setDeleteConfirmFilename] = useState<string | null>(null);
 
   // Audit Logs
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
@@ -110,47 +106,8 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
 
   const allowManageSettings = canManageSettings(permissions);
 
-  // Load initial settings
-  useEffect(() => {
-    if (!allowManageSettings) return;
-    async function load() {
-      try {
-        const s = await settingsRepo.getSettings();
-        setShopSettings(s);
-        setShopName(s.shopName);
-        setPhone(s.phone);
-        setAddress(s.address);
-        setCurrency(s.currency);
-        setInvoicePrefix(s.invoicePrefix);
-        setNegativeStockPolicy(s.negativeStockPolicy);
-        setTolaConvention(s.tolaConvention);
-        setIdleLockMinutes(s.idleLockMinutes);
-        setPaymentMethods(s.paymentMethods);
-        setInvoiceSubtitle(
-          s.invoiceSubtitle || 'Live Peaceful • Luxury Fragrances & Lifestyle'
-        );
-        setInvoiceFooterNote(
-          s.invoiceFooterNote ||
-            'Items can be exchanged within 7 days with original invoice & intact seal. Poured oils are non-exchangeable.'
-        );
-        setInvoicePaperWidth(s.invoicePaperWidth || '80mm');
-        setShowLogoOnInvoice(s.showLogoOnInvoice !== false);
-        setShowCashierOnInvoice(s.showCashierOnInvoice !== false);
-
-        setPrinterEngine(s.printerEngine || 'direct_escpos');
-        setSelectedPrinter(s.selectedPrinter || '');
-        setAutoCutReceipt(s.autoCutReceipt !== false);
-        setKickCashDrawer(s.kickCashDrawer === true);
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : String(err));
-      }
-    }
-    load();
-    loadPrintersList();
-  }, [setShopSettings, allowManageSettings]);
-
-  // Load printers
-  const loadPrintersList = async () => {
+  // Load printers (only auto-select default printer if DB setting is empty)
+  const loadPrintersList = async (loadedSelectedPrinter?: string) => {
     setLoadingPrinters(true);
     try {
       const [list, def] = await Promise.all([
@@ -159,7 +116,9 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
       ]);
       setAvailablePrinters(list);
       setDefaultPrinter(def);
-      if (!selectedPrinter && def) {
+      const effectiveSelected =
+        loadedSelectedPrinter !== undefined ? loadedSelectedPrinter : selectedPrinter;
+      if (!effectiveSelected && def) {
         setSelectedPrinter(def);
       }
     } catch (err: unknown) {
@@ -168,6 +127,52 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
       setLoadingPrinters(false);
     }
   };
+
+  // Load initial settings before scanning printers to prevent mount race
+  useEffect(() => {
+    if (!allowManageSettings) return;
+    let cancelled = false;
+    async function init() {
+      let loadedPrinter = '';
+      try {
+        const s = await settingsRepo.getSettings();
+        if (cancelled) return;
+        setShopSettings(s);
+        setShopName(s.shopName);
+        setPhone(s.phone);
+        setAddress(s.address);
+        setCurrency(s.currency || 'BDT');
+        setInvoicePrefix(s.invoicePrefix);
+        setNegativeStockPolicy(s.negativeStockPolicy);
+        setTolaConvention(s.tolaConvention);
+        setIdleLockMinutes(s.idleLockMinutes);
+        setPaymentMethods(s.paymentMethods);
+        setInvoiceSubtitle(s.invoiceSubtitle ?? '');
+        setInvoiceFooterNote(s.invoiceFooterNote ?? '');
+        setInvoicePaperWidth(s.invoicePaperWidth || '80mm');
+        setShowLogoOnInvoice(s.showLogoOnInvoice !== false);
+        setShowCashierOnInvoice(s.showCashierOnInvoice !== false);
+
+        setPrinterEngine(s.printerEngine || 'direct_escpos');
+        loadedPrinter = s.selectedPrinter || '';
+        setSelectedPrinter(loadedPrinter);
+        setAutoCutReceipt(s.autoCutReceipt !== false);
+        setKickCashDrawer(s.kickCashDrawer === true);
+      } catch (err: unknown) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : String(err));
+        }
+      }
+      if (!cancelled) {
+        await loadPrintersList(loadedPrinter);
+      }
+    }
+    init();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setShopSettings, allowManageSettings]);
 
   // Load audit or backup when respective tab is active
   useEffect(() => {
@@ -217,28 +222,42 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
+
+    const cleanShopName = shopName.trim();
+    const cleanInvoicePrefix = invoicePrefix.trim();
+    if (!cleanShopName) {
+      setError('Shop / Brand Name is required.');
+      setActiveTab('profile');
+      return;
+    }
+    if (!cleanInvoicePrefix) {
+      setError('Invoice Document Prefix is required.');
+      setActiveTab('sales');
+      return;
+    }
+
     setSaving(true);
     setError(null);
     setSaveSuccess(false);
 
     try {
       const updated: ShopSettings = {
-        shopName,
-        phone,
-        address,
-        currency,
-        invoicePrefix,
+        shopName: cleanShopName,
+        phone: phone.trim(),
+        address: address.trim(),
+        currency: 'BDT',
+        invoicePrefix: cleanInvoicePrefix,
         negativeStockPolicy,
         tolaConvention,
         idleLockMinutes,
         paymentMethods,
-        invoiceSubtitle,
-        invoiceFooterNote,
+        invoiceSubtitle: invoiceSubtitle.trim(),
+        invoiceFooterNote: invoiceFooterNote.trim(),
         invoicePaperWidth,
         showLogoOnInvoice,
         showCashierOnInvoice,
         printerEngine,
-        selectedPrinter,
+        selectedPrinter: selectedPrinter.trim(),
         autoCutReceipt,
         kickCashDrawer,
       };
@@ -266,18 +285,12 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
     try {
       const pWidth = invoicePaperWidth === '58mm' ? '58mm' : '80mm';
       const slipBytes = buildEscposTestSlip(
+        currentSettingsPreview,
+        pWidth,
         {
-          shopName,
-          phone,
-          address,
-          currency,
-          invoicePrefix,
-          negativeStockPolicy,
-          tolaConvention,
-          idleLockMinutes,
-          paymentMethods,
-        },
-        pWidth
+          autoCut: autoCutReceipt,
+          kickDrawer: kickCashDrawer,
+        }
       );
 
       const target = selectedPrinter || defaultPrinter;
@@ -309,10 +322,11 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
     try {
       const created = await backupRepo.createBackup(backupLabel.trim() || undefined);
       setBackupLabel('');
-      setBackupToast({
-        message: `Backup snapshot "${created.filename}" created successfully! (${created.sizeFormatted})`,
+      showToast({
+        type: 'success',
+        title: 'Database Snapshot Created',
+        message: `Backup snapshot "${created.filename}" created successfully (${created.sizeFormatted}).`,
       });
-      setTimeout(() => setBackupToast(null), 6000);
       await loadBackupData();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
@@ -324,29 +338,35 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
   const handleExportBackup = async (filename: string) => {
     try {
       const savedPath = await backupRepo.exportBackupToDownloads(filename);
-      setBackupToast({
-        message: `Backup snapshot "${filename}" saved to Downloads folder!`,
-        path: savedPath,
+      showToast({
+        type: 'success',
+        title: 'Backup Exported',
+        message: `Backup snapshot "${filename}" saved to Downloads folder.`,
+        filePath: savedPath,
       });
-      setTimeout(() => setBackupToast(null), 8000);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     }
   };
 
-  const handleDeleteBackup = async (filename: string) => {
-    if (!confirm(`Are you sure you want to permanently delete backup snapshot "${filename}"?`)) {
-      return;
-    }
+  const handleExecuteDelete = async () => {
+    if (!deleteConfirmFilename) return;
+    const filename = deleteConfirmFilename;
+    setDeletingBackup(true);
+    setError(null);
     try {
       await backupRepo.deleteBackup(filename);
-      setBackupToast({
+      setDeleteConfirmFilename(null);
+      showToast({
+        type: 'success',
+        title: 'Snapshot Deleted',
         message: `Snapshot "${filename}" deleted.`,
       });
-      setTimeout(() => setBackupToast(null), 4000);
       await loadBackupData();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDeletingBackup(false);
     }
   };
 
@@ -355,13 +375,17 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
     setRestoringBackup(true);
     setError(null);
     try {
-      const msg = await backupRepo.restoreBackup(restoreConfirmModal.filename);
+      await backupRepo.restoreBackup(restoreConfirmModal.filename);
       setRestoreConfirmModal(null);
-      setBackupToast({
-        message: msg,
+      const freshSettings = await settingsRepo.getSettings();
+      setShopSettings(freshSettings);
+      showToast({
+        type: 'success',
+        title: 'Database Restored',
+        message: 'Database restored. Please sign in again to refresh your session.',
+        durationMs: 8000,
       });
-      setTimeout(() => setBackupToast(null), 8000);
-      await loadBackupData();
+      logout();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -371,7 +395,9 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
 
   const addPaymentMethod = () => {
     const val = newPaymentMethod.trim();
-    if (val && !paymentMethods.includes(val)) {
+    if (!val) return;
+    const exists = paymentMethods.some((p) => p.toLowerCase() === val.toLowerCase());
+    if (!exists) {
       setPaymentMethods([...paymentMethods, val]);
       setNewPaymentMethod('');
     }
@@ -426,29 +452,6 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
         <div className="flex items-center gap-2 p-3 rounded-lg bg-positive/10 border border-positive/25 text-positive text-xs">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>Settings successfully saved and recorded to audit log.</span>
-        </div>
-      )}
-
-      {/* Floating Backup Toast */}
-      {backupToast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-surface border border-positive/40 text-ink rounded-xl shadow-lg animate-in slide-in-from-bottom duration-200">
-          <div className="w-8 h-8 rounded-full bg-positive/15 text-positive flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-ink">Database Snapshot Action</div>
-            <div className="text-[11px] text-ink-secondary">{backupToast.message}</div>
-          </div>
-          {backupToast.path && (
-            <button
-              type="button"
-              onClick={() => invoke('reveal_in_explorer', { path: backupToast.path })}
-              className="ml-2 px-2.5 py-1.5 rounded-lg bg-accent hover:bg-accent-hover text-accent-fg text-[11px] font-semibold transition-colors flex items-center gap-1 shrink-0"
-            >
-              <FolderOpen className="w-3.5 h-3.5" />
-              <span>Show in Folder</span>
-            </button>
-          )}
         </div>
       )}
 
@@ -552,7 +555,12 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
           loadingAudit={loadingAudit}
           onRefresh={() => {
             setLoadingAudit(true);
-            authRepo.getAuditLogs(100).then(setAuditLogs).finally(() => setLoadingAudit(false));
+            setError(null);
+            authRepo
+              .getAuditLogs(100)
+              .then(setAuditLogs)
+              .catch((err) => setError(err instanceof Error ? err.message : String(err)))
+              .finally(() => setLoadingAudit(false));
           }}
         />
       ) : activeTab === 'backup' ? (
@@ -565,13 +573,17 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
           onBackupLabelChange={setBackupLabel}
           onCreateBackup={handleCreateBackup}
           onExportBackup={handleExportBackup}
-          onDeleteBackup={handleDeleteBackup}
+          onDeleteBackup={setDeleteConfirmFilename}
           onRefreshBackups={loadBackupData}
           restoringBackup={restoringBackup}
           restoreConfirmModal={restoreConfirmModal}
           onOpenRestoreModal={setRestoreConfirmModal}
           onCloseRestoreModal={() => setRestoreConfirmModal(null)}
           onExecuteRestore={handleExecuteRestore}
+          deletingBackup={deletingBackup}
+          deleteConfirmFilename={deleteConfirmFilename}
+          onCloseDeleteModal={() => setDeleteConfirmFilename(null)}
+          onExecuteDelete={handleExecuteDelete}
         />
       ) : (
         /* Settings Forms */
@@ -613,7 +625,7 @@ export function SettingsScreen({ deviceId }: SettingsScreenProps) {
                 availablePrinters={availablePrinters}
                 defaultPrinter={defaultPrinter}
                 loadingPrinters={loadingPrinters}
-                onRefreshPrinters={loadPrintersList}
+                onRefreshPrinters={() => loadPrintersList(selectedPrinter)}
                 testingPrinter={testingPrinter}
                 onTestPrintSlip={handleTestPrintSlip}
                 testSlipMsg={testSlipMsg}
