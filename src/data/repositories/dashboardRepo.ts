@@ -1,4 +1,5 @@
 import { dbQuery } from '../db';
+import { utcIsoToDhakaDateString } from '@/lib/dates';
 import type {
   DashboardSummary,
   LowStockItem,
@@ -17,6 +18,9 @@ export const dashboardRepo = {
     label: string,
     canViewCost: boolean
   ): Promise<DashboardSummary> {
+    const startYmd = utcIsoToDhakaDateString(startDateIso);
+    const endYmd = utcIsoToDhakaDateString(endDateIso);
+
     // Execute all summary metric queries in parallel for instant dashboard rendering
     const [
       salesRows,
@@ -61,11 +65,9 @@ export const dashboardRepo = {
             `SELECT COALESCE(SUM(amount_bdt), 0) as total_expenses
             FROM expenses
             WHERE deleted_at IS NULL
-              AND (
-                (expense_date >= ? AND expense_date <= ?)
-                OR (created_at >= ? AND created_at <= ?)
-              )`,
-            [startDateIso, endDateIso, startDateIso, endDateIso]
+              AND (CASE WHEN length(expense_date) > 10 THEN date(expense_date, '+6 hours') ELSE substr(expense_date, 1, 10) END) >= ?
+              AND (CASE WHEN length(expense_date) > 10 THEN date(expense_date, '+6 hours') ELSE substr(expense_date, 1, 10) END) <= ?`,
+            [startYmd, endYmd]
           )
         : Promise.resolve([]),
       dbQuery<{ total_cash: number }>(
@@ -89,11 +91,9 @@ export const dashboardRepo = {
         FROM expenses
         WHERE deleted_at IS NULL
           AND LOWER(payment_method) = 'cash'
-          AND (
-            (expense_date >= ? AND expense_date <= ?)
-            OR (created_at >= ? AND created_at <= ?)
-          )`,
-        [startDateIso, endDateIso, startDateIso, endDateIso]
+          AND (CASE WHEN length(expense_date) > 10 THEN date(expense_date, '+6 hours') ELSE substr(expense_date, 1, 10) END) >= ?
+          AND (CASE WHEN length(expense_date) > 10 THEN date(expense_date, '+6 hours') ELSE substr(expense_date, 1, 10) END) <= ?`,
+        [startYmd, endYmd]
       ),
       dbQuery<{ total_cash_pur: number }>(
         `SELECT COALESCE(SUM(paid_amount_bdt), 0) as total_cash_pur
@@ -315,6 +315,7 @@ export const dashboardRepo = {
       bkash: 'bKash Wallet',
       nagad: 'Nagad Wallet',
       card: 'Card (Visa / MC)',
+      bank: 'Bank Transfer',
       split: 'Split Payment',
       due: 'Unpaid Due',
     };

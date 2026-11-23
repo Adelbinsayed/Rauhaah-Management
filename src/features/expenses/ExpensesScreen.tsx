@@ -16,7 +16,14 @@ import { expensesRepo } from '@/data/repositories/expensesRepo';
 import { useAppStore } from '@/app/store';
 import { canViewProfit } from '@/domain/auth/permissions';
 import type { Expense, ExpenseCategory, CashDrawerSummary } from '@/domain/expenses/types';
-import { calculateDateRange } from '@/lib/dates';
+import { calculateDateRange, formatDhakaDate, formatDhakaDateTime } from '@/lib/dates';
+
+const PRESET_LABELS: Record<'today' | '7days' | 'month' | 'all', string> = {
+  today: 'Today',
+  '7days': '7 Days',
+  month: 'This Month',
+  all: 'All Time',
+};
 
 interface ExpensesScreenProps {
   deviceId: string;
@@ -35,8 +42,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [datePreset, setDatePreset] = useState<'today' | '7days' | 'month' | 'all'>('month');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [initialMonthRange] = useState(() => calculateDateRange('month'));
+  const [startDate, setStartDate] = useState(initialMonthRange.startDateStr);
+  const [endDate, setEndDate] = useState(initialMonthRange.endDateStr);
 
   // Modals
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
@@ -317,7 +325,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
 
             <div className="text-xs font-mono text-ink-muted tabular-nums">
               {drawerSummary.isSessionOpen && drawerSummary.openedAt && (
-                <span>Started {new Date(drawerSummary.openedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                <span>Started {formatDhakaDateTime(drawerSummary.openedAt)}</span>
               )}
             </div>
           </div>
@@ -376,7 +384,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
           </div>
           <div>
             <div className="text-xs text-ink-muted">
-              Total expenses ({datePreset})
+              Total expenses ({PRESET_LABELS[datePreset]})
             </div>
             <div className="text-lg font-medium text-ink font-mono tabular-nums mt-0.5">
               ৳{metrics.totalAmount.toFixed(2)}
@@ -457,13 +465,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
                   : 'text-ink-muted hover:text-ink'
               }`}
             >
-              {preset === 'today'
-                ? 'Today'
-                : preset === '7days'
-                ? '7 Days'
-                : preset === 'month'
-                ? '30 Days'
-                : 'All Time'}
+              {PRESET_LABELS[preset]}
             </button>
           ))}
         </div>
@@ -504,8 +506,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({ deviceId }) => {
                 expenses.map((e) => (
                   <tr key={e.id} className="hover:bg-raised/50 transition-colors duration-150 ease-unslop">
                     <td className="py-3 px-4 text-ink-muted text-xs font-mono tabular-nums">
-                      {new Date(e.expenseDate).toLocaleDateString()} ·{' '}
-                      {new Date(e.expenseDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {e.expenseDate.length <= 10
+                        ? formatDhakaDate(e.expenseDate)
+                        : formatDhakaDateTime(e.expenseDate)}
                     </td>
 
                     <td className="py-3 px-4 font-medium text-ink">

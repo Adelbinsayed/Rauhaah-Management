@@ -1,5 +1,5 @@
 import { createChangeLogStatement, dbBatchTx, dbQuery, type BatchStatement } from '@/data/db';
-import { nowUtcIso } from '@/lib/dates';
+import { dhakaDateBoundsToUtcIso, nowUtcIso } from '@/lib/dates';
 import { uuidv7 } from '@/lib/ids';
 import type { CartItem, CartTotals, Customer, Sale, SalePayment } from '@/domain/pos/types';
 import { formatInvoiceNumber } from '@/domain/pos/posCalculations';
@@ -386,12 +386,12 @@ export const posRepo = {
 
     if (options?.startDate) {
       sql += ` AND s.created_at >= ?`;
-      params.push(`${options.startDate}T00:00:00.000Z`);
+      params.push(dhakaDateBoundsToUtcIso(options.startDate, options.startDate).startDateIso);
     }
 
     if (options?.endDate) {
       sql += ` AND s.created_at <= ?`;
-      params.push(`${options.endDate}T23:59:59.999Z`);
+      params.push(dhakaDateBoundsToUtcIso(options.endDate, options.endDate).endDateIso);
     }
 
     if (options?.cashierId) {

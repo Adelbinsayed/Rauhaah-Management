@@ -2,7 +2,7 @@ import { useAppStore } from '@/app/store';
 import { purchasesRepo } from '@/data/repositories/purchasesRepo';
 import { canViewCost } from '@/domain/auth/permissions';
 import type { Purchase, StockItemLookup, Supplier } from '@/domain/purchases/types';
-import { calculateDateRange } from '@/lib/dates';
+import { calculateDateRange, formatDhakaDateTime } from '@/lib/dates';
 import {
   CreditCard,
   Eye,
@@ -36,8 +36,9 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ deviceId }) =>
   const [searchQuery, setSearchQuery] = useState('');
   const [supplierFilter, setSupplierFilter] = useState('all');
   const [datePreset, setDatePreset] = useState<'today' | '7days' | 'month' | 'all'>('month');
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
+  const [initialMonthRange] = useState(() => calculateDateRange('month'));
+  const [startDate, setStartDate] = useState<string>(initialMonthRange.startDateStr);
+  const [endDate, setEndDate] = useState<string>(initialMonthRange.endDateStr);
 
   // Modals
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
@@ -239,7 +240,7 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ deviceId }) =>
                 : preset === '7days'
                 ? '7 Days'
                 : preset === 'month'
-                ? '30 Days'
+                ? 'This Month'
                 : 'All Time'}
             </button>
           ))}
@@ -289,11 +290,7 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ deviceId }) =>
                       {p.purchaseNumber}
                     </td>
                     <td className="py-3 px-4 text-ink-muted text-xs tabular-nums">
-                      {new Date(p.receivedAt).toLocaleDateString()} ·{' '}
-                      {new Date(p.receivedAt).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {formatDhakaDateTime(p.receivedAt)}
                     </td>
                     <td className="py-3 px-4 font-medium text-ink flex items-center gap-1.5">
                       <Truck className="w-3.5 h-3.5 text-accent-ink shrink-0" strokeWidth={1.5} />

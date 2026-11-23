@@ -52,9 +52,10 @@ export function formatBdt(poisha: number, options?: { showDecimals?: boolean }):
 export function formatBdtAmount(amountBdt: number, options?: { showDecimals?: boolean }): string {
   const showDecimals = options?.showDecimals ?? true;
   const num = Number.isFinite(amountBdt) ? amountBdt : 0;
+  const isNegative = num < 0;
   const formatted = new Intl.NumberFormat('en-BD', {
     minimumFractionDigits: showDecimals ? 2 : 0,
     maximumFractionDigits: showDecimals ? 2 : 0,
-  }).format(num);
-  return `৳${formatted}`;
+  }).format(Math.abs(num));
+  return isNegative ? `-৳${formatted}` : `৳${formatted}`;
 }

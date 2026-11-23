@@ -8,8 +8,10 @@ export function nowUtcIso(): string {
   return new Date().toISOString();
 }
 
-export function formatDhakaDateTime(utcIso: string): string {
+export function formatDhakaDateTime(utcIso?: string | null): string {
+  if (!utcIso) return '—';
   const date = new Date(utcIso);
+  if (isNaN(date.getTime())) return '—';
   return new Intl.DateTimeFormat('en-GB', {
     timeZone: DHAKA_TIMEZONE,
     year: 'numeric',
@@ -21,8 +23,10 @@ export function formatDhakaDateTime(utcIso: string): string {
   }).format(date);
 }
 
-export function formatDhakaDate(utcIso: string): string {
+export function formatDhakaDate(utcIso?: string | null): string {
+  if (!utcIso) return '—';
   const date = new Date(utcIso);
+  if (isNaN(date.getTime())) return '—';
   return new Intl.DateTimeFormat('en-GB', {
     timeZone: DHAKA_TIMEZONE,
     year: 'numeric',
@@ -47,12 +51,48 @@ export function toDateString(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+function toUtcDateString(d: Date): string {
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+}
+
 export function getTodayDateString(): string {
-  return toDateString(new Date());
+  return new Intl.DateTimeFormat('en-CA', { timeZone: DHAKA_TIMEZONE }).format(new Date());
 }
 
 /**
- * Pure calculation of date bounds for any preset or custom interval.
+ * Convert a UTC ISO timestamp to its YYYY-MM-DD calendar date in Asia/Dhaka.
+ */
+export function utcIsoToDhakaDateString(utcIso: string): string {
+  const d = new Date(utcIso);
+  if (isNaN(d.getTime())) return getTodayDateString();
+  return new Intl.DateTimeFormat('en-CA', { timeZone: DHAKA_TIMEZONE }).format(d);
+}
+
+/**
+ * Convert Dhaka calendar YYYY-MM-DD bounds to UTC ISO-8601 range bounds.
+ * Asia/Dhaka is permanently UTC+06:00 with no DST.
+ */
+export function dhakaDateBoundsToUtcIso(
+  startYmd: string,
+  endYmd: string
+): { startDateIso: string; endDateIso: string } {
+  const today = getTodayDateString();
+  const sDate = new Date(`${startYmd}T00:00:00.000+06:00`);
+  const eDate = new Date(`${endYmd}T23:59:59.999+06:00`);
+  const validStart = !isNaN(sDate.getTime())
+    ? sDate
+    : new Date(`${today}T00:00:00.000+06:00`);
+  const validEnd = !isNaN(eDate.getTime())
+    ? eDate
+    : new Date(`${today}T23:59:59.999+06:00`);
+  return {
+    startDateIso: validStart.toISOString(),
+    endDateIso: validEnd.toISOString(),
+  };
+}
+
+/**
+ * Pure calculation of date bounds for any preset or custom interval in Asia/Dhaka.
  * Returns ISO timestamps for SQL range filtering and YYYY-MM-DD strings for date inputs.
  */
 export function calculateDateRange(
@@ -60,93 +100,82 @@ export function calculateDateRange(
   customStart?: string,
   customEnd?: string
 ): DateRangeBounds {
-  const now = new Date();
-
-  const startOfDay = (d: Date): Date => {
-    const copy = new Date(d);
-    copy.setHours(0, 0, 0, 0);
-    return copy;
-  };
-
-  const endOfDay = (d: Date): Date => {
-    const copy = new Date(d);
-    copy.setHours(23, 59, 59, 999);
-    return copy;
-  };
+  const todayStr = getTodayDateString();
+  const [year, month, day] = todayStr.split('-').map(Number);
 
   switch (preset) {
     case 'today': {
-      const today = toDateString(now);
+      const { startDateIso, endDateIso } = dhakaDateBoundsToUtcIso(todayStr, todayStr);
       return {
-        startDateIso: startOfDay(now).toISOString(),
-        endDateIso: endOfDay(now).toISOString(),
-        startDateStr: today,
-        endDateStr: today,
+        startDateIso,
+        endDateIso,
+        startDateStr: todayStr,
+        endDateStr: todayStr,
         label: 'Today',
       };
     }
     case 'yesterday': {
-      const y = new Date(now);
-      y.setDate(y.getDate() - 1);
-      const yStr = toDateString(y);
+      const yStr = toUtcDateString(new Date(Date.UTC(year, month - 1, day - 1)));
+      const { startDateIso, endDateIso } = dhakaDateBoundsToUtcIso(yStr, yStr);
       return {
-        startDateIso: startOfDay(y).toISOString(),
-        endDateIso: endOfDay(y).toISOString(),
+        startDateIso,
+        endDateIso,
         startDateStr: yStr,
         endDateStr: yStr,
         label: 'Yesterday',
       };
     }
     case '7days': {
-      const past = new Date(now);
-      past.setDate(past.getDate() - 6);
+      const pastStr = toUtcDateString(new Date(Date.UTC(year, month - 1, day - 6)));
+      const { startDateIso, endDateIso } = dhakaDateBoundsToUtcIso(pastStr, todayStr);
       return {
-        startDateIso: startOfDay(past).toISOString(),
-        endDateIso: endOfDay(now).toISOString(),
-        startDateStr: toDateString(past),
-        endDateStr: toDateString(now),
+        startDateIso,
+        endDateIso,
+        startDateStr: pastStr,
+        endDateStr: todayStr,
         label: 'Last 7 Days',
       };
     }
     case 'month': {
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfMonthStr = `${year}-${pad(month)}-01`;
+      const { startDateIso, endDateIso } = dhakaDateBoundsToUtcIso(startOfMonthStr, todayStr);
       return {
-        startDateIso: startOfDay(startOfMonth).toISOString(),
-        endDateIso: endOfDay(now).toISOString(),
-        startDateStr: toDateString(startOfMonth),
-        endDateStr: toDateString(now),
+        startDateIso,
+        endDateIso,
+        startDateStr: startOfMonthStr,
+        endDateStr: todayStr,
         label: 'This Month',
       };
     }
     case 'last_month': {
-      const startOfLast = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const endOfLast = new Date(now.getFullYear(), now.getMonth(), 0);
+      const startOfLastStr = toUtcDateString(new Date(Date.UTC(year, month - 2, 1)));
+      const endOfLastStr = toUtcDateString(new Date(Date.UTC(year, month - 1, 0)));
+      const { startDateIso, endDateIso } = dhakaDateBoundsToUtcIso(startOfLastStr, endOfLastStr);
       return {
-        startDateIso: startOfDay(startOfLast).toISOString(),
-        endDateIso: endOfDay(endOfLast).toISOString(),
-        startDateStr: toDateString(startOfLast),
-        endDateStr: toDateString(endOfLast),
+        startDateIso,
+        endDateIso,
+        startDateStr: startOfLastStr,
+        endDateStr: endOfLastStr,
         label: 'Last Month',
       };
     }
     case 'custom': {
       if (customStart && customEnd) {
-        const s = new Date(`${customStart}T00:00:00`);
-        const e = new Date(`${customEnd}T23:59:59.999`);
+        const { startDateIso, endDateIso } = dhakaDateBoundsToUtcIso(customStart, customEnd);
         return {
-          startDateIso: s.toISOString(),
-          endDateIso: e.toISOString(),
+          startDateIso,
+          endDateIso,
           startDateStr: customStart,
           endDateStr: customEnd,
           label: `${customStart} to ${customEnd}`,
         };
       }
-      const today = toDateString(now);
+      const { startDateIso, endDateIso } = dhakaDateBoundsToUtcIso(todayStr, todayStr);
       return {
-        startDateIso: startOfDay(now).toISOString(),
-        endDateIso: endOfDay(now).toISOString(),
-        startDateStr: today,
-        endDateStr: today,
+        startDateIso,
+        endDateIso,
+        startDateStr: todayStr,
+        endDateStr: todayStr,
         label: 'Custom',
       };
     }

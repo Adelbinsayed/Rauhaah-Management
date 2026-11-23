@@ -1,21 +1,20 @@
 import { calculateDateRange } from '@/lib/dates';
+import { formatBdtAmount } from '@/lib/money';
 import type { DateRangeFilter, DateRangePreset } from '@/domain/reports/types';
 
 /**
- * Format a number as Bangladeshi Taka currency (e.g. ৳12,500.00).
+ * Format a number as Bangladeshi Taka currency (e.g. ৳12,500.00 or -৳500.00).
  */
 export function formatBdt(amount: number): string {
-  return `৳${Number(amount || 0).toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+  return formatBdtAmount(amount);
 }
 
 /**
- * Format a number as integer or with 1 decimal.
+ * Format a number as integer or with up to 2 decimals.
  */
 export function formatQty(qty: number, unit?: string): string {
-  const formatted = Number(qty || 0).toLocaleString('en-US', {
+  const safeQty = Number.isFinite(qty) ? qty : 0;
+  const formatted = safeQty.toLocaleString('en-US', {
     maximumFractionDigits: 2,
   });
   return unit ? `${formatted} ${unit}` : formatted;

@@ -1,5 +1,5 @@
 import { createChangeLogStatement, dbQuery, dbBatchTx, type BatchStatement } from '../db';
-import { nowUtcIso } from '@/lib/dates';
+import { dhakaDateBoundsToUtcIso, nowUtcIso } from '@/lib/dates';
 import { uuidv7 } from '@/lib/ids';
 import type {
   Supplier,
@@ -234,11 +234,11 @@ export const purchasesRepo = {
 
     if (params?.startDate) {
       sql += ` AND p.received_at >= ?`;
-      sqlParams.push(`${params.startDate}T00:00:00.000Z`);
+      sqlParams.push(dhakaDateBoundsToUtcIso(params.startDate, params.startDate).startDateIso);
     }
     if (params?.endDate) {
       sql += ` AND p.received_at <= ?`;
-      sqlParams.push(`${params.endDate}T23:59:59.999Z`);
+      sqlParams.push(dhakaDateBoundsToUtcIso(params.endDate, params.endDate).endDateIso);
     }
     if (params?.supplierId && params.supplierId !== 'all') {
       sql += ` AND p.supplier_id = ?`;

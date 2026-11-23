@@ -12,6 +12,7 @@ import type {
   TopSellingProduct,
 } from '@/domain/reports/types';
 import type { ShopSettings, User } from '@/domain/auth/types';
+import { formatDhakaDate, formatDhakaDateTime } from '@/lib/dates';
 import { formatBdt, formatQty } from './reportsUtils';
 
 export interface PrintableReportProps {
@@ -51,14 +52,11 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
   allowProfit = false,
   isPreview = false,
 }) => {
-  const shopName = shopSettings?.shopName || 'RAUHAAH';
-  const subtitle = shopSettings?.invoiceSubtitle || 'Live Peaceful • Luxury Fragrances & Lifestyle';
-  const address = shopSettings?.address || 'Shop #G-04, Ground Floor, Dhaka, Bangladesh';
-  const phone = shopSettings?.phone || '01970084325';
-  const printedAt = new Date().toLocaleString('en-GB', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  });
+  const shopName = shopSettings?.shopName || 'Shop';
+  const subtitle = shopSettings?.invoiceSubtitle ?? '';
+  const address = shopSettings?.address || '';
+  const phone = shopSettings?.phone || '';
+  const printedAt = formatDhakaDateTime(new Date().toISOString());
   const printedBy = currentUser?.displayName || currentUser?.username || 'Administrator';
 
   const getReportTitle = () => {
@@ -92,12 +90,22 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                 ✦ {shopName} ✦
               </span>
             </div>
-            <p className="text-[11px] font-medium text-gray-700 italic mt-0.5 tracking-wide">
-              {subtitle}
-            </p>
-            <p className="text-[10px] text-gray-600 mt-1">
-              {address} | Hotline: <strong className="text-black">{phone}</strong>
-            </p>
+            {subtitle && (
+              <p className="text-[11px] font-medium text-gray-700 italic mt-0.5 tracking-wide">
+                {subtitle}
+              </p>
+            )}
+            {(address || phone) && (
+              <p className="text-[10px] text-gray-600 mt-1">
+                {address}
+                {address && phone ? ' | ' : ''}
+                {phone && (
+                  <>
+                    Hotline: <strong className="text-black">{phone}</strong>
+                  </>
+                )}
+              </p>
+            )}
           </div>
 
           <div className="text-right text-[10px] space-y-0.5 text-gray-700">
@@ -120,7 +128,7 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
               {getReportTitle()}
             </h1>
             <p className="text-[10px] text-gray-600 font-medium">
-              Filter Period: <strong className="text-black">{filter.label}</strong> ({new Date(filter.startDateIso).toLocaleDateString('en-GB')} – {new Date(filter.endDateIso).toLocaleDateString('en-GB')})
+              Filter Period: <strong className="text-black">{filter.label}</strong> ({formatDhakaDate(filter.startDateIso)} – {formatDhakaDate(filter.endDateIso)})
             </p>
           </div>
           <div className="text-right">
@@ -622,7 +630,7 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
       {/* 4. Formal Executive Signature Footer */}
       <div className="mt-12 pt-6 border-t-2 border-black/80 flex justify-between items-end text-[10px] text-gray-700 break-inside-avoid">
         <div className="space-y-1">
-          <p className="font-semibold text-black">RAUHAAH MANAGEMENT POS SYSTEM</p>
+          <p className="font-semibold text-black">{shopName.toUpperCase()} POS SYSTEM</p>
           <p className="text-[9px] text-gray-500">
             System generated document. All figures calculated in Bangladeshi Taka (BDT).
           </p>

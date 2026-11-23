@@ -4,12 +4,18 @@ import {
   bdtToMilliPoisha,
   bdtToPoisha,
   formatBdt,
+  formatBdtAmount,
   milliPoishaToPoisha,
   poishaToBdt,
   poishaToMilliPoisha,
 } from './money';
 import { formatQuantity, fromThousandths, PRODUCT_CLASS_UNITS, toThousandths } from './quantity';
-import { calculateDateRange } from './dates';
+import {
+  calculateDateRange,
+  dhakaDateBoundsToUtcIso,
+  formatDhakaDate,
+  formatDhakaDateTime,
+} from './dates';
 import { escapeCsvCell } from './csvExport';
 
 describe('uuidv7', () => {
@@ -42,6 +48,8 @@ describe('money helpers', () => {
   it('formats BDT cleanly', () => {
     expect(formatBdt(125000)).toBe('৳1,250.00');
     expect(formatBdt(125000, { showDecimals: false })).toBe('৳1,250');
+    expect(formatBdtAmount(-500)).toBe('-৳500.00');
+    expect(formatBdtAmount(Number.NaN)).toBe('৳0.00');
   });
 });
 
@@ -91,6 +99,19 @@ describe('date range helpers', () => {
     expect(custom.label).toBe('2026-05-01 to 2026-05-15');
     expect(custom.startDateStr).toBe('2026-05-01');
     expect(custom.endDateStr).toBe('2026-05-15');
+  });
+
+  it('converts Dhaka YYYY-MM-DD bounds to exact UTC+06:00 ISO timestamps', () => {
+    const bounds = dhakaDateBoundsToUtcIso('2026-11-24', '2026-11-24');
+    expect(bounds.startDateIso).toBe('2026-11-23T18:00:00.000Z');
+    expect(bounds.endDateIso).toBe('2026-11-24T17:59:59.999Z');
+  });
+
+  it('guards formatDhakaDate and formatDhakaDateTime against empty or invalid inputs', () => {
+    expect(formatDhakaDate('')).toBe('—');
+    expect(formatDhakaDate('not-a-date')).toBe('—');
+    expect(formatDhakaDateTime('')).toBe('—');
+    expect(formatDhakaDateTime(null)).toBe('—');
   });
 });
 

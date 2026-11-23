@@ -14,6 +14,7 @@ import type {
 } from '@/domain/reports/types';
 import { canViewCost, canViewProfit, hasPermission } from '@/domain/auth/permissions';
 import { reportsRepo } from '@/data/repositories/reportsRepo';
+import { formatDhakaDate, formatDhakaDateTime, getTodayDateString } from '@/lib/dates';
 import { cn } from '@/lib/utils';
 import {
   ArrowDown,
@@ -61,15 +62,17 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
 
   // Date range state
   const [activePreset, setActivePreset] = useState<DateRangePreset>('this_month');
-  const [customStart, setCustomStart] = useState<string>(() => {
-    const d = new Date();
-    d.setDate(1);
-    return d.toISOString().slice(0, 10);
-  });
-  const [customEnd, setCustomEnd] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [customStart, setCustomStart] = useState<string>(() => `${getTodayDateString().slice(0, 7)}-01`);
+  const [customEnd, setCustomEnd] = useState<string>(() => getTodayDateString());
   const [currentFilter, setCurrentFilter] = useState<DateRangeFilter>(() =>
     getDateRangeForPreset('this_month')
   );
+
+  const shopSlug =
+    (shopSettings?.shopName || 'shop')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'shop';
 
   // Active view tab
   const [activeTab, setActiveTab] = useState<ReportTab>('pnl');
@@ -150,6 +153,10 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
 
   const handleApplyCustomDate = () => {
     if (!customStart || !customEnd) return;
+    if (customStart > customEnd) {
+      showToast({ message: 'Start date cannot be after end date.', type: 'error' });
+      return;
+    }
     setActivePreset('custom');
     const filter = getDateRangeForPreset('custom', customStart, customEnd);
     setCurrentFilter(filter);
@@ -254,7 +261,7 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
       ['Customer Dues Collected', pnl.customerDuesCollectedBdt, 'Due recoveries during period'],
     ];
 
-    const filename = `rauhaah_pnl_${activePreset}_${new Date().toISOString().slice(0, 10)}`;
+    const filename = `${shopSlug}_pnl_${activePreset}_${getTodayDateString()}`;
     const res = await downloadCsv(filename, headers, rows);
     if (res.success) {
       showToast({
@@ -290,7 +297,7 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
       allowProfit ? p.grossProfitBdt : 'Hidden',
       allowProfit ? `${p.marginPercent}%` : 'Hidden',
     ]);
-    const filename = `rauhaah_top_products_${activePreset}_${new Date().toISOString().slice(0, 10)}`;
+    const filename = `${shopSlug}_top_products_${activePreset}_${getTodayDateString()}`;
     const res = await downloadCsv(filename, headers, rows);
     if (res.success) {
       showToast({
@@ -333,9 +340,9 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
         s.due_amount_bdt,
         s.payment_method,
         s.status,
-        new Date(s.created_at).toLocaleString(),
+        formatDhakaDateTime(s.created_at),
       ]);
-      const filename = `rauhaah_sales_ledger_${activePreset}_${new Date().toISOString().slice(0, 10)}`;
+      const filename = `${shopSlug}_sales_ledger_${activePreset}_${getTodayDateString()}`;
       const res = await downloadCsv(filename, headers, rows);
       if (res.success) {
         showToast({
@@ -372,11 +379,11 @@ export function ReportsScreen({ deviceId: _deviceId }: ReportsScreenProps) {
         e.amount_bdt,
         e.payment_method,
         e.reference_number || '-',
-        new Date(e.expense_date).toLocaleDateString(),
+        e.expense_date.length <= 10 ? formatDhakaDate(e.expense_date) : formatDhakaDateTime(e.expense_date),
         e.created_by_username || 'Staff',
         e.notes || '',
       ]);
-      const filename = `rauhaah_expenses_${activePreset}_${new Date().toISOString().slice(0, 10)}`;
+      const filename = `${shopSlug}_expenses_${activePreset}_${getTodayDateString()}`;
       const res = await downloadCsv(filename, headers, rows);
       if (res.success) {
         showToast({

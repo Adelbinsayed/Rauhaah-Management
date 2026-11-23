@@ -20,6 +20,7 @@ import { useAppStore } from '@/app/store';
 import { canManageUsers, hasPermission } from '@/domain/auth/permissions';
 import { downloadCsv } from '@/features/reports/reportsUtils';
 import { MetricCard } from '@/components/ui';
+import { formatDhakaDate, formatDhakaDateTime, getTodayDateString } from '@/lib/dates';
 import { formatBdtAmount } from '@/lib/money';
 import type { Customer, CustomerPayment, CustomerSaleSummary } from '@/domain/customers/types';
 
@@ -28,7 +29,7 @@ interface CustomersScreenProps {
 }
 
 export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) => {
-  const { currentUser, permissions, showToast } = useAppStore();
+  const { currentUser, permissions, shopSettings, showToast } = useAppStore();
   const canDeleteCustomer =
     hasPermission(permissions, 'stock.adjust') || canManageUsers(permissions);
 
@@ -273,11 +274,16 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
         c.totalOrders,
         c.totalSpentBdt,
         c.dueBalanceBdt,
-        c.lastOrderDate ? new Date(c.lastOrderDate).toLocaleDateString() : 'Never',
-        new Date(c.createdAt).toLocaleDateString(),
+        c.lastOrderDate ? formatDhakaDate(c.lastOrderDate) : 'Never',
+        formatDhakaDate(c.createdAt),
       ]);
 
-      const filename = `rauhaah_customers_${new Date().toISOString().slice(0, 10)}`;
+      const shopSlug =
+        (shopSettings?.shopName || 'shop')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '_')
+          .replace(/^_+|_+$/g, '') || 'shop';
+      const filename = `${shopSlug}_customers_${getTodayDateString()}`;
       const res = await downloadCsv(filename, headers, rows);
       if (res.success) {
         showToast({
@@ -644,7 +650,7 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
                               {s.invoiceNumber}
                             </td>
                             <td className="py-2 px-3 text-ink-muted tabular-nums">
-                              {new Date(s.createdAt).toLocaleDateString()}
+                              {formatDhakaDate(s.createdAt)}
                             </td>
                             <td className="py-2 px-3 capitalize text-ink-secondary">
                               {s.paymentMethod}
@@ -696,7 +702,7 @@ export const CustomersScreen: React.FC<CustomersScreenProps> = ({ deviceId }) =>
                         {customerDetails.payments.map((p) => (
                           <tr key={p.id}>
                             <td className="py-2 px-3 text-ink-muted tabular-nums">
-                              {new Date(p.createdAt).toLocaleString()}
+                              {formatDhakaDateTime(p.createdAt)}
                             </td>
                             <td className="py-2 px-3 capitalize text-ink font-medium">
                               {p.paymentMethod}

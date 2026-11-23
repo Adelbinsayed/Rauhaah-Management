@@ -1,5 +1,5 @@
 import { createChangeLogStatement, dbBatchTx, dbQuery, type BatchStatement, type SqlParam } from '@/data/db';
-import { nowUtcIso } from '@/lib/dates';
+import { getTodayDateString, nowUtcIso } from '@/lib/dates';
 import { uuidv7 } from '@/lib/ids';
 import type { Expense, ExpenseCategory, CashDrawerSummary } from '@/domain/expenses/types';
 
@@ -36,12 +36,12 @@ export const expensesRepo = {
     const params: SqlParam[] = [];
 
     if (filter?.startDate) {
-      sql += ` AND date(expense_date) >= date(?)`;
-      params.push(filter.startDate);
+      sql += ` AND substr(expense_date, 1, 10) >= ?`;
+      params.push(filter.startDate.slice(0, 10));
     }
     if (filter?.endDate) {
-      sql += ` AND date(expense_date) <= date(?)`;
-      params.push(filter.endDate);
+      sql += ` AND substr(expense_date, 1, 10) <= ?`;
+      params.push(filter.endDate.slice(0, 10));
     }
     if (filter?.categoryId && filter.categoryId !== 'all') {
       sql += ` AND category_id = ?`;
@@ -106,7 +106,7 @@ export const expensesRepo = {
   ): Promise<Expense> {
     const id = uuidv7();
     const now = nowUtcIso();
-    const expDate = input.expenseDate || now;
+    const expDate = input.expenseDate || getTodayDateString();
     let branchId = input.branchId || 'default-branch';
     if (!input.branchId) {
       try {

@@ -1,4 +1,8 @@
 import { dbQuery } from '../db';
+import { utcIsoToDhakaDateString } from '@/lib/dates';
+
+const EXPENSE_DATE_DHAKA_EXPR =
+  "CASE WHEN length(expense_date) > 10 THEN date(expense_date, '+6 hours') ELSE substr(expense_date, 1, 10) END";
 import type {
   CashFlowSummary,
   CashierPerformance,
@@ -16,6 +20,8 @@ export const reportsRepo = {
    * Get high-level Profit & Loss (P&L) summary for the selected date range.
    */
   async getPnLSummary(startDateIso: string, endDateIso: string): Promise<PnLSummary> {
+    const startYmd = utcIsoToDhakaDateString(startDateIso);
+    const endYmd = utcIsoToDhakaDateString(endDateIso);
     const [salesRow, cogsRow, expensesRow, collRow] = await Promise.all([
       dbQuery<{
         orders_count: number;
@@ -52,11 +58,9 @@ export const reportsRepo = {
         `SELECT COALESCE(SUM(amount_bdt), 0) as total_expenses
         FROM expenses
         WHERE deleted_at IS NULL
-          AND (
-            (expense_date >= ? AND expense_date <= ?)
-            OR (created_at >= ? AND created_at <= ?)
-          )`,
-        [startDateIso, endDateIso, startDateIso, endDateIso]
+          AND (${EXPENSE_DATE_DHAKA_EXPR}) >= ?
+          AND (${EXPENSE_DATE_DHAKA_EXPR}) <= ?`,
+        [startYmd, endYmd]
       ),
       dbQuery<{ total_coll: number }>(
         `SELECT COALESCE(SUM(amount_bdt), 0) as total_coll
@@ -108,6 +112,8 @@ export const reportsRepo = {
    * Daily breakdown of revenue, COGS, expenses, and net profit for trend charts.
    */
   async getDailyTrends(startDateIso: string, endDateIso: string): Promise<DailyTrendPoint[]> {
+    const startYmd = utcIsoToDhakaDateString(startDateIso);
+    const endYmd = utcIsoToDhakaDateString(endDateIso);
     // Fetch sales and expenses by day concurrently
     const [salesDays, expenseDays] = await Promise.all([
       dbQuery<{
@@ -117,7 +123,7 @@ export const reportsRepo = {
         cogs: number;
       }>(
         `SELECT 
-          strftime('%Y-%m-%d', s.created_at) as sale_date,
+          strftime('%Y-%m-%d', datetime(s.created_at, '+6 hours')) as sale_date,
           COUNT(s.id) as orders_count,
           COALESCE(SUM(s.total_amount_bdt), 0) as revenue,
           COALESCE(SUM(si_agg.day_cogs), 0) as cogs
@@ -129,7 +135,7 @@ export const reportsRepo = {
         ) si_agg ON si_agg.sale_id = s.id
         WHERE s.status = 'completed'
           AND s.created_at >= ? AND s.created_at <= ?
-        GROUP BY strftime('%Y-%m-%d', s.created_at)
+        GROUP BY strftime('%Y-%m-%d', datetime(s.created_at, '+6 hours'))
         ORDER BY sale_date ASC`,
         [startDateIso, endDateIso]
       ),
@@ -138,45 +144,50 @@ export const reportsRepo = {
         expenses: number;
       }>(
         `SELECT 
-          strftime('%Y-%m-%d', COALESCE(expense_date, created_at)) as exp_date,
+          (${EXPENSE_DATE_DHAKA_EXPR}) as exp_date,
           COALESCE(SUM(amount_bdt), 0) as expenses
         FROM expenses
         WHERE deleted_at IS NULL
-          AND (
-            (expense_date >= ? AND expense_date <= ?)
-            OR (created_at >= ? AND created_at <= ?)
-          )
-        GROUP BY strftime('%Y-%m-%d', COALESCE(expense_date, created_at))`,
-        [startDateIso, endDateIso, startDateIso, endDateIso]
+          AND (${EXPENSE_DATE_DHAKA_EXPR}) >= ?
+          AND (${EXPENSE_DATE_DHAKA_EXPR}) <= ?
+        GROUP BY (${EXPENSE_DATE_DHAKA_EXPR})`,
+        [startYmd, endYmd]
       ),
     ]);
+
+    const salesMap = new Map<string, (typeof salesDays)[number]>();
+    for (const sd of salesDays) {
+      salesMap.set(sd.sale_date, sd);
+    }
 
     const expenseMap = new Map<string, number>();
     for (const ed of expenseDays) {
       expenseMap.set(ed.exp_date, Number(ed.expenses || 0));
     }
 
+    const allDates = Array.from(new Set([...salesMap.keys(), ...expenseMap.keys()])).sort();
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-    return salesDays.map((sd) => {
-      const revenue = Number(sd.revenue || 0);
-      const cogs = Math.round(Number(sd.cogs || 0) * 100) / 100;
-      const expenses = expenseMap.get(sd.sale_date) || 0;
+    return allDates.map((dateStr) => {
+      const sd = salesMap.get(dateStr);
+      const revenue = Number(sd?.revenue || 0);
+      const cogs = Math.round(Number(sd?.cogs || 0) * 100) / 100;
+      const expenses = Math.round((expenseMap.get(dateStr) || 0) * 100) / 100;
       const grossProfit = Math.round((revenue - cogs) * 100) / 100;
       const netProfit = Math.round((grossProfit - expenses) * 100) / 100;
 
-      const d = new Date(sd.sale_date);
+      const d = new Date(`${dateStr}T12:00:00+06:00`);
       const dayLabel = isNaN(d.getTime()) ? '' : dayNames[d.getDay()];
 
       return {
-        date: sd.sale_date,
+        date: dateStr,
         dayLabel,
         revenueBdt: revenue,
         cogsBdt: cogs,
         grossProfitBdt: grossProfit,
         expensesBdt: expenses,
         netProfitBdt: netProfit,
-        ordersCount: Number(sd.orders_count || 0),
+        ordersCount: Number(sd?.orders_count || 0),
       };
     });
   },
@@ -354,6 +365,7 @@ export const reportsRepo = {
       bkash: 'bKash Mobile Wallet',
       nagad: 'Nagad Mobile Wallet',
       card: 'Card (Visa / Mastercard)',
+      bank: 'Bank Transfer',
       split: 'Split Payment',
       due: 'Unpaid Due / Credit',
     };
@@ -423,6 +435,8 @@ export const reportsRepo = {
     startDateIso: string,
     endDateIso: string
   ): Promise<ExpenseCategoryBreakdown[]> {
+    const startYmd = utcIsoToDhakaDateString(startDateIso);
+    const endYmd = utcIsoToDhakaDateString(endDateIso);
     const rows = await dbQuery<{
       category_id: string | null;
       category_name: string;
@@ -436,13 +450,11 @@ export const reportsRepo = {
         COUNT(id) as exp_count
       FROM expenses
       WHERE deleted_at IS NULL
-        AND (
-          (expense_date >= ? AND expense_date <= ?)
-          OR (created_at >= ? AND created_at <= ?)
-        )
+        AND (${EXPENSE_DATE_DHAKA_EXPR}) >= ?
+        AND (${EXPENSE_DATE_DHAKA_EXPR}) <= ?
       GROUP BY category_name
       ORDER BY amount DESC`,
-      [startDateIso, endDateIso, startDateIso, endDateIso]
+      [startYmd, endYmd]
     );
 
     const totalExp = rows.reduce((acc, r) => acc + Number(r.amount || 0), 0);
@@ -504,16 +516,16 @@ export const reportsRepo = {
     }
 
     // 3. Cash expenses
+    const startYmd = utcIsoToDhakaDateString(startDateIso);
+    const endYmd = utcIsoToDhakaDateString(endDateIso);
     const expRow = await dbQuery<{ total: number }>(
       `SELECT COALESCE(SUM(amount_bdt), 0) as total
       FROM expenses
       WHERE deleted_at IS NULL
         AND lower(payment_method) = 'cash'
-        AND (
-          (expense_date >= ? AND expense_date <= ?)
-          OR (created_at >= ? AND created_at <= ?)
-        )`,
-      [startDateIso, endDateIso, startDateIso, endDateIso]
+        AND (${EXPENSE_DATE_DHAKA_EXPR}) >= ?
+        AND (${EXPENSE_DATE_DHAKA_EXPR}) <= ?`,
+      [startYmd, endYmd]
     );
     const cashExpensesBdt = Number(expRow[0]?.total || 0);
 
@@ -670,6 +682,8 @@ export const reportsRepo = {
    * Fetch detailed expense rows for CSV export.
    */
   async getExpensesExportRows(startDateIso: string, endDateIso: string) {
+    const startYmd = utcIsoToDhakaDateString(startDateIso);
+    const endYmd = utcIsoToDhakaDateString(endDateIso);
     return dbQuery<{
       title: string;
       category_name: string;
@@ -691,12 +705,10 @@ export const reportsRepo = {
         notes
       FROM expenses
       WHERE deleted_at IS NULL
-        AND (
-          (expense_date >= ? AND expense_date <= ?)
-          OR (created_at >= ? AND created_at <= ?)
-        )
+        AND (${EXPENSE_DATE_DHAKA_EXPR}) >= ?
+        AND (${EXPENSE_DATE_DHAKA_EXPR}) <= ?
       ORDER BY expense_date DESC`,
-      [startDateIso, endDateIso, startDateIso, endDateIso]
+      [startYmd, endYmd]
     );
   },
 };
