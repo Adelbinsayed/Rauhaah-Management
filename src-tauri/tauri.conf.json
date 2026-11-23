@@ -12,6 +12,17 @@
   "app": {
     "windows": [
       {
+        "label": "main",
+        "title": "Rauhaah Management",
+        "url": "index.html",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 680,
+        "visible": false,
+        "center": true
+      },
+      {
         "label": "splash",
         "title": "Rauhaah",
         "url": "splash.html",
