@@ -32,7 +32,7 @@ export const backupRepo = {
         totalSalesCount: 0,
         totalCustomersCount: 0,
         totalProductsCount: 0,
-        integrityStatus: 'ok',
+        integrityStatus: 'error',
         lastBackupAt: null,
       };
     }
@@ -59,7 +59,7 @@ export const backupRepo = {
     return await invoke<string>('export_backup_to_downloads', { filename });
   },
 
-  async deleteBackup(filename: string): Promise<boolean> {
-    return await invoke<boolean>('delete_backup', { filename });
+  async deleteBackup(filename: string): Promise<void> {
+    await invoke<void>('delete_backup', { filename });
   },
 };

@@ -1,5 +1,5 @@
 use std::io::Write;
-use std::net::{SocketAddr, TcpStream};
+use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::time::Duration;
 
 #[cfg(target_os = "windows")]
@@ -101,13 +101,15 @@ pub fn get_printers() -> Vec<String> {
             return Vec::new();
         }
 
-        let mut buffer: Vec<u8> = vec![0; needed as usize];
+        let word_count =
+            (needed as usize + std::mem::size_of::<usize>() - 1) / std::mem::size_of::<usize>();
+        let mut buffer: Vec<usize> = vec![0; word_count];
         if EnumPrintersW(
             flags,
             std::ptr::null(),
             2,
-            buffer.as_mut_ptr(),
-            needed,
+            buffer.as_mut_ptr() as *mut u8,
+            (word_count * std::mem::size_of::<usize>()) as u32,
             &mut needed,
             &mut returned,
         ) != 0
@@ -142,7 +144,11 @@ pub fn get_default_printer() -> Option<String> {
         if size > 0 {
             let mut buf: Vec<u16> = vec![0; size as usize];
             if GetDefaultPrinterW(buf.as_mut_ptr(), &mut size) != 0 {
-                return Some(String::from_utf16_lossy(&buf[..size as usize - 1]));
+                let end = buf
+                    .iter()
+                    .position(|&c| c == 0)
+                    .unwrap_or(size.saturating_sub(1) as usize);
+                return Some(String::from_utf16_lossy(&buf[..end]));
             }
         }
     }
@@ -150,96 +156,145 @@ pub fn get_default_printer() -> Option<String> {
 }
 
 #[tauri::command]
-pub fn print_raw_escpos(printer_name: Option<String>, data: Vec<u8>) -> Result<(), String> {
-    if data.is_empty() {
-        return Err("Print data buffer is empty".into());
-    }
+pub async fn print_raw_escpos(
+    printer_name: Option<String>,
+    data: Vec<u8>,
+) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        if data.is_empty() {
+            return Err("Print data buffer is empty".into());
+        }
 
-    #[cfg(target_os = "windows")]
-    {
-        let target_printer = match printer_name {
-            Some(ref name) if !name.trim().is_empty() && name != "default" => name.trim().to_string(),
-            _ => get_default_printer().ok_or_else(|| "No default printer found on system".to_string())?,
-        };
-
-        unsafe {
-            let mut wide_name: Vec<u16> = target_printer.encode_utf16().chain(std::iter::once(0)).collect();
-            let mut h_printer: isize = 0;
-
-            if OpenPrinterW(wide_name.as_mut_ptr(), &mut h_printer, std::ptr::null()) == 0 {
-                return Err(format!("Could not open printer '{}'", target_printer));
-            }
-
-            let doc_name: Vec<u16> = "Rauhaah Thermal Receipt\0".encode_utf16().collect();
-            let datatype: Vec<u16> = "RAW\0".encode_utf16().collect();
-            let doc_info = DOC_INFO_1W {
-                p_doc_name: doc_name.as_ptr(),
-                p_output_file: std::ptr::null(),
-                p_datatype: datatype.as_ptr(),
+        #[cfg(target_os = "windows")]
+        {
+            let target_printer = match printer_name {
+                Some(ref name) if !name.trim().is_empty() && name != "default" => {
+                    name.trim().to_string()
+                }
+                _ => get_default_printer()
+                    .ok_or_else(|| "No default printer found on system".to_string())?,
             };
 
-            let job_id = StartDocPrinterW(h_printer, 1, &doc_info as *const _);
-            if job_id == 0 {
-                ClosePrinter(h_printer);
-                return Err(format!("StartDocPrinterW failed for '{}'", target_printer));
-            }
+            unsafe {
+                let mut wide_name: Vec<u16> =
+                    target_printer.encode_utf16().chain(std::iter::once(0)).collect();
+                let mut h_printer: isize = 0;
 
-            if StartPagePrinter(h_printer) == 0 {
+                if OpenPrinterW(wide_name.as_mut_ptr(), &mut h_printer, std::ptr::null()) == 0 {
+                    return Err(format!("Could not open printer '{}'", target_printer));
+                }
+
+                let doc_name: Vec<u16> = "Rauhaah Thermal Receipt\0".encode_utf16().collect();
+                let datatype: Vec<u16> = "RAW\0".encode_utf16().collect();
+                let doc_info = DOC_INFO_1W {
+                    p_doc_name: doc_name.as_ptr(),
+                    p_output_file: std::ptr::null(),
+                    p_datatype: datatype.as_ptr(),
+                };
+
+                let job_id = StartDocPrinterW(h_printer, 1, &doc_info as *const _);
+                if job_id == 0 {
+                    ClosePrinter(h_printer);
+                    return Err(format!("StartDocPrinterW failed for '{}'", target_printer));
+                }
+
+                if StartPagePrinter(h_printer) == 0 {
+                    EndDocPrinter(h_printer);
+                    ClosePrinter(h_printer);
+                    return Err("StartPagePrinter failed".into());
+                }
+
+                let mut total_written: usize = 0;
+                let mut write_failed = false;
+                while total_written < data.len() {
+                    let remaining = &data[total_written..];
+                    let chunk_len = remaining.len().min(u32::MAX as usize) as u32;
+                    let mut written: u32 = 0;
+                    let write_ok = WritePrinter(
+                        h_printer,
+                        remaining.as_ptr(),
+                        chunk_len,
+                        &mut written,
+                    );
+                    if write_ok == 0 || written == 0 {
+                        write_failed = true;
+                        break;
+                    }
+                    total_written += written as usize;
+                }
+
+                EndPagePrinter(h_printer);
                 EndDocPrinter(h_printer);
                 ClosePrinter(h_printer);
-                return Err("StartPagePrinter failed".into());
+
+                if write_failed || total_written < data.len() {
+                    return Err("WritePrinter failed to send data to thermal printer".into());
+                }
+
+                Ok(())
             }
-
-            let mut written: u32 = 0;
-            let write_ok = WritePrinter(
-                h_printer,
-                data.as_ptr(),
-                data.len() as u32,
-                &mut written,
-            );
-
-            EndPagePrinter(h_printer);
-            EndDocPrinter(h_printer);
-            ClosePrinter(h_printer);
-
-            if write_ok == 0 || written == 0 {
-                return Err("WritePrinter failed to send data to thermal printer".into());
-            }
-
-            Ok(())
         }
-    }
 
-    #[cfg(not(target_os = "windows"))]
-    {
-        let _ = printer_name;
-        let _ = data;
-        Err("Direct ESC/POS raw printer is only supported on Windows".into())
-    }
+        #[cfg(not(target_os = "windows"))]
+        {
+            let _ = printer_name;
+            let _ = data;
+            Err("Direct ESC/POS raw printer is only supported on Windows".into())
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-pub fn print_network_escpos(host: String, port: Option<u16>, data: Vec<u8>) -> Result<(), String> {
-    if data.is_empty() {
-        return Err("Print data buffer is empty".into());
-    }
+pub async fn print_network_escpos(
+    host: String,
+    port: Option<u16>,
+    data: Vec<u8>,
+) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        if data.is_empty() {
+            return Err("Print data buffer is empty".into());
+        }
 
-    let target_port = port.unwrap_or(9100);
-    let addr_str = format!("{}:{}", host.trim(), target_port);
-    let socket_addr: SocketAddr = addr_str
-        .parse()
-        .map_err(|e| format!("Invalid network printer address '{}': {}", addr_str, e))?;
+        let target_port = port.unwrap_or(9100);
+        let trimmed_host = host.trim();
+        if trimmed_host.is_empty() {
+            return Err("Network printer host cannot be empty".into());
+        }
 
-    let mut stream = TcpStream::connect_timeout(&socket_addr, Duration::from_secs(4))
-        .map_err(|e| format!("Failed to connect to network thermal printer at {}: {}", addr_str, e))?;
+        let addr_str = format!("{}:{}", trimmed_host, target_port);
+        let socket_addr: SocketAddr = addr_str
+            .to_socket_addrs()
+            .map_err(|e| format!("Failed to resolve network printer address '{}': {}", addr_str, e))?
+            .next()
+            .ok_or_else(|| format!("No network address resolved for '{}'", addr_str))?;
 
-    stream
-        .write_all(&data)
-        .map_err(|e| format!("Failed writing ESC/POS data to printer: {}", e))?;
+        let mut stream = TcpStream::connect_timeout(&socket_addr, Duration::from_secs(4))
+            .map_err(|e| {
+                format!(
+                    "Failed to connect to network thermal printer at {}: {}",
+                    addr_str, e
+                )
+            })?;
 
-    stream
-        .flush()
-        .map_err(|e| format!("Failed flushing socket to printer: {}", e))?;
+        stream
+            .set_write_timeout(Some(Duration::from_secs(5)))
+            .map_err(|e| format!("Failed to set write timeout: {}", e))?;
+        stream
+            .set_read_timeout(Some(Duration::from_secs(5)))
+            .map_err(|e| format!("Failed to set read timeout: {}", e))?;
 
-    Ok(())
+        stream
+            .write_all(&data)
+            .map_err(|e| format!("Failed writing ESC/POS data to printer: {}", e))?;
+
+        stream
+            .flush()
+            .map_err(|e| format!("Failed flushing socket to printer: {}", e))?;
+
+        Ok(())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }

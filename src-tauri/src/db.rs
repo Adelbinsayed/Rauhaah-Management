@@ -146,14 +146,39 @@ fn sql_ref_to_json(val: ValueRef<'_>) -> JsonValue {
     }
 }
 
+fn ensure_writable_dir(root: &Path, dir: &Path) -> Result<(), String> {
+    if let Err(e) = fs::create_dir_all(dir) {
+        return Err(format!(
+            "Cannot write to app folder '{}' ({e}). Move Rauhaah out of Program Files to a writable folder such as Desktop or D:\\Rauhaah.",
+            root.display()
+        ));
+    }
+    let probe = dir.join(".write_test");
+    match fs::write(&probe, b"ok") {
+        Ok(_) => {
+            let _ = fs::remove_file(&probe);
+            Ok(())
+        }
+        Err(e) => Err(format!(
+            "Cannot write to app folder '{}' ({e}). Move Rauhaah out of Program Files to a writable folder such as Desktop or D:\\Rauhaah.",
+            root.display()
+        )),
+    }
+}
+
 pub fn init_db() -> Result<DbState, String> {
     let root = resolve_portable_root()?;
     let data_dir = root.join("data");
     let backups_dir = root.join("backups");
     let import_dir = root.join("Import");
 
-    fs::create_dir_all(&data_dir).map_err(|e| format!("Failed to create data dir: {e}"))?;
-    fs::create_dir_all(&backups_dir).map_err(|e| format!("Failed to create backups dir: {e}"))?;
+    ensure_writable_dir(&root, &data_dir)?;
+    fs::create_dir_all(&backups_dir).map_err(|e| {
+        format!(
+            "Cannot write to app folder '{}' (failed to create backups dir: {e}). Move Rauhaah out of Program Files to a writable folder such as Desktop or D:\\Rauhaah.",
+            root.display()
+        )
+    })?;
     fs::create_dir_all(import_dir.join("Processed"))
         .map_err(|e| format!("Failed to create Import/Processed dir: {e}"))?;
     fs::create_dir_all(import_dir.join("Failed"))
@@ -189,7 +214,7 @@ pub fn init_db() -> Result<DbState, String> {
     })
 }
 
-fn run_migrations(conn: &Connection) -> Result<(), String> {
+pub(crate) fn run_migrations(conn: &Connection) -> Result<(), String> {
     conn.execute_batch(
         "CREATE TABLE IF NOT EXISTS schema_migrations (
             version INTEGER PRIMARY KEY NOT NULL,
@@ -208,19 +233,48 @@ fn run_migrations(conn: &Connection) -> Result<(), String> {
             .map_err(|e| format!("Migration check failed: {e}"))?;
 
         if already_applied == 0 {
-            let tx = conn
-                .unchecked_transaction()
-                .map_err(|e| format!("Failed to begin migration tx: {e}"))?;
-            tx.execute_batch(m.sql)
-                .map_err(|e| format!("Migration {} failed: {e}", m.version))?;
-            let now = Utc::now().to_rfc3339();
-            tx.execute(
-                "INSERT INTO schema_migrations (version, applied_at) VALUES (?1, ?2)",
-                rusqlite::params![m.version, now],
-            )
-            .map_err(|e| format!("Failed to record migration {}: {e}", m.version))?;
-            tx.commit()
-                .map_err(|e| format!("Failed to commit migration {}: {e}", m.version))?;
+            let needs_fk_off = m
+                .sql
+                .to_ascii_uppercase()
+                .contains("PRAGMA FOREIGN_KEYS = OFF");
+            if needs_fk_off {
+                conn.execute_batch("PRAGMA foreign_keys = OFF;")
+                    .map_err(|e| {
+                        format!(
+                            "Failed to disable foreign keys for migration {}: {e}",
+                            m.version
+                        )
+                    })?;
+            }
+
+            let tx_result: Result<(), String> = (|| {
+                let tx = conn
+                    .unchecked_transaction()
+                    .map_err(|e| format!("Failed to begin migration tx: {e}"))?;
+                tx.execute_batch(m.sql)
+                    .map_err(|e| format!("Migration {} failed: {e}", m.version))?;
+                let now = Utc::now().to_rfc3339();
+                tx.execute(
+                    "INSERT INTO schema_migrations (version, applied_at) VALUES (?1, ?2)",
+                    rusqlite::params![m.version, now],
+                )
+                .map_err(|e| format!("Failed to record migration {}: {e}", m.version))?;
+                tx.commit()
+                    .map_err(|e| format!("Failed to commit migration {}: {e}", m.version))?;
+                Ok(())
+            })();
+
+            if needs_fk_off {
+                conn.execute_batch("PRAGMA foreign_keys = ON;")
+                    .map_err(|e| {
+                        format!(
+                            "Failed to re-enable foreign keys after migration {}: {e}",
+                            m.version
+                        )
+                    })?;
+            }
+
+            tx_result?;
         }
     }
 
@@ -489,4 +543,27 @@ pub fn db_info(state: State<'_, DbState>) -> Result<DbInfo, String> {
         device_id: state.device_id.clone(),
         applied_migrations: versions,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn migrations_apply_cleanly_and_keep_foreign_keys_enabled() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch("PRAGMA foreign_keys = ON;").unwrap();
+
+        run_migrations(&conn).unwrap();
+
+        let fk_enabled: i64 = conn
+            .query_row("PRAGMA foreign_keys;", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(fk_enabled, 1);
+
+        let migration_count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM schema_migrations;", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(migration_count, MIGRATIONS.len() as i64);
+    }
 }

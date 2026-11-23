@@ -47,6 +47,20 @@ fn format_bytes(bytes: u64) -> String {
     }
 }
 
+fn sanitize_backup_filename(filename: &str) -> Result<&str, String> {
+    if filename.is_empty()
+        || filename.contains("..")
+        || filename.contains('/')
+        || filename.contains('\\')
+        || filename.contains('\0')
+        || filename.contains('"')
+        || !filename.ends_with(".db")
+    {
+        return Err("Invalid backup filename".into());
+    }
+    Ok(filename)
+}
+
 #[tauri::command]
 pub fn create_backup(
     state: State<'_, DbState>,
@@ -56,7 +70,7 @@ pub fn create_backup(
         .map_err(|e| format!("Failed to create backups directory: {e}"))?;
 
     let now_local = Local::now();
-    let timestamp_str = now_local.format("%Y%m%d_%H%M%S").to_string();
+    let timestamp_str = now_local.format("%Y%m%d_%H%M%S_%3f").to_string();
 
     let clean_label = match label {
         Some(ref l) if !l.trim().is_empty() => {
@@ -64,10 +78,15 @@ pub fn create_backup(
                 .trim()
                 .chars()
                 .filter(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
+                .take(40)
                 .collect();
-            format!("_{}", sanitized)
+            if sanitized.is_empty() {
+                String::new()
+            } else {
+                format!("_{}", sanitized)
+            }
         }
-        _ => "".to_string(),
+        _ => String::new(),
     };
 
     let filename = format!("rauhaah_backup_{}{}.db", timestamp_str, clean_label);
@@ -84,8 +103,7 @@ pub fn create_backup(
         // Truncate WAL to ensure everything is flushed to main file
         let _ = conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);");
 
-        let vacuum_sql = format!("VACUUM INTO '{}';", target_path_str);
-        conn.execute_batch(&vacuum_sql)
+        conn.execute("VACUUM INTO ?1", [&target_path_str])
             .map_err(|e| format!("VACUUM INTO failed: {e}"))?;
     }
 
@@ -164,21 +182,19 @@ pub fn restore_backup(
     state: State<'_, DbState>,
     filename: String,
 ) -> Result<String, String> {
-    // Basic sanitization
-    if filename.contains("..") || filename.contains('/') || filename.contains('\\') {
-        return Err("Invalid backup filename".into());
-    }
+    sanitize_backup_filename(&filename)?;
 
     let backup_path = state.backups_dir.join(&filename);
     if !backup_path.exists() {
         return Err(format!("Backup file '{}' does not exist", filename));
     }
 
-    // 1. Validate the source backup file integrity first
+    // 1. Validate the source backup file integrity and schema first
     let source_conn = Connection::open_with_flags(
         &backup_path,
-        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY | rusqlite::OpenFlags::SQLITE_OPEN_URI,
-    ).map_err(|e| format!("Failed to open backup database: {e}"))?;
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+    )
+    .map_err(|e| format!("Failed to open backup database: {e}"))?;
 
     let integrity_check: String = source_conn
         .query_row("PRAGMA integrity_check;", [], |r| r.get(0))
@@ -188,6 +204,21 @@ pub fn restore_backup(
         return Err(format!("Backup file is corrupted: {integrity_check}"));
     }
 
+    for required_table in ["schema_migrations", "users", "branches", "sellables"] {
+        let exists: i64 = source_conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?1",
+                [required_table],
+                |r| r.get(0),
+            )
+            .map_err(|e| format!("Failed validating backup schema: {e}"))?;
+        if exists == 0 {
+            return Err(format!(
+                "Invalid backup file: missing required table '{required_table}'"
+            ));
+        }
+    }
+
     // 2. Lock destination connection
     let mut dest_conn = state
         .conn
@@ -195,14 +226,24 @@ pub fn restore_backup(
         .map_err(|_| "Database connection lock poisoned".to_string())?;
 
     // 3. Take emergency safety snapshot of current DB before overwriting!
+    fs::create_dir_all(&state.backups_dir)
+        .map_err(|e| format!("Aborting restore: failed to create backups directory: {e}"))?;
+
     let now_local = Local::now();
-    let safety_filename = format!("rauhaah_backup_{}_PRE_RESTORE_SAFETY.db", now_local.format("%Y%m%d_%H%M%S"));
+    let safety_filename = format!(
+        "rauhaah_backup_{}_PRE_RESTORE_SAFETY.db",
+        now_local.format("%Y%m%d_%H%M%S_%3f")
+    );
     let safety_path = state.backups_dir.join(&safety_filename);
     let safety_path_str = safety_path.to_string_lossy().to_string().replace('\\', "/");
 
     let _ = dest_conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);");
-    let safety_sql = format!("VACUUM INTO '{}';", safety_path_str);
-    let _ = dest_conn.execute_batch(&safety_sql);
+    let safety_escaped = safety_path_str.replace('\'', "''");
+    dest_conn
+        .execute_batch(&format!("VACUUM INTO '{safety_escaped}';"))
+        .map_err(|e| {
+            format!("Aborting restore: failed to create pre-restore safety snapshot: {e}")
+        })?;
 
     // 4. Restore using SQLite's online backup API
     {
@@ -214,7 +255,10 @@ pub fn restore_backup(
             .map_err(|e| format!("Failed during backup restore transfer: {e}"))?;
     }
 
-    // 5. Finalize restored database
+    // 5. Run any newer migrations cleanly if restoring an older backup
+    crate::db::run_migrations(&dest_conn)?;
+
+    // 6. Finalize restored database
     let _ = dest_conn.execute_batch(
         "PRAGMA wal_checkpoint(TRUNCATE);
          PRAGMA optimize;",
@@ -231,9 +275,7 @@ pub fn export_backup_to_downloads(
     state: State<'_, DbState>,
     filename: String,
 ) -> Result<String, String> {
-    if filename.contains("..") || filename.contains('/') || filename.contains('\\') {
-        return Err("Invalid backup filename".into());
-    }
+    sanitize_backup_filename(&filename)?;
 
     let source_path = state.backups_dir.join(&filename);
     if !source_path.exists() {
@@ -266,9 +308,7 @@ pub fn delete_backup(
     state: State<'_, DbState>,
     filename: String,
 ) -> Result<(), String> {
-    if filename.contains("..") || filename.contains('/') || filename.contains('\\') {
-        return Err("Invalid backup filename".into());
-    }
+    sanitize_backup_filename(&filename)?;
 
     let target_path = state.backups_dir.join(&filename);
     if target_path.exists() {
@@ -294,15 +334,27 @@ pub fn get_db_health(state: State<'_, DbState>) -> Result<DbHealthStats, String>
         .unwrap_or_else(|_| "unknown".into());
 
     let total_sales_count: i64 = conn
-        .query_row("SELECT count(*) FROM sales WHERE deleted_at IS NULL;", [], |r| r.get(0))
+        .query_row(
+            "SELECT count(*) FROM sales WHERE status = 'completed';",
+            [],
+            |r| r.get(0),
+        )
         .unwrap_or(0);
 
     let total_customers_count: i64 = conn
-        .query_row("SELECT count(*) FROM customers WHERE deleted_at IS NULL;", [], |r| r.get(0))
+        .query_row(
+            "SELECT count(*) FROM customers WHERE deleted_at IS NULL;",
+            [],
+            |r| r.get(0),
+        )
         .unwrap_or(0);
 
     let total_products_count: i64 = conn
-        .query_row("SELECT count(*) FROM products WHERE deleted_at IS NULL;", [], |r| r.get(0))
+        .query_row(
+            "SELECT count(*) FROM sellables WHERE deleted_at IS NULL;",
+            [],
+            |r| r.get(0),
+        )
         .unwrap_or(0);
 
     // Find last backup time
@@ -335,4 +387,45 @@ pub fn get_db_health(state: State<'_, DbState>) -> Result<DbHealthStats, String>
         integrity_status,
         last_backup_at,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sanitize_backup_filename_rejects_traversal_and_non_db() {
+        assert!(sanitize_backup_filename("").is_err());
+        assert!(sanitize_backup_filename("../evil.db").is_err());
+        assert!(sanitize_backup_filename("sub/evil.db").is_err());
+        assert!(sanitize_backup_filename("sub\\evil.db").is_err());
+        assert!(sanitize_backup_filename("evil\"quote.db").is_err());
+        assert!(sanitize_backup_filename("evil\0nul.db").is_err());
+        assert!(sanitize_backup_filename("backup.sql").is_err());
+        assert_eq!(
+            sanitize_backup_filename("rauhaah_backup_2026.db").unwrap(),
+            "rauhaah_backup_2026.db"
+        );
+    }
+
+    #[test]
+    fn vacuum_into_supports_bind_param_with_single_quote() {
+        let dir = std::env::temp_dir().join(format!("rauhaah_test_{}", uuid::Uuid::now_v7()));
+        fs::create_dir_all(&dir).unwrap();
+        let target = dir.join("o'reilly_backup.db");
+        let target_str = target.to_string_lossy().to_string();
+
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch("CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT); INSERT INTO t VALUES (1, 'ok');")
+            .unwrap();
+        conn.execute("VACUUM INTO ?1", [&target_str]).unwrap();
+
+        let backup_conn = Connection::open(&target).unwrap();
+        let val: String = backup_conn
+            .query_row("SELECT name FROM t WHERE id = 1", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(val, "ok");
+
+        let _ = fs::remove_dir_all(&dir);
+    }
 }
