@@ -18,7 +18,7 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
     }
   });
 
-  const [mode, setMode] = useState<'password' | 'pin'>('password');
+  const [mode, setMode] = useState<'password' | 'pin'>('pin');
   const [username, setUsername] = useState(savedUser);
   const [rememberUsername, setRememberUsername] = useState(true);
   const [password, setPassword] = useState('');
@@ -144,22 +144,8 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
           <p className="text-xs text-ink-muted">Sign in to access your shop terminal</p>
         </div>
 
-        {/* Mode switcher tabs (Password vs PIN) */}
+        {/* Mode switcher tabs (Quick PIN vs Password) */}
         <div className="grid grid-cols-2 p-1 bg-raised border border-hairline rounded-lg text-xs font-medium">
-          <button
-            type="button"
-            onClick={() => {
-              setMode('password');
-              setError(null);
-            }}
-            className={`py-1.5 rounded-md transition-colors duration-150 ease-unslop ${
-              mode === 'password'
-                ? 'bg-surface text-accent-ink border border-hairline shadow-[0_1px_2px_rgba(0,0,0,0.04)]'
-                : 'text-ink-muted hover:text-ink'
-            }`}
-          >
-            Password
-          </button>
           <button
             type="button"
             onClick={() => {
@@ -173,6 +159,20 @@ export function LoginScreen({ deviceId, onLoginSuccess }: LoginScreenProps) {
             }`}
           >
             Quick PIN
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode('password');
+              setError(null);
+            }}
+            className={`py-1.5 rounded-md transition-colors duration-150 ease-unslop ${
+              mode === 'password'
+                ? 'bg-surface text-accent-ink border border-hairline shadow-[0_1px_2px_rgba(0,0,0,0.04)]'
+                : 'text-ink-muted hover:text-ink'
+            }`}
+          >
+            Password
           </button>
         </div>
 
